@@ -1,34 +1,33 @@
+## What you're seeing
 
-## Goal
+That "18.744233 USDC" line in the Privy modal is **not** the token you're paying with — it's the wallet's **gas balance** (USDC, since USDC is gas on Arc). Privy always shows the gas-fee token there, regardless of which ERC-20 you're approving.
 
-Extend the current single-page Dance Move Tokens demo with a Shopify-powered e-commerce layer for physical street dance merch (sneakers, snapbacks, baseball jackets, trousers, socks, tees, bandanas), using a new Shopify development store as the catalog + checkout backend.
+The actual token being approved IS correct:
+- EURC screenshot → `Token address: 0x89B...D72a` ✅ (matches `TOKENS.EURC`)
+- cirBTC screenshot → tx `data` starts with `0xa1f2e8aa` = `log(address,uint256,string)` on the contract (the approve step was skipped because `VITE_CIRBTC_ADDRESS` is unset → cirBTC address is `0x000…000`, so `MintForm` bypasses approval and goes straight to `log`)
 
-## Approach
+The "Approval amount" row is blank because Privy's modal doesn't know EURC/cirBTC decimals+symbol to render a human-readable amount — it only auto-formats known tokens (USDC on Arc). This is a Privy UI limitation, not a bug in our code.
 
-1. **Enable Shopify (new development store)** via `shopify--enable` with `store_type: "new"`. This provisions a free dev store; user can claim within 30 days to keep it and start Shopify's 120-day post-claim trial.
-2. **Offer claim** immediately after creation via `shopify--claim_store` (user can skip).
-3. **Follow the enabled Shopify knowledge** (only becomes available after enable) to wire product catalog, cart, and Shopify Checkout into the app.
+## Root cause summary
 
-## What ships in the app
+| Symptom | Cause |
+|---|---|
+| Modal shows "USDC" balance while approving EURC | Privy displays wallet's gas-token balance, not the approval token |
+| "Approval amount" empty | Privy has no token metadata for EURC/cirBTC to format the raw uint256 |
+| cirBTC "approve" step missing | `VITE_CIRBTC_ADDRESS` unset → address is zero → `MintForm` intentionally skips approve |
 
-- New route `/shop` with a Spotify-dark, street-dance themed storefront (product grid, product detail, cart drawer, Shopify checkout handoff).
-- Header gets a "Shop" link next to the existing Dance Move Tokens demo — both coexist on the same single-page app shell.
-- Seed catalog of street dance merch categories: Sneakers, Snapbacks, Baseball Jackets, Trousers, Socks, Tees, Bandanas.
-- Product data lives in Shopify (source of truth). We create the categories/products via Shopify tools after enable.
+## Plan
 
-## What stays untouched
+Make it obvious in **our** UI what the user is actually approving, since Privy's modal won't:
 
-- Existing `DanceMoveTokens.sol`, Arc chain config, Privy wallet, Circle SCP bootstrap — untouched. The merch store is a parallel feature, not a replacement.
+1. **Add a pre-confirmation summary above the button** in `src/components/dance/MintForm.tsx`:
+   - "You'll approve **{amount} {symbol}** to be spent by the DanceMoveTokens contract, then log the move."
+   - Show the token contract address (short) so it matches the `Token address` line in Privy.
 
-## Order of operations (single next message)
+2. **Fix cirBTC UX** — when `TOKENS.cirBTC.address` is the zero address, disable the cirBTC button in `TokenSwitcher` and show a note ("Set `VITE_CIRBTC_ADDRESS` to enable"), instead of silently skipping approval.
 
-1. Call `shopify--enable` with `store_type: "new"`.
-2. On success, call `shopify--claim_store` so you can claim or skip.
-3. Then follow the newly-surfaced Shopify knowledge to build the `/shop` route, seed products, and wire checkout.
+3. **No contract or chain changes.** Frontend-only, presentation code.
 
-## Cost / setup notes
-
-- Development store is free to build on.
-- To keep the store, claim it within 30 days (Shopify removes unclaimed dev stores after 30 days).
-- Claiming starts a separate 120-day free trial on a Shopify subscription; a paid plan is only needed once that trial ends and you're ready to actually sell.
-- For current plan options and pricing, see Shopify's official pricing page.
+### Technical notes
+- Privy's approval modal formatting for non-USDC ERC-20s is out of our control; documenting this in the skill file could save future confusion but isn't required.
+- The zero-address short-circuit in `MintForm.onSubmit` stays — we just gate the UI so users can't select it in that state.
