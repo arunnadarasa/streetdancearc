@@ -17,6 +17,15 @@ let entitySecret = process.env.CIRCLE_ENTITY_SECRET
                 || crypto.randomBytes(32).toString("hex");
 const provided = !!process.env.CIRCLE_ENTITY_SECRET;
 
+// CRITICAL: persist the entity secret to disk BEFORE any network call so it
+// cannot be lost if the process dies or registration succeeds silently.
+fs.writeFileSync(RECOVERY, JSON.stringify({
+  entitySecret,
+  warning: "Keep safe. Circle never reveals this again.",
+  savedAt: new Date().toISOString(),
+}, null, 2));
+console.log("Entity secret saved to", RECOVERY, "(pre-registration).");
+
 // 2. RSA-OAEP-SHA256 encrypt with Circle's public key and register.
 const { data: { publicKey } } = await fetch(`${API}/config/entity/publicKey`, { headers: H }).then(r => r.json());
 const ciphertext = crypto.publicEncrypt(
