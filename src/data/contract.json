@@ -1,0 +1,29 @@
+{
+  "address": "0x0000000000000000000000000000000000000000",
+  "abi": [
+    {
+      "type": "function",
+      "name": "log",
+      "stateMutability": "nonpayable",
+      "inputs": [
+        { "name": "token", "type": "address" },
+        { "name": "amount", "type": "uint256" },
+        { "name": "cid", "type": "string" }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "event",
+      "name": "Logged",
+      "inputs": [
+        { "name": "author", "type": "address", "indexed": true },
+        { "name": "token", "type": "address", "indexed": true },
+        { "name": "amount", "type": "uint256", "indexed": false },
+        { "name": "cid", "type": "string", "indexed": false },
+        { "name": "at", "type": "uint256", "indexed": false }
+      ]
+    }
+  ],
+  "chainId": 5042002,
+  "explorer": "https://testnet.arcscan.app"
+}
