@@ -1,0 +1,5 @@
+{
+  "recoveryFile": "AAABn4A4UVpyhKlVpzJi+lZial5DqgAAAFCLwT2/W2wPN3RuJ44RPPJaoNN9LURwtyXqo/VIdFXnPSxpkCrmUUg87Y4PvrIVBGAIUQYO2n6MO+vsIhnb0hvpYofz39fbv9AzEFhSUaVkKg==",
+  "note": "Recovery file captured during accidental registration on 2026-07-20. The corresponding entity secret was random and NOT saved. Use this file at https://console.circle.com/ -> Developers -> Reset Entity Secret to install a new secret.",
+  "warning": "Keep safe. Circle never reveals the entity secret again."
+}
