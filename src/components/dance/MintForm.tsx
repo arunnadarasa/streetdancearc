@@ -70,21 +70,19 @@ export function MintForm() {
       });
       const publicClient = createPublicClient({ chain: arcTestnet, transport: http() });
 
-      // 1. Approve (skip if zero address = unset cirBTC)
-      if (tokenCfg.address !== "0x0000000000000000000000000000000000000000") {
-        setStatus(`Approving ${tokenCfg.symbol}…`);
-        const approveData = encodeFunctionData({
-          abi: ERC20_APPROVE_ABI,
-          functionName: "approve",
-          args: [contractAddress, value],
-        });
-        const approveHash = await walletClient.sendTransaction({
-          to: tokenCfg.address as Address,
-          data: approveData,
-          chain: arcTestnet,
-        });
-        await publicClient.waitForTransactionReceipt({ hash: approveHash });
-      }
+      // 1. Approve
+      setStatus(`Approving ${tokenCfg.symbol}…`);
+      const approveData = encodeFunctionData({
+        abi: ERC20_APPROVE_ABI,
+        functionName: "approve",
+        args: [contractAddress, value],
+      });
+      const approveHash = await walletClient.sendTransaction({
+        to: tokenCfg.address as Address,
+        data: approveData,
+        chain: arcTestnet,
+      });
+      await publicClient.waitForTransactionReceipt({ hash: approveHash });
 
       // 2. Call log(token, amount, cid)
       setStatus(`Logging move on-chain…`);
