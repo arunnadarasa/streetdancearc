@@ -29,7 +29,8 @@ const regJson = await reg.json().catch(() => ({}));
 if (regJson.data?.recoveryFile) {
   fs.writeFileSync(RECOVERY, JSON.stringify({ entitySecret, recoveryFile: regJson.data.recoveryFile, warning: "Keep safe. Circle never reveals this again." }, null, 2));
 } else {
-fs.writeFileSync(RECOVERY, JSON.stringify({ entitySecret, warning: "Keep safe. Circle never reveals this again." }, null, 2));
+  fs.writeFileSync(RECOVERY, JSON.stringify({ entitySecret, warning: "Keep safe. Circle never reveals this again." }, null, 2));
+}
 
 // 3. Create treasury wallet on ARC-TESTNET.
 const idempotencyKey = crypto.randomUUID();
