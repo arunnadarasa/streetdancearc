@@ -90,7 +90,7 @@ if (!wallet) { console.error("wallet create failed", JSON.stringify(walletRes));
 
 console.log("\n=== PASTE THESE INTO Project Settings -> Secrets ===\n");
 console.log("CIRCLE_ENTITY_SECRET         =", entitySecret);
-console.log("CIRCLE_TREASURY_WALLET_ID    =", wallet.id);
-console.log("VITE_CIRCLE_TREASURY_ADDRESS =", wallet.address);
+console.log("CIRCLE_TREASURY_WALLET_ID =", wallet.id);
+console.log("CIRCLE_TREASURY_ADDRESS   =", wallet.address);
 console.log(`\nThen fund the address at https://faucet.circle.com/ (USDC gas + EURC + cirBTC on Arc Testnet).`);
 console.log(`Address: ${wallet.address}`);
