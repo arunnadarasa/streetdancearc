@@ -5,7 +5,10 @@ import { TreasuryCard } from "@/components/dance/TreasuryCard";
 import { MintForm } from "@/components/dance/MintForm";
 
 export const Route = createFileRoute("/")({
-  loader: () => ({ privyAppId: process.env.PRIVY_APP_ID }),
+  loader: () => ({
+    privyAppId: process.env.PRIVY_APP_ID,
+    treasuryAddress: process.env.CIRCLE_TREASURY_ADDRESS,
+  }),
   component: Index,
 });
 

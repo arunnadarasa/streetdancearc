@@ -1,10 +1,9 @@
 import { useState } from "react";
 
-export function TreasuryCard() {
-  const addr = import.meta.env.VITE_CIRCLE_TREASURY_ADDRESS as string | undefined;
+export function TreasuryCard({ address }: { address?: string }) {
   const [copied, setCopied] = useState(false);
 
-  if (!addr) {
+  if (!address) {
     return (
       <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5">
         <p className="text-sm text-neutral-300">
@@ -13,6 +12,8 @@ export function TreasuryCard() {
       </div>
     );
   }
+
+  const addr = address;
 
   return (
     <div className="rounded-2xl border border-neutral-800 bg-gradient-to-br from-neutral-900 to-neutral-950 p-5">
