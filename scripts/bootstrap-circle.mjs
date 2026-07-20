@@ -24,8 +24,10 @@ const ciphertext = crypto.publicEncrypt(
 const reg = await fetch(`${API}/config/entity/entitySecret`, {
   method: "POST", headers: H, body: JSON.stringify({ entitySecretCiphertext: ciphertext })
 });
-if (reg.status !== 200 && reg.status !== 201 && reg.status !== 409) { console.error("register failed", reg.status, await reg.text()); process.exit(1); }
-const regJson = await reg.json().catch(() => ({}));
+const regText = await reg.text();
+console.log("register status:", reg.status, "body:", regText.slice(0, 500));
+if (reg.status !== 200 && reg.status !== 201 && reg.status !== 409) { console.error("register failed", reg.status, regText); process.exit(1); }
+const regJson = JSON.parse(regText || "{}");
 if (regJson.data?.recoveryFile) {
   fs.writeFileSync(RECOVERY, JSON.stringify({ entitySecret, recoveryFile: regJson.data.recoveryFile, warning: "Keep safe. Circle never reveals this again." }, null, 2));
 } else {
