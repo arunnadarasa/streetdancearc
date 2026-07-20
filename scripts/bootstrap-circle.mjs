@@ -10,22 +10,50 @@ const KEY = process.env.CIRCLE_API_KEY;
 if (!KEY) { console.error("Paste CIRCLE_API_KEY first (Project Settings -> Secrets)."); process.exit(1); }
 const H = { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" };
 
-// 1. Reuse an existing recovery file if present (re-runs after a remix).
+// 1. Prefer an explicitly provided entity secret, then a recovery file, then generate new.
 const RECOVERY = "circle-entity-recovery.json";
-let entitySecret = fs.existsSync(RECOVERY) ? JSON.parse(fs.readFileSync(RECOVERY,"utf8")).entitySecret
-                                           : crypto.randomBytes(32).toString("hex");
+let entitySecret = process.env.CIRCLE_ENTITY_SECRET
+                || (fs.existsSync(RECOVERY) ? JSON.parse(fs.readFileSync(RECOVERY,"utf8")).entitySecret : null)
+                || crypto.randomBytes(32).toString("hex");
+const provided = !!process.env.CIRCLE_ENTITY_SECRET;
 
-// 2. RSA-OAEP-SHA256 encrypt with Circle's public key and register (409 = already registered, OK).
+// 2. RSA-OAEP-SHA256 encrypt with Circle's public key and register.
 const { data: { publicKey } } = await fetch(`${API}/config/entity/publicKey`, { headers: H }).then(r => r.json());
 const ciphertext = crypto.publicEncrypt(
   { key: crypto.createPublicKey(publicKey), oaepHash: "sha256", padding: crypto.constants.RSA_PKCS1_OAEP_PADDING },
   Buffer.from(entitySecret, "hex")
 ).toString("base64");
 const reg = await fetch(`${API}/config/entity/entitySecret`, {
-  method: "PUT", headers: H, body: JSON.stringify({ entitySecretCiphertext: ciphertext })
+  method: "POST", headers: H, body: JSON.stringify({ entitySecretCiphertext: ciphertext })
 });
-if (reg.status !== 200 && reg.status !== 409) { console.error("register failed", reg.status, await reg.text()); process.exit(1); }
-fs.writeFileSync(RECOVERY, JSON.stringify({ entitySecret, warning: "Keep safe. Circle never reveals this again." }, null, 2));
+if (reg.status !== 200 && reg.status !== 201 && reg.status !== 409) {
+  const text = await reg.text();
+  console.error("register failed", reg.status, text); process.exit(1);
+}
+if (reg.status === 409) {
+  if (provided) {
+    console.log("Entity secret already registered; using the provided CIRCLE_ENTITY_SECRET.");
+  } else {
+    console.error(`
+This Circle API key already has an entity secret registered, and Circle never reveals it again.
+To continue you have two options:
+
+1. Provide the existing entity secret:
+   CIRCLE_ENTITY_SECRET=<hex> node scripts/bootstrap-circle.mjs
+
+2. Use a fresh Circle API key (generate a new one in the Circle Developer Console),
+   update Project Settings -> Secrets with the new CIRCLE_API_KEY, then re-run this script.
+`);
+    process.exit(1);
+  }
+}
+const regJson = await reg.json().catch(() => ({}));
+const recoveryFile = regJson.data?.recoveryFile;
+fs.writeFileSync(RECOVERY, JSON.stringify({
+  entitySecret,
+  ...(recoveryFile ? { recoveryFile } : {}),
+  warning: "Keep safe. Circle never reveals this again."
+}, null, 2));
 
 // 3. Create treasury wallet on ARC-TESTNET.
 const idempotencyKey = crypto.randomUUID();
@@ -37,7 +65,8 @@ const setRes = await fetch(`${API}/developer/walletSets`, {
   method: "POST", headers: H,
   body: JSON.stringify({ idempotencyKey, entitySecretCiphertext: freshCipher, name: "arc-treasury" })
 }).then(r => r.json());
-const walletSetId = setRes.data?.walletSet?.id;
+if (!setRes.data?.walletSet?.id) { console.error("wallet set create failed", JSON.stringify(setRes)); process.exit(1); }
+const walletSetId = setRes.data.walletSet.id;
 const walletCipher = crypto.publicEncrypt(
   { key: crypto.createPublicKey(publicKey), oaepHash: "sha256", padding: crypto.constants.RSA_PKCS1_OAEP_PADDING },
   Buffer.from(entitySecret, "hex")
