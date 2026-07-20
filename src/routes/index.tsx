@@ -13,7 +13,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { privyAppId } = Route.useLoaderData();
+  const { privyAppId, treasuryAddress } = Route.useLoaderData();
   return (
     <PrivyRoot appId={privyAppId}>
       <main className="min-h-screen bg-[#0a0a0a] text-white">
@@ -33,7 +33,7 @@ function Index() {
             </p>
           </section>
 
-          <TreasuryCard />
+          <TreasuryCard address={treasuryAddress} />
           <MintForm />
 
           <footer className="pt-6 text-center text-xs text-neutral-500">
