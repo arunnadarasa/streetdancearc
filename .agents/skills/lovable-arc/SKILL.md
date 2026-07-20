@@ -1,6 +1,6 @@
 ---
 name: lovable-arc
-description: Ship a Lovable single-page dApp on Circle's Arc Testnet — Privy embedded wallet with USDC as native gas, Circle SCP contract deploy from a developer-controlled treasury wallet, Arcscan/Blockscout source verification, and multi-stablecoin (USDC/EURC/cirBTC) payment UX. Captures Arc-specific quirks: chain id 5042002, 6-decimal native gas, `VITE_*` secret-prefix ban in Lovable, and the Circle entity-secret onboarding traps. Triggers on "Arc Testnet", "Arcscan", "arc.io", "USDC gas", "Circle SCP deploy on Arc", "cirBTC", "EURC on Arc".
+description: "Ship a Lovable single-page dApp on Circle's Arc Testnet — Privy embedded wallet with USDC as native gas, Circle SCP contract deploy from a developer-controlled treasury wallet, Arcscan/Blockscout source verification, and multi-stablecoin (USDC/EURC/cirBTC) payment UX. Captures Arc-specific quirks including chain id 5042002, 6-decimal native gas, the VITE_ secret-prefix ban in Lovable, and Circle entity-secret onboarding traps. Triggers on Arc Testnet, Arcscan, arc.io, USDC gas, Circle SCP deploy on Arc, cirBTC, EURC on Arc."
 ---
 
 # Lovable · Arc Testnet
