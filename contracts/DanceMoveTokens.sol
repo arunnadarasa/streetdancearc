@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity 0.8.24;
 /// @title PaymentDanceMoveTokens
 /// @notice Create, pin, and trade unique dance moves with JSON metadata on IPFS representing rights.
 /// @notice Built during the Creative AI & Quantum Hackathon organised by StreetKode Fam during Indian Krump Festival 14
