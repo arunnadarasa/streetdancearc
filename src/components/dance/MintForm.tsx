@@ -141,6 +141,18 @@ export function MintForm() {
         />
       </div>
 
+      {authenticated && contractDeployed && (
+        <div className="rounded-lg border border-neutral-800 bg-black/30 p-3 text-xs text-neutral-400">
+          You'll approve <span className="font-semibold text-white">{amount || "0"} {TOKENS[token].symbol}</span>{" "}
+          to be spent by the DanceMoveTokens contract, then log the move.
+          <br />
+          <span className="text-neutral-500">
+            Token: <code className="text-neutral-300">{TOKENS[token].address.slice(0, 6)}…{TOKENS[token].address.slice(-4)}</code>
+            {" · "}Privy's modal shows your USDC gas balance, not the approval amount.
+          </span>
+        </div>
+      )}
+
       <button
         disabled={busy}
         onClick={onSubmit}
