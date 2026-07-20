@@ -22,9 +22,13 @@ const ciphertext = crypto.publicEncrypt(
   Buffer.from(entitySecret, "hex")
 ).toString("base64");
 const reg = await fetch(`${API}/config/entity/entitySecret`, {
-  method: "PUT", headers: H, body: JSON.stringify({ entitySecretCiphertext: ciphertext })
+  method: "POST", headers: H, body: JSON.stringify({ entitySecretCiphertext: ciphertext })
 });
-if (reg.status !== 200 && reg.status !== 409) { console.error("register failed", reg.status, await reg.text()); process.exit(1); }
+if (reg.status !== 200 && reg.status !== 201 && reg.status !== 409) { console.error("register failed", reg.status, await reg.text()); process.exit(1); }
+const regJson = await reg.json().catch(() => ({}));
+if (regJson.data?.recoveryFile) {
+  fs.writeFileSync(RECOVERY, JSON.stringify({ entitySecret, recoveryFile: regJson.data.recoveryFile, warning: "Keep safe. Circle never reveals this again." }, null, 2));
+} else {
 fs.writeFileSync(RECOVERY, JSON.stringify({ entitySecret, warning: "Keep safe. Circle never reveals this again." }, null, 2));
 
 // 3. Create treasury wallet on ARC-TESTNET.
