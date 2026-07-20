@@ -5,12 +5,15 @@ import { TreasuryCard } from "@/components/dance/TreasuryCard";
 import { MintForm } from "@/components/dance/MintForm";
 
 export const Route = createFileRoute("/")({
-  loader: () => ({ privyAppId: process.env.PRIVY_APP_ID }),
+  loader: () => ({
+    privyAppId: process.env.PRIVY_APP_ID,
+    treasuryAddress: process.env.CIRCLE_TREASURY_ADDRESS,
+  }),
   component: Index,
 });
 
 function Index() {
-  const { privyAppId } = Route.useLoaderData();
+  const { privyAppId, treasuryAddress } = Route.useLoaderData();
   return (
     <PrivyRoot appId={privyAppId}>
       <main className="min-h-screen bg-[#0a0a0a] text-white">
@@ -30,7 +33,7 @@ function Index() {
             </p>
           </section>
 
-          <TreasuryCard />
+          <TreasuryCard address={treasuryAddress} />
           <MintForm />
 
           <footer className="pt-6 text-center text-xs text-neutral-500">
