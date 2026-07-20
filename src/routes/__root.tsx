@@ -77,14 +77,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Dance Move Tokens · Arc Testnet" },
+      { name: "description", content: "License street dance moves on Circle's Arc Testnet. Pay in USDC, EURC, or cirBTC — rights metadata pinned to IPFS." },
+      { name: "author", content: "StreetKode Fam" },
+      { property: "og:title", content: "Dance Move Tokens · Arc Testnet" },
+      { property: "og:description", content: "License street dance moves on Circle's Arc Testnet. Pay in USDC, EURC, or cirBTC — rights metadata pinned to IPFS." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+
     ],
     links: [
       {
