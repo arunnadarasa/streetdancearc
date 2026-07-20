@@ -34,18 +34,29 @@ const { abi, bytecode } = compile(name);
 const ctor = abi.find(x => x.type === "constructor");
 const sig  = ctor ? `constructor(${ctor.inputs.map(i => i.type).join(",")})` : "constructor()";
 
-const body = { walletId: WID, blockchain: "ARC-TESTNET", name, bytecode,
-  abiFunctionSignature: sig, abiParameters: ctorArgs,
-  entitySecretCiphertext: await encryptEntitySecret(),
-  fee: { type: "level", config: { feeLevel: "MEDIUM" } } };
-const { data: { contractId } } = await fetch(`${API}/contracts/deploy`,
+const body = {
+  idempotencyKey: crypto.randomUUID(),
+  name,
+  description: "Dance move rights logger for street culture merchandise",
+  walletId: WID,
+  blockchain: "ARC-TESTNET",
+  abiJson: JSON.stringify(abi, null, 2),
+  bytecode,
+  constructorParameters: ctorArgs.length ? ctorArgs : [],
+  feeLevel: "MEDIUM",
+  entitySecretCiphertext: await encryptEntitySecret()
+};
+const deployRes = await fetch(`${API}/contracts/deploy`,
   { method: "POST", headers: H, body: JSON.stringify(body) }).then(r => r.json());
+console.log("Deploy response:", JSON.stringify(deployRes, null, 2));
+const contractId = deployRes.data?.contractId;
+if (!contractId) { console.error("No contractId returned"); process.exit(1); }
 
 let addr;
 for (let i = 0; i < 60 && !addr; i++) {
   await new Promise(r => setTimeout(r, 2000));
   const { data: { contract } } = await fetch(`${API}/contracts/${contractId}`, { headers: H }).then(r => r.json());
-  if (contract.state === "COMPLETE") addr = contract.contractAddress;
+  if (contract.status === "COMPLETE") addr = contract.contractAddress;
 }
 fs.mkdirSync("src/data", { recursive: true });
 fs.writeFileSync("src/data/contract.json", JSON.stringify({ address: addr, abi, chainId: 5042002, explorer: "https://testnet.arcscan.app" }, null, 2));

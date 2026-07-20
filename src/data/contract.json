@@ -1,27 +1,65 @@
 {
-  "address": "0x0000000000000000000000000000000000000000",
+  "address": "0x25ca6153cbdad374dc1e4d2940287872fa910b76",
   "abi": [
     {
-      "type": "function",
-      "name": "log",
-      "stateMutability": "nonpayable",
+      "anonymous": false,
       "inputs": [
-        { "name": "token", "type": "address" },
-        { "name": "amount", "type": "uint256" },
-        { "name": "cid", "type": "string" }
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "author",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "cid",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "at",
+          "type": "uint256"
+        }
       ],
-      "outputs": []
+      "name": "Logged",
+      "type": "event"
     },
     {
-      "type": "event",
-      "name": "Logged",
       "inputs": [
-        { "name": "author", "type": "address", "indexed": true },
-        { "name": "token", "type": "address", "indexed": true },
-        { "name": "amount", "type": "uint256", "indexed": false },
-        { "name": "cid", "type": "string", "indexed": false },
-        { "name": "at", "type": "uint256", "indexed": false }
-      ]
+        {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "cid",
+          "type": "string"
+        }
+      ],
+      "name": "log",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
     }
   ],
   "chainId": 5042002,
