@@ -42,7 +42,8 @@ const setRes = await fetch(`${API}/developer/walletSets`, {
   method: "POST", headers: H,
   body: JSON.stringify({ idempotencyKey, entitySecretCiphertext: freshCipher, name: "arc-treasury" })
 }).then(r => r.json());
-const walletSetId = setRes.data?.walletSet?.id;
+if (!setRes.data?.walletSet?.id) { console.error("wallet set create failed", JSON.stringify(setRes)); process.exit(1); }
+const walletSetId = setRes.data.walletSet.id;
 const walletCipher = crypto.publicEncrypt(
   { key: crypto.createPublicKey(publicKey), oaepHash: "sha256", padding: crypto.constants.RSA_PKCS1_OAEP_PADDING },
   Buffer.from(entitySecret, "hex")
