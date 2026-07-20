@@ -1,21 +1,34 @@
-## Plan: Re-run bootstrap cleanly with the fresh Circle API key
 
-The 409 on a brand-new key almost certainly means one of two things:
-1. A stale `circle-entity-recovery.json` from the earlier run is being reused, so the script tries to register an *old* entity secret against the new key — but more importantly, any leftover state confuses the flow.
-2. The `CIRCLE_API_KEY` secret update form was opened but the new value wasn't actually saved, so the sandbox still runs with the old key.
+## Goal
 
-### Steps
+Extend the current single-page Dance Move Tokens demo with a Shopify-powered e-commerce layer for physical street dance merch (sneakers, snapbacks, baseball jackets, trousers, socks, tees, bandanas), using a new Shopify development store as the catalog + checkout backend.
 
-1. **Confirm the secret is really updated.** Read `CIRCLE_API_KEY` prefix from the sandbox env and compare with the fresh key prefix visible in the Circle console screenshot (`TEST_API_KEY:44f0a`, "Street Dance Arc Culture"). If it doesn't match, re-open `update_secret` for `CIRCLE_API_KEY` and wait for submission before proceeding.
-2. **Remove stale state.** Delete `circle-entity-recovery.json` so the script generates a brand-new entity secret against the fresh key instead of replaying an older one.
-3. **Run bootstrap.** `node scripts/bootstrap-circle.mjs` — with a fresh key + no recovery file, registration should return 200/201, then it creates the `arc-treasury` wallet set and treasury wallet, and writes the address + recovery file.
-4. **Report the treasury address** and prompt the user to fund it from the Arc USDC faucet before deploy.
+## Approach
 
-### Fallback
+1. **Enable Shopify (new development store)** via `shopify--enable` with `store_type: "new"`. This provisions a free dev store; user can claim within 30 days to keep it and start Shopify's 120-day post-claim trial.
+2. **Offer claim** immediately after creation via `shopify--claim_store` (user can skip).
+3. **Follow the enabled Shopify knowledge** (only becomes available after enable) to wire product catalog, cart, and Shopify Checkout into the app.
 
-If step 3 still returns 409 on a confirmed-fresh key, dump the exact response body (already logged) and hit Circle's `/config/entity/publicKey` + entitySecret status endpoints to see what state the key is actually in, then adjust — no code changes until we see the real error.
+## What ships in the app
 
-### Not doing
+- New route `/shop` with a Spotify-dark, street-dance themed storefront (product grid, product detail, cart drawer, Shopify checkout handoff).
+- Header gets a "Shop" link next to the existing Dance Move Tokens demo — both coexist on the same single-page app shell.
+- Seed catalog of street dance merch categories: Sneakers, Snapbacks, Baseball Jackets, Trousers, Socks, Tees, Bandanas.
+- Product data lives in Shopify (source of truth). We create the categories/products via Shopify tools after enable.
 
-- No frontend edits.
-- No changes to `deploy-arc.mjs` / `verify-arc.mjs` yet — those come after treasury is funded.
+## What stays untouched
+
+- Existing `DanceMoveTokens.sol`, Arc chain config, Privy wallet, Circle SCP bootstrap — untouched. The merch store is a parallel feature, not a replacement.
+
+## Order of operations (single next message)
+
+1. Call `shopify--enable` with `store_type: "new"`.
+2. On success, call `shopify--claim_store` so you can claim or skip.
+3. Then follow the newly-surfaced Shopify knowledge to build the `/shop` route, seed products, and wire checkout.
+
+## Cost / setup notes
+
+- Development store is free to build on.
+- To keep the store, claim it within 30 days (Shopify removes unclaimed dev stores after 30 days).
+- Claiming starts a separate 120-day free trial on a Shopify subscription; a paid plan is only needed once that trial ends and you're ready to actually sell.
+- For current plan options and pricing, see Shopify's official pricing page.
