@@ -5,12 +5,14 @@ import { TreasuryCard } from "@/components/dance/TreasuryCard";
 import { MintForm } from "@/components/dance/MintForm";
 
 export const Route = createFileRoute("/")({
+  loader: () => ({ privyAppId: process.env.PRIVY_APP_ID }),
   component: Index,
 });
 
 function Index() {
+  const { privyAppId } = Route.useLoaderData();
   return (
-    <PrivyRoot>
+    <PrivyRoot appId={privyAppId}>
       <main className="min-h-screen bg-[#0a0a0a] text-white">
         <div className="mx-auto max-w-2xl px-5 py-10 space-y-8">
           <Header />
