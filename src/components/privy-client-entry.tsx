@@ -23,7 +23,7 @@ export default function PrivyClientEntry({ children }: { children: ReactNode }) 
       appId={appId}
       config={{
         loginMethods: ["google"],
-        embeddedWallets: { createOnLogin: "users-without-wallets" },
+        embeddedWallets: { ethereum: { createOnLogin: "users-without-wallets" } },
         defaultChain: arcTestnet,
         supportedChains: [arcTestnet],
         appearance: {
