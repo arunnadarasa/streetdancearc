@@ -85,6 +85,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
 
+      { name: "twitter:title", content: "Dance Move Tokens · Arc Testnet" },
+      { name: "twitter:description", content: "License street dance moves on Circle's Arc Testnet. Pay in USDC, EURC, or cirBTC — rights metadata pinned to IPFS." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/73539d67-f1d0-4a7a-aa4b-d4a132392704/id-preview-66211702--a13f2d78-039c-4a92-baa0-45ea5da8679f.lovable.app-1784565817686.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/73539d67-f1d0-4a7a-aa4b-d4a132392704/id-preview-66211702--a13f2d78-039c-4a92-baa0-45ea5da8679f.lovable.app-1784565817686.png" },
     ],
     links: [
       {
