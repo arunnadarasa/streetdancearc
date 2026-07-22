@@ -1,13 +1,18 @@
-Add a quantity selector to the product detail page (`src/routes/product.$handle.tsx`) so users can choose how many units to add to the cart before clicking "Add to cart".
+## Why the product shows "Sold out"
 
-### Changes (single file: `src/routes/product.$handle.tsx`)
+The Add-to-cart button checks `variant.availableForSale` from Shopify. Every seeded variant currently has 0 tracked inventory, so Shopify returns `availableForSale: false` and the storefront renders "Sold out".
 
-1. Add `const [qty, setQty] = useState(1);` alongside `variantIdx`.
-2. Reset qty to `1` whenever `variantIdx` changes (avoid carrying over invalid counts across variants).
-3. Above the "Add to cart" button, render a **Quantity** row matching the existing "Options" style:
-   - Label: `QUANTITY` (same uppercase/tracking style).
-   - Minus button (disabled at 1), numeric readout, Plus button — reusing the same rounded pill/border styling as the options buttons and the CartDrawer stepper (`bg-neutral-900`, `border-neutral-700`, `#1DB954` accent).
-4. Pass `quantity: qty` into `addItem(...)` instead of the hardcoded `1`.
-5. Update the toast to include the count, e.g. `"${qty} × ${product.title} added to cart"`.
+## Plan: stock each variant
 
-No changes to `cartStore`, `CartDrawer`, or Shopify helpers — `addItem` already accepts an arbitrary quantity and syncs to Shopify via `cartCreate` / `cartLinesAdd`. The existing cart badge on the icon will reflect the new total automatically.
+1. List all 7 seeded products via `shopify--list_products` to collect product IDs and variant IDs.
+2. For each variant, call `shopify--update_product_variant` with:
+   - `inventory_management: "shopify"` (track stock)
+   - `inventory_policy: "deny"` (real e-commerce behaviour once stock runs out)
+   - Stock quantity: **50 units per variant** (set via the inventory adjustment path the tool exposes; if the update tool cannot set quantity directly, fall back to `inventory_policy: "continue"` as a demo safeguard so nothing goes sold out mid-demo).
+3. Verify by reloading `/product/krump-kicks-low-top-sneakers` — the button should switch from "Sold out" to "Add to cart".
+
+No frontend code changes are needed; the storefront already reacts to `availableForSale` from Shopify.
+
+## Note
+
+Shopify's REST variant update endpoint does not set on-hand quantity directly (that requires the Inventory Levels API, which isn't exposed as a tool here). If the quantity can't be set through the available tools, I'll flip `inventory_policy` to `continue` on each variant so the demo store stays buyable — I'll confirm which path worked after running it.
