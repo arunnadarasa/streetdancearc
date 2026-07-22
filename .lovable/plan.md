@@ -1,33 +1,13 @@
-## Problem
+Add a quantity selector to the product detail page (`src/routes/product.$handle.tsx`) so users can choose how many units to add to the cart before clicking "Add to cart".
 
-Clicking "Tokens" on `/shop` triggers TanStack Router client-side navigation to `/`. The `/` route loader is:
+### Changes (single file: `src/routes/product.$handle.tsx`)
 
-```ts
-loader: () => ({
-  privyAppId: process.env.PRIVY_APP_ID,
-  treasuryAddress: process.env.CIRCLE_TREASURY_ADDRESS,
-})
-```
+1. Add `const [qty, setQty] = useState(1);` alongside `variantIdx`.
+2. Reset qty to `1` whenever `variantIdx` changes (avoid carrying over invalid counts across variants).
+3. Above the "Add to cart" button, render a **Quantity** row matching the existing "Options" style:
+   - Label: `QUANTITY` (same uppercase/tracking style).
+   - Minus button (disabled at 1), numeric readout, Plus button — reusing the same rounded pill/border styling as the options buttons and the CartDrawer stepper (`bg-neutral-900`, `border-neutral-700`, `#1DB954` accent).
+4. Pass `quantity: qty` into `addItem(...)` instead of the hardcoded `1`.
+5. Update the toast to include the count, e.g. `"${qty} × ${product.title} added to cart"`.
 
-Route loaders run on **both** the server (initial SSR) and the client (subsequent navigations). `process.env.*` is only defined on the server, so on client nav the values are `undefined` and `PrivyClientEntry` renders the "Missing PRIVY_APP_ID" screen.
-
-Loading `/` directly works because SSR runs the loader server-side; navigating from `/shop` breaks it.
-
-## Fix
-
-Move env reads into a `createServerFn` so they always execute server-side, and call it from the loader.
-
-### Changes
-
-1. Create `src/lib/config.functions.ts`:
-   ```ts
-   import { createServerFn } from "@tanstack/react-start";
-   export const getPublicConfig = createServerFn({ method: "GET" }).handler(async () => ({
-     privyAppId: process.env.PRIVY_APP_ID ?? "",
-     treasuryAddress: process.env.CIRCLE_TREASURY_ADDRESS ?? "",
-   }));
-   ```
-
-2. Update `src/routes/index.tsx` loader to `loader: () => getPublicConfig()` (keep the same `Route.useLoaderData()` shape in the component).
-
-No UI changes.
+No changes to `cartStore`, `CartDrawer`, or Shopify helpers — `addItem` already accepts an arbitrary quantity and syncs to Shopify via `cartCreate` / `cartLinesAdd`. The existing cart badge on the icon will reflect the new total automatically.

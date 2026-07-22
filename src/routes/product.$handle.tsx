@@ -9,7 +9,7 @@ import { CartDrawer } from "@/components/shop/CartDrawer";
 import { useCartStore } from "@/stores/cartStore";
 import { useCartSync } from "@/hooks/useCartSync";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Minus, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/product/$handle")({
   component: ProductPage,
@@ -21,8 +21,13 @@ function ProductPage() {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [variantIdx, setVariantIdx] = useState(0);
+  const [qty, setQty] = useState(1);
   const addItem = useCartStore((s) => s.addItem);
   const isLoading = useCartStore((s) => s.isLoading);
+
+  useEffect(() => {
+    setQty(1);
+  }, [variantIdx]);
 
   useEffect(() => {
     (async () => {
@@ -68,10 +73,10 @@ function ProductPage() {
       variantId: variant.id,
       variantTitle: variant.title,
       price: variant.price,
-      quantity: 1,
+      quantity: qty,
       selectedOptions: variant.selectedOptions || [],
     });
-    toast.success(`${product.title} added to cart`, { position: "top-center" });
+    toast.success(`${qty} × ${product.title} added to cart`, { position: "top-center" });
   };
 
   return (
@@ -128,6 +133,34 @@ function ProductPage() {
                 </div>
               </div>
             )}
+
+            <div className="space-y-2">
+              <p className="text-xs font-bold uppercase tracking-widest text-neutral-500">
+                Quantity
+              </p>
+              <div className="inline-flex items-center gap-2 rounded-full border border-neutral-700 bg-neutral-900 px-2 py-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 rounded-full text-neutral-300 hover:bg-neutral-800 hover:text-white disabled:opacity-40"
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  disabled={qty <= 1}
+                >
+                  <Minus className="h-3.5 w-3.5" />
+                </Button>
+                <span className="w-8 text-center text-sm font-bold tabular-nums">
+                  {qty}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 rounded-full text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                  onClick={() => setQty((q) => q + 1)}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
 
             <Button
               onClick={handleAdd}
