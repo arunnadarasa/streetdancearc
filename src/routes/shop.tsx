@@ -45,18 +45,18 @@ function ShopPage() {
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-white">
-      <div className="mx-auto max-w-6xl px-5 py-10 space-y-8">
-        <header className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-full bg-[#1DB954] text-black font-black">
+      <div className="mx-auto max-w-6xl px-4 py-6 space-y-6 sm:px-5 sm:py-10 sm:space-y-8">
+        <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#1DB954] text-black font-black">
               ♪
             </div>
-            <div>
-              <h1 className="text-xl font-black tracking-tight">StreetKode Merch</h1>
-              <p className="text-xs text-neutral-500">Street dance culture · Physical drops</p>
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-black tracking-tight sm:text-xl">StreetKode Merch</h1>
+              <p className="hidden truncate text-xs text-neutral-500 sm:block">Street dance culture · Physical drops</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             <Link
               to="/"
               className="text-xs font-bold text-neutral-400 hover:text-white"
@@ -67,11 +67,11 @@ function ShopPage() {
           </div>
         </header>
 
-        <section className="rounded-3xl border border-neutral-800 bg-gradient-to-br from-[#1DB954]/20 via-neutral-900 to-black p-8">
+        <section className="rounded-3xl border border-neutral-800 bg-gradient-to-br from-[#1DB954]/20 via-neutral-900 to-black p-6 sm:p-8">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1DB954]">
             Fresh drop
           </p>
-          <h2 className="mt-2 text-4xl font-black leading-tight">
+          <h2 className="mt-2 text-3xl font-black leading-tight sm:text-4xl">
             Wear the culture.<br />Move the streets.
           </h2>
           <p className="mt-3 max-w-md text-sm text-neutral-400">

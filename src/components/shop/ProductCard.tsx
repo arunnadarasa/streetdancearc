@@ -45,17 +45,17 @@ export function ProductCard({ product }: { product: ShopifyProduct }) {
           </div>
         )}
       </div>
-      <div className="p-4 space-y-2">
-        <h3 className="font-bold text-white truncate">{product.node.title}</h3>
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[#1DB954] font-black">
+      <div className="p-3 sm:p-4 space-y-2">
+        <h3 className="font-bold text-white truncate text-sm sm:text-base">{product.node.title}</h3>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <span className="text-[#1DB954] font-black text-sm sm:text-base">
             {price.currencyCode} {parseFloat(price.amount).toFixed(2)}
           </span>
           <Button
             size="sm"
             onClick={handleAdd}
             disabled={isLoading || !variant}
-            className="bg-white text-black hover:bg-neutral-200 h-8 rounded-full text-xs font-bold"
+            className="bg-white text-black hover:bg-neutral-200 h-8 rounded-full text-xs font-bold w-full sm:w-auto"
           >
             {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Add"}
           </Button>

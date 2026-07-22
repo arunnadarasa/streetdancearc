@@ -121,6 +121,9 @@ export function MintForm() {
           value={cid}
           onChange={(e) => setCid(e.target.value)}
           placeholder="bafkrei…"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           className="mt-1 w-full rounded-lg border border-neutral-800 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#1DB954]"
         />
       </div>
@@ -133,6 +136,8 @@ export function MintForm() {
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           type="number"
+          inputMode="decimal"
+          pattern="[0-9]*\.?[0-9]*"
           min="0"
           step="0.01"
           className="mt-1 w-full rounded-lg border border-neutral-800 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#1DB954]"
@@ -145,7 +150,7 @@ export function MintForm() {
           to be spent by the DanceMoveTokens contract, then log the move.
           <br />
           <span className="text-neutral-500">
-            Token: <code className="text-neutral-300">{TOKENS[token].address.slice(0, 6)}…{TOKENS[token].address.slice(-4)}</code>
+            Token: <code className="break-all text-neutral-300">{TOKENS[token].address.slice(0, 6)}…{TOKENS[token].address.slice(-4)}</code>
             {" · "}Privy's modal shows your USDC gas balance, not the approval amount.
           </span>
         </div>
@@ -154,7 +159,7 @@ export function MintForm() {
       <button
         disabled={busy}
         onClick={onSubmit}
-        className="w-full rounded-full bg-[#1DB954] px-4 py-3 text-sm font-bold text-black transition hover:bg-[#1ed760] disabled:opacity-50"
+        className="h-12 w-full rounded-full bg-[#1DB954] px-4 text-base font-bold text-black transition hover:bg-[#1ed760] disabled:opacity-50"
       >
         {busy ? "Working…" : authenticated ? "Approve & Log Move" : "Sign in with Google"}
       </button>
@@ -165,7 +170,7 @@ export function MintForm() {
           href={`${ARC_EXPLORER}/tx/${txHash}`}
           target="_blank"
           rel="noreferrer"
-          className="block truncate text-sm text-[#1DB954] hover:underline"
+          className="block break-all text-sm text-[#1DB954] hover:underline"
         >
           View tx on Arcscan → {txHash}
         </a>
