@@ -1,33 +1,63 @@
-## What you're seeing
+## Goal
 
-That "18.744233 USDC" line in the Privy modal is **not** the token you're paying with — it's the wallet's **gas balance** (USDC, since USDC is gas on Arc). Privy always shows the gas-fee token there, regardless of which ERC-20 you're approving.
+Fold this session's new learnings into the `lovable-arc` skill so the next agent instance ships an Arc demo without re-hitting the same walls. Draft under `.agents/skills/lovable-arc/SKILL.md`, then apply.
 
-The actual token being approved IS correct:
-- EURC screenshot → `Token address: 0x89B...D72a` ✅ (matches `TOKENS.EURC`)
-- cirBTC screenshot → tx `data` starts with `0xa1f2e8aa` = `log(address,uint256,string)` on the contract (the approve step was skipped because `VITE_CIRBTC_ADDRESS` is unset → cirBTC address is `0x000…000`, so `MintForm` bypasses approval and goes straight to `log`)
+## What to add / change
 
-The "Approval amount" row is blank because Privy's modal doesn't know EURC/cirBTC decimals+symbol to render a human-readable amount — it only auto-formats known tokens (USDC on Arc). This is a Privy UI limitation, not a bug in our code.
+### 1. RPC hostname correction
+Current skill says `https://rpc.testnet.arc.io`. The working project uses `https://rpc.testnet.arc.network`. Update the chain-constants table, the viem snippet, and add a note that both hostnames appear in Circle/Arc docs — `.network` is what actually resolves for RPC in this template.
 
-## Root cause summary
+### 2. Official token addresses (Arc Testnet)
+Add a concrete table so future agents don't have to hunt through Circle docs:
 
-| Symptom | Cause |
-|---|---|
-| Modal shows "USDC" balance while approving EURC | Privy displays wallet's gas-token balance, not the approval token |
-| "Approval amount" empty | Privy has no token metadata for EURC/cirBTC to format the raw uint256 |
-| cirBTC "approve" step missing | `VITE_CIRBTC_ADDRESS` unset → address is zero → `MintForm` intentionally skips approve |
+| Token | Address | Decimals |
+|---|---|---|
+| USDC | `0x3600000000000000000000000000000000000000` | 6 |
+| EURC | `0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a` | 6 |
+| cirBTC | `0xf0C4a4CE82A5746AbAAd9425360Ab04fbBA432BF` | 8 |
 
-## Plan
+Link the two Circle reference pages (cirBTC + EURC contract addresses).
 
-Make it obvious in **our** UI what the user is actually approving, since Privy's modal won't:
+### 3. Privy approval-modal UX gotcha (new section)
+Document the confusion the user hit:
+- Privy's approval modal always shows the wallet's **gas-token balance** (USDC on Arc), regardless of which ERC-20 is being approved.
+- "Approval amount" renders blank for non-USDC ERC-20s because Privy has no token metadata for EURC/cirBTC.
+- Not a bug — Privy UI limitation. Fix in your app by rendering a pre-confirmation summary above the button showing the actual token symbol, amount, and short address.
+- If a token address is the zero address (env var unset), gate it in the token switcher instead of silently skipping the approve step.
 
-1. **Add a pre-confirmation summary above the button** in `src/components/dance/MintForm.tsx`:
-   - "You'll approve **{amount} {symbol}** to be spent by the DanceMoveTokens contract, then log the move."
-   - Show the token contract address (short) so it matches the `Token address` line in Privy.
+### 4. Verification success recipe (upgrade existing section)
+The current section describes the failure. Add the confirmed working recipe from this session:
+- Pin `solc@0.8.24` in `package.json` devDependencies (not just in a script).
+- Contract pragma: exact `pragma solidity 0.8.24;` (no caret).
+- Endpoint that worked: `POST https://testnet.arcscan.app/api?module=contract&action=verifysourcecode` with `codeformat=solidity-standard-json-input` and `compilerversion=v` + `solc.version().split(".Emscripten")[0]`.
+- Confirmation signal: `is_verified: true` on `GET /api/v2/smart-contracts/{address}`.
 
-2. **Fix cirBTC UX** — when `TOKENS.cirBTC.address` is the zero address, disable the cirBTC button in `TokenSwitcher` and show a note ("Set `VITE_CIRBTC_ADDRESS` to enable"), instead of silently skipping approval.
+### 5. Bootstrap script hardening (add to entity-secret section)
+Codify the persist-before-network rule as code, not just prose:
+```js
+const raw = crypto.randomBytes(32).toString("hex");
+fs.writeFileSync("circle-entity-recovery.json", JSON.stringify({ raw }), { flag: "wx" });
+// only THEN encrypt + POST
+```
+Add note: even with this, Console-side registration is the reliable path for brand-new accounts (409 keeps happening).
 
-3. **No contract or chain changes.** Frontend-only, presentation code.
+### 6. Failure-modes table additions
+Append rows:
+- `rpc.testnet.arc.io` DNS fails → use `rpc.testnet.arc.network`
+- User confused Privy modal shows USDC while approving EURC → gas token ≠ approval token; render your own summary
+- cirBTC "approve" step silently skipped → env var unset → address is `0x000…000` → gate in UI
+- 409 on entity-secret even on brand-new account → Console-configurator path, not API
 
-### Technical notes
-- Privy's approval modal formatting for non-USDC ERC-20s is out of our control; documenting this in the skill file could save future confusion but isn't required.
-- The zero-address short-circuit in `MintForm.onSubmit` stays — we just gate the UI so users can't select it in that state.
+### 7. Success checkpoints (new short section)
+End with a "You know it worked when…" list so the next agent has a shipping definition:
+- Bootstrap prints wallet ID + address; recovery JSON on disk
+- Treasury funded from `faucet.circle.com` (Arc Testnet)
+- Deploy script polls to `status: "COMPLETE"` and writes `src/data/contract.json`
+- Arcscan shows verified checkmark; `is_verified: true` in API
+- Privy Google login → embedded wallet on chain 5042002 → approve+log tx confirmed on Arcscan
+
+## Delivery
+
+- Edit `.agents/skills/lovable-arc/SKILL.md` (copy current active version there first).
+- Call `skills--apply_draft` on `.agents/skills/lovable-arc`.
+- No project code changes.
