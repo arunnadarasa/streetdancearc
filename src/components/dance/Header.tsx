@@ -6,33 +6,41 @@ export function Header() {
   const addr = user?.wallet?.address;
 
   return (
-    <header className="flex items-center justify-between gap-3">
-      <div className="flex items-center gap-3">
-        <div className="grid h-10 w-10 place-items-center rounded-full bg-[#1DB954] text-black font-black">
+    <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between">
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#1DB954] text-black font-black">
           ♪
         </div>
-        <div>
-          <h1 className="text-xl font-black tracking-tight text-white">Dance Move Tokens</h1>
-          <p className="text-xs text-neutral-500">Arc Testnet · Movement licensing on IPFS</p>
+        <div className="min-w-0">
+          <h1 className="truncate text-lg font-black tracking-tight text-white sm:text-xl">
+            Dance Move Tokens
+          </h1>
+          <p className="hidden truncate text-xs text-neutral-500 sm:block">
+            Arc Testnet · Movement licensing on IPFS
+          </p>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         <Link
           to="/shop"
           className="rounded-full border border-neutral-700 px-3 py-2 text-xs font-bold text-white hover:bg-neutral-900"
         >
-          Shop merch →
+          Shop<span className="hidden sm:inline"> merch</span> →
         </Link>
         {ready && (
           <button
             onClick={authenticated ? logout : login}
-            className="rounded-full bg-white px-4 py-2 text-xs font-bold text-black hover:bg-neutral-200"
+            className="rounded-full bg-white px-3 py-2 text-xs font-bold text-black hover:bg-neutral-200 sm:px-4"
           >
             {authenticated
               ? addr
-                ? `${addr.slice(0, 6)}…${addr.slice(-4)} · Sign out`
+                ? `${addr.slice(0, 6)}…${addr.slice(-4)}`
                 : "Sign out"
-              : "Sign in with Google"}
+              : (
+                <>
+                  Sign in<span className="hidden sm:inline"> with Google</span>
+                </>
+              )}
           </button>
         )}
       </div>

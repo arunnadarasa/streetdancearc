@@ -2,7 +2,7 @@ import { TOKENS, type TokenKey } from "@/lib/tokens";
 
 export function TokenSwitcher({ value, onChange }: { value: TokenKey; onChange: (t: TokenKey) => void }) {
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-2">
       {(Object.keys(TOKENS) as TokenKey[]).map((k) => {
         const active = k === value;
         return (

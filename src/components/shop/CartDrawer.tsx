@@ -107,34 +107,34 @@ export function CartDrawer() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6 text-neutral-400 hover:text-white"
+                            className="h-8 w-8 text-neutral-400 hover:text-white"
                             onClick={() => removeItem(item.variantId)}
                           >
-                            <Trash2 className="h-3 w-3" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                           <div className="flex items-center gap-1">
                             <Button
                               variant="outline"
                               size="icon"
-                              className="h-6 w-6 border-neutral-700 bg-neutral-900"
+                              className="h-8 w-8 border-neutral-700 bg-neutral-900"
                               onClick={() =>
                                 updateQuantity(item.variantId, item.quantity - 1)
                               }
                             >
-                              <Minus className="h-3 w-3" />
+                              <Minus className="h-3.5 w-3.5" />
                             </Button>
-                            <span className="w-8 text-center text-sm">
+                            <span className="w-6 text-center text-sm">
                               {item.quantity}
                             </span>
                             <Button
                               variant="outline"
                               size="icon"
-                              className="h-6 w-6 border-neutral-700 bg-neutral-900"
+                              className="h-8 w-8 border-neutral-700 bg-neutral-900"
                               onClick={() =>
                                 updateQuantity(item.variantId, item.quantity + 1)
                               }
                             >
-                              <Plus className="h-3 w-3" />
+                              <Plus className="h-3.5 w-3.5" />
                             </Button>
                           </div>
                         </div>

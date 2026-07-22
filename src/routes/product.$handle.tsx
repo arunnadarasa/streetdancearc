@@ -81,7 +81,7 @@ function ProductPage() {
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-white">
-      <div className="mx-auto max-w-4xl px-5 py-10 space-y-8">
+      <div className="mx-auto max-w-4xl px-4 py-6 space-y-6 sm:px-5 sm:py-10 sm:space-y-8">
         <header className="flex items-center justify-between">
           <Link to="/shop" className="text-xs font-bold text-neutral-400 hover:text-white">
             ← Shop
@@ -89,7 +89,7 @@ function ProductPage() {
           <CartDrawer />
         </header>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
           <div className="aspect-square bg-neutral-900 rounded-2xl overflow-hidden border border-neutral-800">
             {img && (
               <img
@@ -101,8 +101,8 @@ function ProductPage() {
           </div>
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-black">{product.title}</h1>
-              <p className="mt-2 text-2xl font-black text-[#1DB954]">
+              <h1 className="text-2xl font-black sm:text-3xl">{product.title}</h1>
+              <p className="mt-2 text-xl font-black text-[#1DB954] sm:text-2xl">
                 {variant?.price.currencyCode}{" "}
                 {parseFloat(variant?.price.amount ?? "0").toFixed(2)}
               </p>
@@ -142,11 +142,11 @@ function ProductPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 rounded-full text-neutral-300 hover:bg-neutral-800 hover:text-white disabled:opacity-40"
+                  className="h-9 w-9 rounded-full text-neutral-300 hover:bg-neutral-800 hover:text-white disabled:opacity-40"
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
                   disabled={qty <= 1}
                 >
-                  <Minus className="h-3.5 w-3.5" />
+                  <Minus className="h-4 w-4" />
                 </Button>
                 <span className="w-8 text-center text-sm font-bold tabular-nums">
                   {qty}
@@ -154,10 +154,10 @@ function ProductPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 rounded-full text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                  className="h-9 w-9 rounded-full text-neutral-300 hover:bg-neutral-800 hover:text-white"
                   onClick={() => setQty((q) => q + 1)}
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Plus className="h-4 w-4" />
                 </Button>
               </div>
             </div>
