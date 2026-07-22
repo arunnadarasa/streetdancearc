@@ -3,12 +3,10 @@ import { PrivyRoot } from "@/components/PrivyRoot";
 import { Header } from "@/components/dance/Header";
 import { TreasuryCard } from "@/components/dance/TreasuryCard";
 import { MintForm } from "@/components/dance/MintForm";
+import { getPublicConfig } from "@/lib/config.functions";
 
 export const Route = createFileRoute("/")({
-  loader: () => ({
-    privyAppId: process.env.PRIVY_APP_ID,
-    treasuryAddress: process.env.CIRCLE_TREASURY_ADDRESS,
-  }),
+  loader: () => getPublicConfig(),
   component: Index,
 });
 
