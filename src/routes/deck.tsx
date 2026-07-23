@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Deck } from "@/components/deck/Deck";
 
 export const Route = createFileRoute("/deck")({
   head: () => ({
     meta: [
       { title: "Judges Deck · Dance Move Tokens" },
-      { name: "description", content: "Pitch deck for Dance Move Tokens — Encode × Arc Programmable Money Hackathon." },
+      { name: "description", content: "Interactive pitch deck for Dance Move Tokens — Encode × Arc Programmable Money Hackathon." },
       { property: "og:title", content: "Judges Deck · Dance Move Tokens" },
-      { property: "og:description", content: "Pitch deck for Dance Move Tokens — Encode × Arc Programmable Money Hackathon." },
+      { property: "og:description", content: "Interactive pitch deck for Dance Move Tokens — Encode × Arc Programmable Money Hackathon." },
     ],
   }),
   component: DeckPage,
@@ -36,14 +37,7 @@ function DeckPage() {
               rel="noreferrer"
               className="rounded-full border border-neutral-700 px-3 py-2 text-xs font-bold hover:bg-neutral-900"
             >
-              Open PDF ↗
-            </a>
-            <a
-              href="/judges-deck.pdf"
-              download
-              className="rounded-full bg-white px-3 py-2 text-xs font-bold text-black hover:bg-neutral-200"
-            >
-              Download PDF
+              PDF version ↗
             </a>
             <a
               href="/judges-deck.pptx"
@@ -55,23 +49,9 @@ function DeckPage() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950">
-          <object
-            data="/judges-deck.pdf#view=FitH"
-            type="application/pdf"
-            className="h-[80vh] w-full"
-            aria-label="Dance Move Tokens judges deck"
-          >
-            <div className="p-6 text-sm text-neutral-400">
-              Your browser can't display the PDF inline.{" "}
-              <a href="/judges-deck.pdf" className="text-[#1DB954] underline">
-                Open it in a new tab
-              </a>
-              .
-            </div>
-          </object>
-        </div>
+        <Deck />
       </div>
     </div>
   );
 }
+
