@@ -22,11 +22,18 @@ export function Header() {
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <Link
+          to="/deck"
+          className="rounded-full border border-neutral-700 px-3 py-2 text-xs font-bold text-white hover:bg-neutral-900"
+        >
+          Deck
+        </Link>
+        <Link
           to="/shop"
           className="rounded-full border border-neutral-700 px-3 py-2 text-xs font-bold text-white hover:bg-neutral-900"
         >
           Shop<span className="hidden sm:inline"> merch</span> →
         </Link>
+
         {ready && (
           <button
             onClick={authenticated ? logout : login}
