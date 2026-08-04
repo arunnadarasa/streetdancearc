@@ -1,0 +1,244 @@
+import { useCallback, useRef, useState } from "react";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { createPublicClient, createWalletClient, custom, http, type Address } from "viem";
+import { arcTestnet } from "@/lib/arc-chain";
+import {
+  addSpentToday,
+  evaluatePolicy,
+  loadSpentToday,
+  toMandateConstraints,
+  type PolicyOutcome,
+  type SpendPolicy,
+} from "@/lib/spend-policy";
+
+export type StepStatus = "running" | "ok" | "blocked" | "failed" | "waiting";
+
+export interface RunStep {
+  id: string;
+  title: string;
+  detail?: string;
+  status: StepStatus;
+  payload?: unknown;
+  payloadLabel?: string;
+  tone?: "neutral" | "green" | "amber" | "red";
+  href?: string;
+}
+
+export interface AgentOrder {
+  sku: string;
+  title: string;
+  category: string;
+  variantId?: string;
+  quantity: number;
+  listedAmount: number;
+  currency: string;
+  rightsCid?: string;
+}
+
+export function useAgentRun(policy: SpendPolicy) {
+  const { authenticated, login } = usePrivy();
+  const { wallets } = useWallets();
+  const [steps, setSteps] = useState<RunStep[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [interrupt, setInterrupt] = useState<{ order: AgentOrder; outcome: PolicyOutcome } | null>(
+    null,
+  );
+  const resolveRef = useRef<((approved: boolean) => void) | null>(null);
+
+  const push = useCallback((s: RunStep) => setSteps((prev) => [...prev, s]), []);
+  const patch = useCallback(
+    (id: string, next: Partial<RunStep>) =>
+      setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, ...next } : s))),
+    [],
+  );
+
+  const answerInterrupt = useCallback((approved: boolean) => {
+    resolveRef.current?.(approved);
+    resolveRef.current = null;
+    setInterrupt(null);
+  }, []);
+
+  const run = useCallback(
+    async (order: AgentOrder) => {
+      setSteps([]);
+      setBusy(true);
+      try {
+        if (!authenticated) {
+          push({
+            id: "auth",
+            title: "Authenticate principal",
+            detail: "The agent spends from your Privy embedded wallet — sign in first.",
+            status: "waiting",
+            tone: "amber",
+          });
+          await login();
+          return;
+        }
+
+        // 1 — Discovery
+        push({ id: "discover", title: "GET /api/public/agent-card", status: "running" });
+        const cardRes = await fetch("/api/public/agent-card");
+        const card = await cardRes.json();
+        patch("discover", {
+          status: "ok",
+          detail: `Merchant agent "${card.name}" advertises ${card.skills.length} skills and ${card.extensions.payments.schemes[0]} settlement on ${card.extensions.payments.networks[0]}.`,
+          payloadLabel: "agent card · payments extension",
+          payload: card.extensions.payments,
+        });
+
+        // 2 — Quote (expect 402)
+        push({ id: "quote", title: "POST /api/public/purchase → expect 402", status: "running" });
+        const body = {
+          sku: order.sku,
+          variantId: order.variantId,
+          quantity: order.quantity,
+          listedAmount: order.listedAmount,
+          currency: order.currency,
+          agentId: policy.agentId,
+          rightsCid: order.rightsCid,
+        };
+        const quoteRes = await fetch("/api/public/purchase", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const quote = await quoteRes.json();
+        if (quoteRes.status !== 402) {
+          patch("quote", {
+            status: "failed",
+            detail: `Expected 402, got ${quoteRes.status}.`,
+            payload: quote,
+            tone: "red",
+          });
+          return;
+        }
+        const requirement = quote.accepts[0];
+        const amountUsdc = Number(requirement.amount) / 1e6;
+        patch("quote", {
+          status: "ok",
+          detail: `402 Payment Required — ${requirement.amountFormatted} USDC to ${requirement.payTo.slice(0, 8)}…`,
+          payloadLabel: "x402 payment requirement",
+          payload: requirement,
+        });
+
+        // 3 — Mandate check
+        const spentToday = loadSpentToday();
+        const outcome = evaluatePolicy(policy, {
+          amountUsdc,
+          spentTodayUsdc: spentToday,
+          category: order.category,
+        });
+        push({
+          id: "policy",
+          title: "Evaluate AP2 payment mandate",
+          status: outcome.decision === "deny" ? "blocked" : "ok",
+          tone: outcome.decision === "allow" ? "green" : outcome.decision === "confirm" ? "amber" : "red",
+          detail: outcome.reason,
+          payloadLabel: "mandate constraints",
+          payload: {
+            ...toMandateConstraints(policy),
+            evaluation: {
+              amount_usdc: Number(amountUsdc.toFixed(6)),
+              spent_today_usdc: Number(spentToday.toFixed(6)),
+              decision: outcome.decision,
+            },
+          },
+        });
+        if (outcome.decision === "deny") return;
+
+        // 4 — Human interrupt when the mandate demands it
+        if (outcome.decision === "confirm") {
+          push({
+            id: "interrupt",
+            title: "input-required — human confirmation",
+            status: "waiting",
+            tone: "amber",
+            detail: outcome.reason,
+          });
+          const approved = await new Promise<boolean>((resolve) => {
+            resolveRef.current = resolve;
+            setInterrupt({ order, outcome });
+          });
+          if (!approved) {
+            patch("interrupt", {
+              status: "blocked",
+              tone: "red",
+              detail: "Principal rejected the spend. Task terminated before any transfer.",
+            });
+            return;
+          }
+          patch("interrupt", { status: "ok", tone: "green", detail: "Principal approved the spend." });
+        }
+
+        // 5 — Settle on Arc
+        push({
+          id: "settle",
+          title: `Transfer ${requirement.amountFormatted} USDC on Arc`,
+          status: "running",
+        });
+        const embedded = wallets.find((w) => w.walletClientType === "privy") ?? wallets[0];
+        if (!embedded) throw new Error("No embedded wallet available.");
+        const provider = await embedded.getEthereumProvider();
+        await embedded.switchChain(arcTestnet.id);
+        const from = embedded.address as Address;
+        const walletClient = createWalletClient({
+          account: from,
+          chain: arcTestnet,
+          transport: custom(provider),
+        });
+        const publicClient = createPublicClient({ chain: arcTestnet, transport: http() });
+        const hash = await walletClient.sendTransaction({
+          to: requirement.payTo as Address,
+          value: BigInt(requirement.amount),
+          chain: arcTestnet,
+        });
+        await publicClient.waitForTransactionReceipt({ hash });
+        patch("settle", {
+          status: "ok",
+          tone: "green",
+          detail: "USDC is the gas token on Arc, so one native transfer settles the order.",
+          href: `https://testnet.arcscan.app/tx/${hash}`,
+          payloadLabel: "settlement",
+          payload: { txHash: hash, from, to: requirement.payTo, amount: requirement.amount },
+        });
+
+        // 6 — Re-present with X-PAYMENT
+        push({ id: "verify", title: "POST /api/public/purchase with X-PAYMENT", status: "running" });
+        const xPayment = btoa(JSON.stringify({ txHash: hash, from, nonce: requirement.nonce }));
+        const paidRes = await fetch("/api/public/purchase", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-PAYMENT": xPayment },
+          body: JSON.stringify(body),
+        });
+        const receipt = await paidRes.json();
+        if (!paidRes.ok) {
+          patch("verify", {
+            status: "failed",
+            tone: "red",
+            detail: `Merchant rejected the payment (${paidRes.status}).`,
+            payload: receipt,
+          });
+          return;
+        }
+        addSpentToday(amountUsdc);
+        patch("verify", {
+          status: "ok",
+          tone: "green",
+          detail: `Merchant verified the transfer on Arc and released order ${receipt.order_id}.`,
+          payloadLabel: "fulfilment object",
+          payload: receipt,
+        });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        push({ id: `err-${Date.now()}`, title: "Run failed", status: "failed", tone: "red", detail: msg });
+      } finally {
+        setBusy(false);
+        resolveRef.current = null;
+        setInterrupt(null);
+      }
+    },
+    [authenticated, login, patch, policy, push, wallets],
+  );
+
+  return { steps, busy, run, interrupt, answerInterrupt };
+}
