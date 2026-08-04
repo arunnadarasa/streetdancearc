@@ -54,24 +54,24 @@ function ShopPage() {
 
   return (
     <PrivyRoot appId={privyAppId}>
-    <main className="min-h-screen bg-[#0a0a0a] text-white">
+    <main className="min-h-screen bg-background text-foreground">
 
       <div className="mx-auto max-w-6xl px-4 py-6 space-y-6 sm:px-5 sm:py-10 sm:space-y-8">
         <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#1DB954] text-black font-black">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-black font-black">
               ♪
             </div>
             <div className="min-w-0">
               <h1 className="truncate text-lg font-black tracking-tight sm:text-xl">StreetKode Merch</h1>
-              <p className="hidden truncate text-xs text-neutral-500 sm:block">Street dance culture · Physical drops</p>
+              <p className="hidden truncate text-xs text-muted-foreground sm:block">Street dance culture · Physical drops</p>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <ModeToggle />
             <Link
               to="/"
-              className="hidden text-xs font-bold text-neutral-400 hover:text-white sm:inline"
+              className="hidden text-xs font-bold text-muted-foreground hover:text-foreground sm:inline"
             >
               ← Tokens
             </Link>
@@ -83,14 +83,14 @@ function ShopPage() {
           <GxShop />
         ) : (
           <>
-            <section className="rounded-3xl border border-neutral-800 bg-gradient-to-br from-[#1DB954]/20 via-neutral-900 to-black p-6 sm:p-8">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1DB954]">
+            <section className="rounded-3xl border border-border bg-gradient-to-br from-primary/25 via-surface to-black p-6 sm:p-8">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-glow">
                 Fresh drop
               </p>
               <h2 className="mt-2 text-3xl font-black leading-tight sm:text-4xl">
                 Wear the culture.<br />Move the streets.
               </h2>
-              <p className="mt-3 max-w-md text-sm text-neutral-400">
+              <p className="mt-3 max-w-md text-sm text-muted-foreground">
                 Sneakers, snapbacks, baseball jackets, trousers, socks, tees, bandanas —
                 built for cyphers, battles and everyday flex.
               </p>
@@ -98,12 +98,12 @@ function ShopPage() {
 
             {loading ? (
               <div className="grid place-items-center py-24">
-                <Loader2 className="h-8 w-8 animate-spin text-[#1DB954]" />
+                <Loader2 className="h-8 w-8 animate-spin text-glow" />
               </div>
             ) : products.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-neutral-800 p-12 text-center">
-                <p className="text-neutral-400">No products found.</p>
-                <p className="mt-2 text-xs text-neutral-600">
+              <div className="rounded-2xl border border-dashed border-border p-12 text-center">
+                <p className="text-muted-foreground">No products found.</p>
+                <p className="mt-2 text-xs text-muted-foreground">
                   Tell the chat what to add (e.g. "add a £120 Krump Kicks sneaker").
                 </p>
               </div>
@@ -117,7 +117,7 @@ function ShopPage() {
           </>
         )}
 
-        <footer className="pt-6 text-center text-xs text-neutral-500">
+        <footer className="pt-6 text-center text-xs text-muted-foreground">
           Built during the Creative AI &amp; Quantum Hackathon organised by StreetKode Fam
           during Indian Krump Festival 14
         </footer>

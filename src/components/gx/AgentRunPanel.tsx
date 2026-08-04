@@ -36,7 +36,7 @@ export function AgentRunPanel({
       <button
         disabled={busy || !order}
         onClick={() => order && run(order)}
-        className="h-12 w-full rounded-full bg-[#1DB954] px-4 text-sm font-black text-black transition hover:bg-[#1ed760] disabled:opacity-40"
+        className="h-12 w-full rounded-full bg-primary px-4 text-sm font-black text-black transition hover:bg-primary/85 disabled:opacity-40"
       >
         {busy ? "Agent task running…" : cta}
       </button>
@@ -50,7 +50,7 @@ export function AgentRunPanel({
       )}
 
       <div className="space-y-2">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-500">Run ledger</p>
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Run ledger</p>
         <RunLedger steps={steps} />
       </div>
     </div>

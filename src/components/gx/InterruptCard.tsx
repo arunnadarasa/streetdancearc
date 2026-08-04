@@ -17,7 +17,7 @@ export function InterruptCard({
       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-300">
         Task state · input-required
       </p>
-      <p className="text-sm font-bold text-white">
+      <p className="text-sm font-bold text-foreground">
         The agent wants to buy {order.quantity} × {order.title}
         {amountLabel ? ` for ${amountLabel}` : ""}.
       </p>
@@ -25,13 +25,13 @@ export function InterruptCard({
       <div className="flex flex-wrap gap-2">
         <button
           onClick={() => onAnswer(true)}
-          className="rounded-full bg-[#1DB954] px-5 py-2 text-xs font-bold text-black hover:bg-[#1ed760]"
+          className="rounded-full bg-primary px-5 py-2 text-xs font-bold text-black hover:bg-primary/85"
         >
           Approve spend
         </button>
         <button
           onClick={() => onAnswer(false)}
-          className="rounded-full border border-neutral-600 px-5 py-2 text-xs font-bold text-white hover:bg-black/30"
+          className="rounded-full border border-neutral-600 px-5 py-2 text-xs font-bold text-foreground hover:bg-black/30"
         >
           Reject
         </button>

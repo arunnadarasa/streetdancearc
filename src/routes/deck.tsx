@@ -15,19 +15,19 @@ export const Route = createFileRoute("/deck")({
 
 function DeckPage() {
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-foreground">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
             <h1 className="text-xl font-black tracking-tight sm:text-2xl">Judges Deck</h1>
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-muted-foreground">
               Encode × Arc · Programmable Money Hackathon
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link
               to="/"
-              className="rounded-full border border-neutral-700 px-3 py-2 text-xs font-bold hover:bg-neutral-900"
+              className="rounded-full border border-border px-3 py-2 text-xs font-bold hover:bg-surface"
             >
               ← Back
             </Link>
@@ -35,14 +35,14 @@ function DeckPage() {
               href="/judges-deck.pdf"
               target="_blank"
               rel="noreferrer"
-              className="rounded-full border border-neutral-700 px-3 py-2 text-xs font-bold hover:bg-neutral-900"
+              className="rounded-full border border-border px-3 py-2 text-xs font-bold hover:bg-surface"
             >
               PDF version ↗
             </a>
             <a
               href="/judges-deck.pptx"
               download
-              className="rounded-full bg-[#1DB954] px-3 py-2 text-xs font-bold text-black hover:brightness-110"
+              className="rounded-full bg-primary px-3 py-2 text-xs font-bold text-black hover:brightness-110"
             >
               Download PPTX
             </a>

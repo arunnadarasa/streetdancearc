@@ -51,18 +51,18 @@ function ProductPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#0a0a0a] grid place-items-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#1DB954]" />
+      <main className="min-h-screen bg-background grid place-items-center">
+        <Loader2 className="h-8 w-8 animate-spin text-glow" />
       </main>
     );
   }
 
   if (!product) {
     return (
-      <main className="min-h-screen bg-[#0a0a0a] text-white grid place-items-center px-4">
+      <main className="min-h-screen bg-background text-foreground grid place-items-center px-4">
         <div className="text-center">
-          <p className="text-neutral-400">Product not found.</p>
-          <Link to="/shop" className="mt-4 inline-block text-[#1DB954] font-bold">
+          <p className="text-muted-foreground">Product not found.</p>
+          <Link to="/shop" className="mt-4 inline-block text-glow font-bold">
             ← Back to shop
           </Link>
         </div>
@@ -91,7 +91,7 @@ function ProductPage() {
   if (mode === "gx") {
     return (
       <PrivyRoot appId={privyAppId}>
-        <main className="min-h-screen bg-[#0a0a0a] text-white">
+        <main className="min-h-screen bg-background text-foreground">
           <div className="mx-auto max-w-3xl px-4 py-6 space-y-6 sm:px-5 sm:py-10">
             <div className="flex justify-end">
               <ModeToggle />
@@ -104,10 +104,10 @@ function ProductPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white">
+    <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-4xl px-4 py-6 space-y-6 sm:px-5 sm:py-10 sm:space-y-8">
         <header className="flex items-center justify-between">
-          <Link to="/shop" className="text-xs font-bold text-neutral-400 hover:text-white">
+          <Link to="/shop" className="text-xs font-bold text-muted-foreground hover:text-foreground">
             ← Shop
           </Link>
           <div className="flex items-center gap-2">
@@ -118,7 +118,7 @@ function ProductPage() {
 
 
         <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
-          <div className="aspect-square bg-neutral-900 rounded-2xl overflow-hidden border border-neutral-800">
+          <div className="aspect-square bg-surface rounded-2xl overflow-hidden border border-border">
             {img && (
               <img
                 src={img.url}
@@ -130,18 +130,18 @@ function ProductPage() {
           <div className="space-y-6">
             <div>
               <h1 className="text-2xl font-black sm:text-3xl">{product.title}</h1>
-              <p className="mt-2 text-xl font-black text-[#1DB954] sm:text-2xl">
+              <p className="mt-2 text-xl font-black text-glow sm:text-2xl">
                 {variant?.price.currencyCode}{" "}
                 {parseFloat(variant?.price.amount ?? "0").toFixed(2)}
               </p>
             </div>
-            <p className="text-sm text-neutral-400 whitespace-pre-line">
+            <p className="text-sm text-muted-foreground whitespace-pre-line">
               {product.description}
             </p>
 
             {variants.length > 1 && (
               <div className="space-y-2">
-                <p className="text-xs font-bold uppercase tracking-widest text-neutral-500">
+                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                   Options
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -151,8 +151,8 @@ function ProductPage() {
                       onClick={() => setVariantIdx(i)}
                       className={`px-3 py-1.5 rounded-full text-xs font-bold border ${
                         i === variantIdx
-                          ? "border-[#1DB954] bg-[#1DB954]/10 text-[#1DB954]"
-                          : "border-neutral-700 text-neutral-400 hover:border-neutral-500"
+                          ? "border-primary bg-primary/10 text-glow"
+                          : "border-border text-muted-foreground hover:border-neutral-500"
                       }`}
                     >
                       {v.node.title}
@@ -163,14 +163,14 @@ function ProductPage() {
             )}
 
             <div className="space-y-2">
-              <p className="text-xs font-bold uppercase tracking-widest text-neutral-500">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 Quantity
               </p>
-              <div className="inline-flex items-center gap-2 rounded-full border border-neutral-700 bg-neutral-900 px-2 py-1">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-2 py-1">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 rounded-full text-neutral-300 hover:bg-neutral-800 hover:text-white disabled:opacity-40"
+                  className="h-9 w-9 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground disabled:opacity-40"
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
                   disabled={qty <= 1}
                 >
@@ -182,7 +182,7 @@ function ProductPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 rounded-full text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                  className="h-9 w-9 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
                   onClick={() => setQty((q) => q + 1)}
                 >
                   <Plus className="h-4 w-4" />
@@ -193,7 +193,7 @@ function ProductPage() {
             <Button
               onClick={handleAdd}
               disabled={isLoading || !variant?.availableForSale}
-              className="w-full bg-[#1DB954] text-black hover:bg-[#1ed760] font-bold h-12 rounded-full"
+              className="w-full bg-primary text-black hover:bg-primary/85 font-bold h-12 rounded-full"
             >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

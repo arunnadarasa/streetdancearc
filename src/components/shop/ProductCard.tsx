@@ -30,9 +30,9 @@ export function ProductCard({ product }: { product: ShopifyProduct }) {
     <Link
       to="/product/$handle"
       params={{ handle: product.node.handle }}
-      className="group rounded-2xl border border-neutral-800 bg-neutral-900/60 overflow-hidden hover:border-[#1DB954]/50 transition-colors"
+      className="group rounded-2xl border border-border bg-card/70 overflow-hidden hover:border-primary/50 transition-colors"
     >
-      <div className="aspect-square bg-neutral-800/50 overflow-hidden">
+      <div className="aspect-square bg-muted/50 overflow-hidden">
         {img ? (
           <img
             src={img.url}
@@ -40,22 +40,22 @@ export function ProductCard({ product }: { product: ShopifyProduct }) {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full grid place-items-center text-neutral-700">
+          <div className="w-full h-full grid place-items-center text-muted-foreground">
             <ShoppingBag className="h-12 w-12" />
           </div>
         )}
       </div>
       <div className="p-3 sm:p-4 space-y-2">
-        <h3 className="font-bold text-white truncate text-sm sm:text-base">{product.node.title}</h3>
+        <h3 className="font-bold text-foreground truncate text-sm sm:text-base">{product.node.title}</h3>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <span className="text-[#1DB954] font-black text-sm sm:text-base">
+          <span className="text-glow font-black text-sm sm:text-base">
             {price.currencyCode} {parseFloat(price.amount).toFixed(2)}
           </span>
           <Button
             size="sm"
             onClick={handleAdd}
             disabled={isLoading || !variant}
-            className="bg-white text-black hover:bg-neutral-200 h-8 rounded-full text-xs font-bold w-full sm:w-auto"
+            className="bg-white text-black hover:bg-foreground/85 h-8 rounded-full text-xs font-bold w-full sm:w-auto"
           >
             {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Add"}
           </Button>

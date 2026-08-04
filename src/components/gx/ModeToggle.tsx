@@ -12,7 +12,7 @@ export function ModeToggle({ className = "" }: { className?: string }) {
     <div
       role="group"
       aria-label="Interface mode"
-      className={`inline-flex shrink-0 items-center rounded-full border border-neutral-700 bg-black/60 p-0.5 ${className}`}
+      className={`inline-flex shrink-0 items-center rounded-full border border-border bg-black/60 p-0.5 ${className}`}
     >
       {OPTIONS.map((o) => (
         <button
@@ -22,8 +22,8 @@ export function ModeToggle({ className = "" }: { className?: string }) {
           aria-pressed={mode === o.value}
           className={`rounded-full px-3 py-1.5 text-[11px] font-black tracking-wide transition ${
             mode === o.value
-              ? "bg-[#1DB954] text-black"
-              : "text-neutral-400 hover:text-white"
+              ? "bg-primary text-black"
+              : "text-muted-foreground hover:text-foreground"
           }`}
         >
           {o.label}
