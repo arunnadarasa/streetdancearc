@@ -14,6 +14,7 @@ import { Route as MarketsRouteImport } from './routes/markets'
 import { Route as DeckRouteImport } from './routes/deck'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
+import { Route as ApiPublicPurchaseRouteImport } from './routes/api/public/purchase'
 import { Route as ApiPublicCatalogRouteImport } from './routes/api/public/catalog'
 import { Route as ApiPublicAgentCardRouteImport } from './routes/api/public/agent-card'
 
@@ -42,6 +43,11 @@ const ProductHandleRoute = ProductHandleRouteImport.update({
   path: '/product/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPurchaseRoute = ApiPublicPurchaseRouteImport.update({
+  id: '/api/public/purchase',
+  path: '/api/public/purchase',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCatalogRoute = ApiPublicCatalogRouteImport.update({
   id: '/api/public/catalog',
   path: '/api/public/catalog',
@@ -61,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/product/$handle': typeof ProductHandleRoute
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
+  '/api/public/purchase': typeof ApiPublicPurchaseRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByTo {
   '/product/$handle': typeof ProductHandleRoute
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
+  '/api/public/purchase': typeof ApiPublicPurchaseRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   '/product/$handle': typeof ProductHandleRoute
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
+  '/api/public/purchase': typeof ApiPublicPurchaseRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/product/$handle'
     | '/api/public/agent-card'
     | '/api/public/catalog'
+    | '/api/public/purchase'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/product/$handle'
     | '/api/public/agent-card'
     | '/api/public/catalog'
+    | '/api/public/purchase'
   id:
     | '__root__'
     | '/'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/product/$handle'
     | '/api/public/agent-card'
     | '/api/public/catalog'
+    | '/api/public/purchase'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +131,7 @@ export interface RootRouteChildren {
   ProductHandleRoute: typeof ProductHandleRoute
   ApiPublicAgentCardRoute: typeof ApiPublicAgentCardRoute
   ApiPublicCatalogRoute: typeof ApiPublicCatalogRoute
+  ApiPublicPurchaseRoute: typeof ApiPublicPurchaseRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -158,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/purchase': {
+      id: '/api/public/purchase'
+      path: '/api/public/purchase'
+      fullPath: '/api/public/purchase'
+      preLoaderRoute: typeof ApiPublicPurchaseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/catalog': {
       id: '/api/public/catalog'
       path: '/api/public/catalog'
@@ -183,6 +203,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductHandleRoute: ProductHandleRoute,
   ApiPublicAgentCardRoute: ApiPublicAgentCardRoute,
   ApiPublicCatalogRoute: ApiPublicCatalogRoute,
+  ApiPublicPurchaseRoute: ApiPublicPurchaseRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
