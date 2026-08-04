@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 const GREEN = "#1DB954";
 const CHERRY = "#E63946";
 
-function Chrome({ n, total = 10 }: { n: number; total?: number }) {
+function Chrome({ n, total = 11 }: { n: number; total?: number }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500 sm:px-6 sm:py-3 sm:text-xs">
       <span>Dance Move Tokens · Arc Testnet</span>
