@@ -379,9 +379,57 @@ function SlideRoadmap() {
 }
 
 // 10
+function SlideMarkets() {
+  return (
+    <Slide n={10}>
+      <Kicker>Market opportunity</Kicker>
+      <h3 className="mt-2 text-2xl font-black leading-[0.95] tracking-tight sm:text-4xl md:text-5xl">
+        Street dance travels
+        <br />
+        through the currencies
+        <br />
+        <span style={{ color: GREEN }}>that don't hold.</span>
+      </h3>
+
+      <div className="mt-3 grid gap-2 sm:mt-5 sm:grid-cols-3 sm:gap-4">
+        {sizing.map((s) => (
+          <div
+            key={s.label}
+            className="rounded-xl border border-neutral-800 p-2.5 sm:p-4"
+          >
+            <div className="text-lg font-black tracking-tight sm:text-3xl">{s.value}</div>
+            <p className="mt-0.5 text-[9px] leading-snug text-neutral-400 sm:mt-1 sm:text-xs">
+              {s.label}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-5 sm:gap-2">
+        {launchMarkets.map((m) => (
+          <span
+            key={m.country}
+            className="whitespace-nowrap rounded-full border border-neutral-700 px-2.5 py-1 text-[10px] font-bold text-neutral-200 sm:px-3.5 sm:py-1.5 sm:text-sm"
+          >
+            {m.flag} {m.country}{" "}
+            <span className="text-neutral-500">{m.inflation}</span>
+          </span>
+        ))}
+      </div>
+
+      <p className="mt-3 max-w-3xl text-[10px] leading-relaxed text-neutral-400 sm:mt-5 sm:text-sm">
+        In these markets a card checkout costs 10–15% in FX and demands a card most
+        young buyers don't hold. USDC on Arc settles in seconds, for sub-cent gas,
+        with the creator's royalty split at the moment of sale.
+      </p>
+    </Slide>
+  );
+}
+
+// 11
 function SlideClose() {
   return (
-    <Slide n={10} bg="bg-black">
+    <Slide n={11} bg="bg-black">
       <div className="flex h-full flex-col justify-between">
         <Kicker>Built for Encode × Arc</Kicker>
         <h2 className="text-4xl font-black leading-[0.9] tracking-tight sm:text-6xl md:text-7xl">
@@ -407,5 +455,6 @@ export const slides: Array<{ id: string; render: () => ReactNode }> = [
   { id: "defi", render: () => <SlideDefi /> },
   { id: "criteria", render: () => <SlideCriteria /> },
   { id: "roadmap", render: () => <SlideRoadmap /> },
+  { id: "markets", render: () => <SlideMarkets /> },
   { id: "close", render: () => <SlideClose /> },
 ];
