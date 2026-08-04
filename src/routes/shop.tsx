@@ -67,47 +67,54 @@ function ShopPage() {
               <p className="hidden truncate text-xs text-neutral-500 sm:block">Street dance culture · Physical drops</p>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <ModeToggle />
             <Link
               to="/"
-              className="text-xs font-bold text-neutral-400 hover:text-white"
+              className="hidden text-xs font-bold text-neutral-400 hover:text-white sm:inline"
             >
               ← Tokens
             </Link>
-            <CartDrawer />
+            {mode === "h2h" && <CartDrawer />}
           </div>
         </header>
 
-        <section className="rounded-3xl border border-neutral-800 bg-gradient-to-br from-[#1DB954]/20 via-neutral-900 to-black p-6 sm:p-8">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1DB954]">
-            Fresh drop
-          </p>
-          <h2 className="mt-2 text-3xl font-black leading-tight sm:text-4xl">
-            Wear the culture.<br />Move the streets.
-          </h2>
-          <p className="mt-3 max-w-md text-sm text-neutral-400">
-            Sneakers, snapbacks, baseball jackets, trousers, socks, tees, bandanas —
-            built for cyphers, battles and everyday flex.
-          </p>
-        </section>
-
-        {loading ? (
-          <div className="grid place-items-center py-24">
-            <Loader2 className="h-8 w-8 animate-spin text-[#1DB954]" />
-          </div>
-        ) : products.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-neutral-800 p-12 text-center">
-            <p className="text-neutral-400">No products found.</p>
-            <p className="mt-2 text-xs text-neutral-600">
-              Tell the chat what to add (e.g. "add a £120 Krump Kicks sneaker").
-            </p>
-          </div>
+        {mode === "gx" ? (
+          <GxShop />
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {products.map((p) => (
-              <ProductCard key={p.node.id} product={p} />
-            ))}
-          </div>
+          <>
+            <section className="rounded-3xl border border-neutral-800 bg-gradient-to-br from-[#1DB954]/20 via-neutral-900 to-black p-6 sm:p-8">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1DB954]">
+                Fresh drop
+              </p>
+              <h2 className="mt-2 text-3xl font-black leading-tight sm:text-4xl">
+                Wear the culture.<br />Move the streets.
+              </h2>
+              <p className="mt-3 max-w-md text-sm text-neutral-400">
+                Sneakers, snapbacks, baseball jackets, trousers, socks, tees, bandanas —
+                built for cyphers, battles and everyday flex.
+              </p>
+            </section>
+
+            {loading ? (
+              <div className="grid place-items-center py-24">
+                <Loader2 className="h-8 w-8 animate-spin text-[#1DB954]" />
+              </div>
+            ) : products.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-neutral-800 p-12 text-center">
+                <p className="text-neutral-400">No products found.</p>
+                <p className="mt-2 text-xs text-neutral-600">
+                  Tell the chat what to add (e.g. "add a £120 Krump Kicks sneaker").
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {products.map((p) => (
+                  <ProductCard key={p.node.id} product={p} />
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         <footer className="pt-6 text-center text-xs text-neutral-500">
@@ -116,5 +123,7 @@ function ShopPage() {
         </footer>
       </div>
     </main>
+    </PrivyRoot>
   );
+
 }
