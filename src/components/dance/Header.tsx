@@ -78,7 +78,9 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
         </nav>
 
         <div className="flex shrink-0 items-center gap-2">
+          {extra}
           <ModeToggle />
+
           {ready && (
             <button
               onClick={authenticated ? logout : login}
