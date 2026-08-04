@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { launchMarkets, sizing } from "@/data/markets";
 
 const GREEN = "#1DB954";
 const CHERRY = "#E63946";
