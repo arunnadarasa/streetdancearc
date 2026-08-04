@@ -1,0 +1,10 @@
+{
+  "protocolVersion": "0.3.0",
+  "name": "streetkode-storefront",
+  "description": "Street dance streetwear storefront settling in USDC on Circle's Arc Testnet. Fetch the live card (with the current payTo treasury address) from the canonical URL below.",
+  "canonicalUrl": "/api/public/agent-card",
+  "skills": [
+    { "id": "browse_catalog", "endpoint": { "method": "GET", "path": "/api/public/catalog" } },
+    { "id": "purchase", "endpoint": { "method": "POST", "path": "/api/public/purchase" } }
+  ]
+}
