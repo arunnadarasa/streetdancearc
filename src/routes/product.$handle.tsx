@@ -152,7 +152,7 @@ function ProductPage() {
                       className={`px-3 py-1.5 rounded-full text-xs font-bold border ${
                         i === variantIdx
                           ? "border-primary bg-primary/10 text-glow"
-                          : "border-border text-muted-foreground hover:border-neutral-500"
+                          : "border-border text-muted-foreground hover:border-primary/60"
                       }`}
                     >
                       {v.node.title}
@@ -193,7 +193,7 @@ function ProductPage() {
             <Button
               onClick={handleAdd}
               disabled={isLoading || !variant?.availableForSale}
-              className="w-full bg-primary text-black hover:bg-primary/85 font-bold h-12 rounded-full"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/85 font-bold h-12 rounded-full"
             >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

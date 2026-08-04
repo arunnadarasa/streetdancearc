@@ -87,7 +87,7 @@ export function GxShop() {
                 className={`rounded-full border px-3 py-1.5 font-mono text-[11px] font-bold transition ${
                   o.sku === selected
                     ? "border-primary bg-primary/10 text-glow"
-                    : "border-border text-muted-foreground hover:border-neutral-500"
+                    : "border-border text-muted-foreground hover:border-primary/60"
                 }`}
               >
                 {o.sku}

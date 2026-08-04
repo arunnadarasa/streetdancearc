@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { launchMarkets, sizing } from "@/data/markets";
 
-const GREEN = "#1DB954";
+const GREEN = "#4f46e5";
 const CHERRY = "#E63946";
 
 function Chrome({ n, total = 11 }: { n: number; total?: number }) {
@@ -48,7 +48,7 @@ function Slide({
 // 1
 function SlideTitle() {
   return (
-    <Slide n={1} bg="bg-black">
+    <Slide n={1} bg="bg-background">
       <div className="flex h-full flex-col justify-between">
         <Kicker>Encode × Arc · Stablecoin Hackathon · Aug 2026</Kicker>
         <div>
@@ -211,7 +211,7 @@ function SlideLive() {
           </div>
         ))}
       </div>
-      <div className="mt-auto rounded-xl border border-border bg-black p-3 sm:p-5">
+      <div className="mt-auto rounded-xl border border-border bg-background p-3 sm:p-5">
         <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
           DanceMoveTokens.sol
         </div>
@@ -430,7 +430,7 @@ function SlideMarkets() {
 // 11
 function SlideClose() {
   return (
-    <Slide n={11} bg="bg-black">
+    <Slide n={11} bg="bg-background">
       <div className="flex h-full flex-col justify-between">
         <Kicker>Built for Encode × Arc</Kicker>
         <h2 className="text-4xl font-black leading-[0.9] tracking-tight sm:text-6xl md:text-7xl">

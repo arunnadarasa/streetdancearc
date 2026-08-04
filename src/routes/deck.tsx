@@ -15,7 +15,7 @@ export const Route = createFileRoute("/deck")({
 
 function DeckPage() {
   return (
-    <div className="min-h-screen bg-black text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
@@ -42,7 +42,7 @@ function DeckPage() {
             <a
               href="/judges-deck.pptx"
               download
-              className="rounded-full bg-primary px-3 py-2 text-xs font-bold text-black hover:brightness-110"
+              className="rounded-full bg-primary px-3 py-2 text-xs font-bold text-primary-foreground hover:brightness-125"
             >
               Download PPTX
             </a>

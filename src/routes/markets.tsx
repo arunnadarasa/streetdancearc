@@ -31,11 +31,11 @@ export const Route = createFileRoute("/markets")({
   component: MarketsPage,
 });
 
-const GREEN = "#1DB954";
+const GREEN = "#4f46e5";
 
 function MarketsPage() {
   return (
-    <div className="min-h-screen bg-black text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-14">
       <Link
         to="/"
@@ -149,7 +149,7 @@ function MarketsPage() {
                 </p>
               </div>
 
-              <p className="mt-4 rounded-xl border border-border bg-black/40 p-3 text-xs text-muted-foreground sm:text-sm">
+              <p className="mt-4 rounded-xl border border-border bg-background/50 p-3 text-xs text-muted-foreground sm:text-sm">
                 <span className="font-bold text-[#E63946]">Main risk · </span>
                 {m.risk}
               </p>
@@ -168,7 +168,7 @@ function MarketsPage() {
             <div
               key={row.dimension}
               className={`grid gap-1 p-4 sm:grid-cols-[130px_1fr_1fr] sm:gap-4 sm:p-5 ${
-                i % 2 ? "bg-surface-2" : "bg-black"
+                i % 2 ? "bg-surface-2" : "bg-background"
               }`}
             >
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground sm:text-xs">
@@ -178,7 +178,7 @@ function MarketsPage() {
                 <span className="font-bold text-muted-foreground sm:hidden">Card · </span>
                 {row.card}
               </div>
-              <div className="text-xs text-neutral-100 sm:text-sm">
+              <div className="text-xs text-foreground sm:text-sm">
                 <span className="font-bold sm:hidden" style={{ color: GREEN }}>
                   USDC ·{" "}
                 </span>
@@ -220,7 +220,7 @@ function MarketsPage() {
       <div className="mt-8 flex flex-wrap gap-2">
         <Link
           to="/shop"
-          className="rounded-full bg-white px-5 py-3 text-xs font-bold text-black hover:bg-foreground/85"
+          className="rounded-full bg-foreground px-5 py-3 text-xs font-bold text-background hover:bg-foreground/85"
         >
           Shop the merch →
         </Link>

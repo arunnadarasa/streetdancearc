@@ -27,7 +27,7 @@ export default function PrivyClientEntry({ children, appId }: { children: ReactN
         supportedChains: [arcTestnet],
         appearance: {
           theme: "dark",
-          accentColor: "#1DB954",
+          accentColor: "#4f46e5",
         },
       }}
     >

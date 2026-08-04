@@ -55,7 +55,7 @@ export function ProductCard({ product }: { product: ShopifyProduct }) {
             size="sm"
             onClick={handleAdd}
             disabled={isLoading || !variant}
-            className="bg-white text-black hover:bg-foreground/85 h-8 rounded-full text-xs font-bold w-full sm:w-auto"
+            className="bg-foreground text-background hover:bg-foreground/85 h-8 rounded-full text-xs font-bold w-full sm:w-auto"
           >
             {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Add"}
           </Button>

@@ -81,7 +81,7 @@ export function GxOffer({ product }: { product: any }) {
                   className={`rounded-full border px-3 py-1.5 font-mono text-[11px] font-bold ${
                     i === variantIdx
                       ? "border-primary bg-primary/10 text-glow"
-                      : "border-border text-muted-foreground hover:border-neutral-500"
+                      : "border-border text-muted-foreground hover:border-primary/60"
                   }`}
                 >
                   {v.node.title}
@@ -95,7 +95,7 @@ export function GxOffer({ product }: { product: any }) {
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             quantity
           </p>
-          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-black/40 px-2 py-1">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-background/50 px-2 py-1">
             <button
               onClick={() => setQty((q) => Math.max(1, q - 1))}
               className="h-8 w-8 rounded-full font-bold text-muted-foreground hover:bg-secondary"

@@ -51,7 +51,7 @@ export function CartDrawer() {
         >
           <ShoppingCart className="h-5 w-5" />
           {totalItems > 0 && (
-            <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-primary text-black">
+            <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-primary text-primary-foreground">
               {totalItems}
             </Badge>
           )}
@@ -152,7 +152,7 @@ export function CartDrawer() {
                 </div>
                 <Button
                   onClick={handleCheckout}
-                  className="w-full bg-primary text-black hover:bg-primary/85 font-bold"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/85 font-bold"
                   size="lg"
                   disabled={items.length === 0 || isLoading || isSyncing}
                 >

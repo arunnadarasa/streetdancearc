@@ -25,13 +25,13 @@ export function InterruptCard({
       <div className="flex flex-wrap gap-2">
         <button
           onClick={() => onAnswer(true)}
-          className="rounded-full bg-primary px-5 py-2 text-xs font-bold text-black hover:bg-primary/85"
+          className="rounded-full bg-primary px-5 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/85"
         >
           Approve spend
         </button>
         <button
           onClick={() => onAnswer(false)}
-          className="rounded-full border border-neutral-600 px-5 py-2 text-xs font-bold text-foreground hover:bg-black/30"
+          className="rounded-full border border-border px-5 py-2 text-xs font-bold text-foreground hover:bg-background/40"
         >
           Reject
         </button>

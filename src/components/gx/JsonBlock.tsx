@@ -5,7 +5,7 @@ export interface JsonBlockProps {
 }
 
 const TONES: Record<string, string> = {
-  neutral: "border-border bg-black/60 text-muted-foreground",
+  neutral: "border-border bg-background/60 text-muted-foreground",
   green: "border-primary/40 bg-primary/10 text-foreground/80",
   amber: "border-amber-500/40 bg-amber-500/5 text-amber-200",
   red: "border-red-500/40 bg-red-500/5 text-red-200",

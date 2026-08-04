@@ -59,7 +59,7 @@ function ShopPage() {
       <div className="mx-auto max-w-6xl px-4 py-6 space-y-6 sm:px-5 sm:py-10 sm:space-y-8">
         <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-black font-black">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground font-black">
               ♪
             </div>
             <div className="min-w-0">

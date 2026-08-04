@@ -66,7 +66,7 @@ export function Deck() {
               aria-label={`Slide ${idx + 1}`}
               onClick={() => go(idx)}
               className={`h-2 w-2 rounded-full transition ${
-                idx === i ? "bg-primary" : "bg-neutral-700 hover:bg-neutral-500"
+                idx === i ? "bg-primary" : "bg-muted hover:bg-glow"
               }`}
             />
           ))}
@@ -74,7 +74,7 @@ export function Deck() {
         <button
           onClick={next}
           disabled={i === total - 1}
-          className="rounded-full bg-white px-4 py-2 text-xs font-bold text-black hover:bg-foreground/85 disabled:opacity-40"
+          className="rounded-full bg-foreground px-4 py-2 text-xs font-bold text-background hover:bg-foreground/85 disabled:opacity-40"
         >
           Next →
         </button>

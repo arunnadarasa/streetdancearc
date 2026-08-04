@@ -19,14 +19,14 @@ export function TreasuryCard({ address }: { address?: string }) {
     <div className="rounded-2xl border border-border bg-gradient-to-br from-surface to-surface-2 p-5">
       <p className="text-xs uppercase tracking-widest text-muted-foreground">Treasury</p>
       <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-        <code className="min-w-0 flex-1 break-all rounded bg-black/40 px-2 py-1 text-xs text-foreground/85 sm:text-sm">{addr}</code>
+        <code className="min-w-0 flex-1 break-all rounded bg-background/50 px-2 py-1 text-xs text-foreground/85 sm:text-sm">{addr}</code>
         <button
           onClick={() => {
             navigator.clipboard.writeText(addr);
             setCopied(true);
             setTimeout(() => setCopied(false), 1500);
           }}
-          className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-black hover:bg-primary/85"
+          className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/85"
         >
           {copied ? "Copied!" : "Copy"}
         </button>

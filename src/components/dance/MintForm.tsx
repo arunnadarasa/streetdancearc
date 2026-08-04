@@ -124,7 +124,7 @@ export function MintForm() {
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
-          className="mt-1 w-full rounded-lg border border-border bg-black/40 px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+          className="mt-1 w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
         />
       </div>
 
@@ -140,12 +140,12 @@ export function MintForm() {
           pattern="[0-9]*\.?[0-9]*"
           min="0"
           step="0.01"
-          className="mt-1 w-full rounded-lg border border-border bg-black/40 px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+          className="mt-1 w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
         />
       </div>
 
       {authenticated && contractDeployed && (
-        <div className="rounded-lg border border-border bg-black/30 p-3 text-xs text-muted-foreground">
+        <div className="rounded-lg border border-border bg-background/40 p-3 text-xs text-muted-foreground">
           You'll approve <span className="font-semibold text-foreground">{amount || "0"} {TOKENS[token].symbol}</span>{" "}
           to be spent by the DanceMoveTokens contract, then log the move.
           <br />
@@ -159,7 +159,7 @@ export function MintForm() {
       <button
         disabled={busy}
         onClick={onSubmit}
-        className="h-12 w-full rounded-full bg-primary px-4 text-base font-bold text-black transition hover:bg-primary/85 disabled:opacity-50"
+        className="h-12 w-full rounded-full bg-primary px-4 text-base font-bold text-primary-foreground transition hover:bg-primary/85 disabled:opacity-50"
       >
         {busy ? "Working…" : authenticated ? "Approve & Log Move" : "Sign in with Google"}
       </button>

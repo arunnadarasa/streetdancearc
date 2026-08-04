@@ -36,7 +36,7 @@ export function AgentRunPanel({
       <button
         disabled={busy || !order}
         onClick={() => order && run(order)}
-        className="h-12 w-full rounded-full bg-primary px-4 text-sm font-black text-black transition hover:bg-primary/85 disabled:opacity-40"
+        className="h-12 w-full rounded-full bg-primary px-4 text-sm font-black text-primary-foreground transition hover:bg-primary/85 disabled:opacity-40"
       >
         {busy ? "Agent task running…" : cta}
       </button>

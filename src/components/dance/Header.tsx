@@ -10,7 +10,7 @@ export function Header() {
   return (
     <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-center gap-3">
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-black font-black">
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground font-black">
           ♪
         </div>
         <div className="min-w-0">
@@ -47,7 +47,7 @@ export function Header() {
         {ready && (
           <button
             onClick={authenticated ? logout : login}
-            className="shrink-0 rounded-full bg-white px-3 py-2 text-xs font-bold text-black hover:bg-foreground/85 sm:px-4"
+            className="shrink-0 rounded-full bg-foreground px-3 py-2 text-xs font-bold text-background hover:bg-foreground/85 sm:px-4"
           >
             {authenticated
               ? addr

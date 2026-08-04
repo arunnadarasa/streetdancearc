@@ -48,7 +48,7 @@ export function GxHome() {
           {ENDPOINTS.map((e) => (
             <li
               key={e.path}
-              className="flex flex-col gap-1 rounded-xl border border-border bg-black/40 p-3 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-1 rounded-xl border border-border bg-background/50 p-3 sm:flex-row sm:items-center sm:justify-between"
             >
               <a
                 href={e.path}

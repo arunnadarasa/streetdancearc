@@ -52,13 +52,13 @@ export function SpendPolicyPanel({
               inputMode="decimal"
               value={policy[f.key] as number}
               onChange={(e) => set(f.key, Math.max(0, Number(e.target.value)))}
-              className="mt-1 w-full rounded-lg border border-border bg-black/40 px-3 py-2 text-sm font-bold text-foreground outline-none focus:border-primary"
+              className="mt-1 w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm font-bold text-foreground outline-none focus:border-primary"
             />
           </label>
         ))}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-black/40 px-3 py-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-background/50 px-3 py-2">
         <span className="text-xs text-muted-foreground">
           Spent today:{" "}
           <span className="font-bold text-foreground">{spentToday.toFixed(4)} USDC</span> of{" "}

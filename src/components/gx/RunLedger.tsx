@@ -29,7 +29,7 @@ export function RunLedger({ steps }: { steps: RunStep[] }) {
           className="rounded-2xl border border-border bg-card/70 p-4 space-y-2"
         >
           <div className="flex items-start gap-3">
-            <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border bg-black text-[10px] font-bold text-muted-foreground">
+            <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border bg-background text-[10px] font-bold text-muted-foreground">
               {i + 1}
             </span>
             <div className="min-w-0 flex-1">
