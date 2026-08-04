@@ -78,18 +78,18 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
           })}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           {extra}
           <ModeToggle />
 
           {ready && (
             <button
               onClick={authenticated ? logout : login}
-              className="lift shrink-0 rounded-full bg-linear-to-r from-primary to-glow px-3.5 py-2 text-xs font-bold text-primary-foreground shadow-glow-sm sm:px-4"
+              className="lift shrink-0 rounded-full bg-linear-to-r from-primary to-glow px-3 py-1.5 text-[11px] font-bold text-primary-foreground shadow-glow-sm sm:px-4 sm:py-2 sm:text-xs"
             >
               {authenticated
                 ? addr
-                  ? `${addr.slice(0, 6)}…${addr.slice(-4)}`
+                  ? `${addr.slice(0, 4)}…${addr.slice(-4)}`
                   : "Sign out"
                 : (
                   <>
@@ -101,24 +101,28 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
         </div>
       </div>
 
-      <nav className="rail flex items-center gap-1.5 overflow-x-auto pb-2 md:hidden">
-        {NAV.map((n) => {
-          const active = pathname.startsWith(n.to);
-          return (
-            <Link
-              key={n.to}
-              to={n.to}
-              className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${
-                active
-                  ? "border-primary/60 bg-primary/15 text-foreground"
-                  : "border-border text-muted-foreground"
-              }`}
-            >
-              {n.label}
-            </Link>
-          );
-        })}
-      </nav>
+      <div className="relative md:hidden">
+        <nav className="rail flex items-center gap-1.5 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {NAV.map((n) => {
+            const active = pathname.startsWith(n.to);
+            return (
+              <Link
+                key={n.to}
+                to={n.to}
+                className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${
+                  active
+                    ? "border-primary/60 bg-primary/15 text-foreground"
+                    : "border-border text-muted-foreground"
+                }`}
+              >
+                {n.label}
+              </Link>
+            );
+          })}
+        </nav>
+        <span className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-linear-to-l from-background to-transparent" />
+      </div>
+
     </header>
   );
 }
