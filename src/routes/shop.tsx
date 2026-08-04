@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { STOREFRONT_QUERY, storefrontApiRequest, type ShopifyProduct } from "@/lib/shopify";
 import { ProductCard } from "@/components/shop/ProductCard";
@@ -6,10 +6,14 @@ import { CartDrawer } from "@/components/shop/CartDrawer";
 import { useCartSync } from "@/hooks/useCartSync";
 import { Loader2 } from "lucide-react";
 import { PrivyRoot } from "@/components/PrivyRoot";
-import { ModeToggle } from "@/components/gx/ModeToggle";
+import { Header } from "@/components/dance/Header";
+import { Section, SectionHead } from "@/components/layout/Section";
+import { Reveal } from "@/components/layout/Reveal";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 import { GxShop } from "@/components/gx/GxShop";
 import { useGxMode } from "@/lib/gx-mode";
 import { getPublicConfig } from "@/lib/config.functions";
+
 
 export const Route = createFileRoute("/shop")({
   loader: () => getPublicConfig(),
