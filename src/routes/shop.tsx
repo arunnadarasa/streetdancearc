@@ -68,12 +68,12 @@ function ShopPage() {
         ) : (
           <>
             <section className="aurora-bg relative">
-              <div className="rail relative flex min-h-[52vh] flex-col justify-center py-16 sm:py-24">
+              <div className="rail relative flex min-h-[40vh] flex-col justify-center py-12 sm:min-h-[52vh] sm:py-24">
                 <Reveal>
                   <p className="eyebrow">Fresh drop · StreetKode Merch</p>
                 </Reveal>
                 <Reveal delay={90}>
-                  <h1 className="display mt-5 text-[12vw] leading-[0.9] sm:text-6xl lg:text-7xl">
+                  <h1 className="display mt-5 text-[clamp(2.1rem,8.5vw,3rem)] leading-[0.95] sm:text-6xl lg:text-7xl">
                     <span className="block text-foreground">Wear the culture.</span>
                     <span className="block text-gradient">Move the streets.</span>
                   </h1>

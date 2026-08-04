@@ -33,20 +33,20 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
       }`}
     >
       <div
-        className={`rail flex items-center justify-between gap-3 transition-all duration-300 ${
-          scrolled ? "py-2.5" : "py-4"
+        className={`rail grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 transition-all duration-300 sm:gap-3 ${
+          scrolled ? "py-2" : "py-2.5 sm:py-4"
         }`}
       >
-        <Link to="/" className="group flex min-w-0 items-center gap-3">
+        <Link to="/" className="group flex min-w-0 items-center gap-2 sm:gap-3">
           <span
             className={`grid shrink-0 place-items-center rounded-xl bg-linear-to-br from-primary to-glow font-black text-primary-foreground shadow-glow-sm transition-all duration-300 ${
-              scrolled ? "h-8 w-8 text-sm" : "h-10 w-10 text-base"
+              scrolled ? "h-7 w-7 text-xs sm:h-8 sm:w-8 sm:text-sm" : "h-8 w-8 text-sm sm:h-10 sm:w-10 sm:text-base"
             }`}
           >
             ♪
           </span>
           <span className="min-w-0">
-            <span className="display block truncate text-[15px] text-foreground sm:text-lg">
+            <span className="display block truncate text-[13px] leading-tight text-foreground sm:text-lg">
               Dance Move Tokens
             </span>
             <span
@@ -78,18 +78,18 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
           })}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2">
-          {extra}
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          {extra ? <span className="hidden md:inline-flex">{extra}</span> : null}
           <ModeToggle />
 
           {ready && (
             <button
               onClick={authenticated ? logout : login}
-              className="lift shrink-0 rounded-full bg-linear-to-r from-primary to-glow px-3.5 py-2 text-xs font-bold text-primary-foreground shadow-glow-sm sm:px-4"
+              className="lift shrink-0 rounded-full bg-linear-to-r from-primary to-glow px-3 py-1.5 text-[11px] font-bold text-primary-foreground shadow-glow-sm sm:px-4 sm:py-2 sm:text-xs"
             >
               {authenticated
                 ? addr
-                  ? `${addr.slice(0, 6)}…${addr.slice(-4)}`
+                  ? `${addr.slice(0, 4)}…${addr.slice(-4)}`
                   : "Sign out"
                 : (
                   <>
@@ -101,24 +101,32 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
         </div>
       </div>
 
-      <nav className="rail flex items-center gap-1.5 overflow-x-auto pb-2 md:hidden">
-        {NAV.map((n) => {
-          const active = pathname.startsWith(n.to);
-          return (
-            <Link
-              key={n.to}
-              to={n.to}
-              className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${
-                active
-                  ? "border-primary/60 bg-primary/15 text-foreground"
-                  : "border-border text-muted-foreground"
-              }`}
-            >
-              {n.label}
-            </Link>
-          );
-        })}
-      </nav>
+      <div className="rail flex items-center gap-2 pb-2 md:hidden">
+        <div className="relative min-w-0 flex-1">
+          <nav className="flex items-center gap-1.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {NAV.map((n) => {
+              const active = pathname.startsWith(n.to);
+              return (
+                <Link
+                  key={n.to}
+                  to={n.to}
+                  className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${
+                    active
+                      ? "border-primary/60 bg-primary/15 text-foreground"
+                      : "border-border text-muted-foreground"
+                  }`}
+                >
+                  {n.label}
+                </Link>
+              );
+            })}
+          </nav>
+          <span className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-linear-to-l from-background to-transparent" />
+        </div>
+        {extra ? <div className="shrink-0">{extra}</div> : null}
+      </div>
+
+
     </header>
   );
 }

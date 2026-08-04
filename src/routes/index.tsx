@@ -57,34 +57,34 @@ function Index() {
           <>
             {/* HERO */}
             <section className="aurora-bg relative">
-              <div className="rail relative flex min-h-[78vh] flex-col justify-center py-20 sm:py-28">
+              <div className="rail relative flex min-h-[60vh] flex-col justify-center py-12 sm:min-h-[78vh] sm:py-28">
                 <Reveal>
                   <p className="eyebrow">Dance &middot; Choreography &middot; Programmable money</p>
                 </Reveal>
                 <Reveal delay={90}>
-                  <h1 className="display mt-5 text-[13vw] leading-[0.88] sm:text-7xl lg:text-[5.5rem]">
+                  <h1 className="display mt-4 text-[clamp(2.25rem,9vw,3.25rem)] leading-[0.92] sm:mt-5 sm:text-7xl sm:leading-[0.88] lg:text-[5.5rem]">
                     <span className="block text-foreground">License</span>
                     <span className="block text-gradient">your moves.</span>
                     <span className="block text-foreground">Pin your rights.</span>
                   </h1>
                 </Reveal>
                 <Reveal delay={180}>
-                  <p className="mt-7 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+                  <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted-foreground sm:mt-7 sm:text-lg">
                     Create, pin and trade dance moves as on-chain rights records with IPFS
                     metadata — settled in USDC, EURC or cirBTC on Circle&apos;s Arc Testnet.
                   </p>
                 </Reveal>
                 <Reveal delay={260}>
-                  <div className="mt-9 flex flex-wrap items-center gap-3">
+                  <div className="mt-7 flex flex-col items-stretch gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:items-center">
                     <a
                       href="#register"
-                      className="lift rounded-full bg-linear-to-r from-primary to-glow px-7 py-3.5 text-sm font-bold text-primary-foreground shadow-glow"
+                      className="lift rounded-full bg-linear-to-r from-primary to-glow px-7 py-3.5 text-center text-sm font-bold text-primary-foreground shadow-glow"
                     >
                       Register a move
                     </a>
                     <a
                       href="/shop"
-                      className="lift rounded-full border border-border bg-surface/60 px-7 py-3.5 text-sm font-bold text-foreground backdrop-blur"
+                      className="lift rounded-full border border-border bg-surface/60 px-7 py-3.5 text-center text-sm font-bold text-foreground backdrop-blur"
                     >
                       Shop the merch →
                     </a>
@@ -92,10 +92,10 @@ function Index() {
                 </Reveal>
 
                 <Reveal delay={340}>
-                  <dl className="mt-14 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border/60 lg:grid-cols-4">
+                  <dl className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border/60 sm:mt-14 lg:grid-cols-4">
                     {STATS.map((s) => (
-                      <div key={s.k} className="bg-surface-2/90 px-4 py-5 backdrop-blur sm:px-6 sm:py-6">
-                        <dt className="display text-xl text-foreground sm:text-2xl">{s.k}</dt>
+                      <div key={s.k} className="bg-surface-2/90 px-3.5 py-4 backdrop-blur sm:px-6 sm:py-6">
+                        <dt className="display text-lg text-foreground sm:text-2xl">{s.k}</dt>
                         <dd className="mt-1 text-[11px] leading-snug text-muted-foreground sm:text-xs">
                           {s.v}
                         </dd>
@@ -105,6 +105,7 @@ function Index() {
                 </Reveal>
               </div>
             </section>
+
 
             {/* HOW IT WORKS */}
             <Section tone="raised" lines>

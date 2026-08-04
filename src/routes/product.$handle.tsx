@@ -135,7 +135,7 @@ function ProductPage() {
                   ← Back to the rack
                 </Link>
                 <div>
-                  <h1 className="display text-4xl leading-[0.95] sm:text-5xl">{product.title}</h1>
+                  <h1 className="display text-[clamp(1.75rem,7vw,2.5rem)] leading-[1.02] sm:text-5xl">{product.title}</h1>
                   <p className="display mt-4 text-3xl text-gradient sm:text-4xl">
                     {variant?.price.currencyCode}{" "}
                     {parseFloat(variant?.price.amount ?? "0").toFixed(2)}
