@@ -77,18 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Dance Move Tokens · Arc Testnet" },
-      { name: "description", content: "License street dance moves on Circle's Arc Testnet. Pay in USDC, EURC, or cirBTC — rights metadata pinned to IPFS." },
+      { title: "StreetKode Fam — Street Dance Merch, Paid in Stablecoins" },
+      { name: "description", content: "Streetwear built for cyphers and battles — sneakers, snapbacks, jackets and tees. Checkout in USDC, EURC or cirBTC on Circle's Arc, plus an on-chain marketplace for dance moves." },
       { name: "author", content: "StreetKode Fam" },
-      { property: "og:title", content: "Dance Move Tokens · Arc Testnet" },
-      { property: "og:description", content: "License street dance moves on Circle's Arc Testnet. Pay in USDC, EURC, or cirBTC — rights metadata pinned to IPFS." },
+      { property: "og:title", content: "StreetKode Fam — Street Dance Merch, Paid in Stablecoins" },
+      { property: "og:description", content: "Streetwear built for cyphers and battles — sneakers, snapbacks, jackets and tees. Checkout in USDC, EURC or cirBTC on Circle's Arc, plus an on-chain marketplace for dance moves." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
 
-      { name: "twitter:title", content: "Dance Move Tokens · Arc Testnet" },
-      { name: "twitter:description", content: "License street dance moves on Circle's Arc Testnet. Pay in USDC, EURC, or cirBTC — rights metadata pinned to IPFS." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/73539d67-f1d0-4a7a-aa4b-d4a132392704/id-preview-66211702--a13f2d78-039c-4a92-baa0-45ea5da8679f.lovable.app-1784565817686.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/73539d67-f1d0-4a7a-aa4b-d4a132392704/id-preview-66211702--a13f2d78-039c-4a92-baa0-45ea5da8679f.lovable.app-1784565817686.png" },
+      { name: "twitter:title", content: "StreetKode Fam — Street Dance Merch, Paid in Stablecoins" },
+      { name: "twitter:description", content: "Streetwear built for cyphers and battles — sneakers, snapbacks, jackets and tees. Checkout in USDC, EURC or cirBTC on Circle's Arc, plus an on-chain marketplace for dance moves." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/94594475-b554-4126-9a7a-3fbd2ac18982" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/94594475-b554-4126-9a7a-3fbd2ac18982" },
     ],
     links: [
       {

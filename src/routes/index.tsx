@@ -29,7 +29,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Street dance streetwear settled in USDC, EURC or cirBTC on Arc — with a marketplace for licensing choreography.",
+          "Streetwear built for cyphers and battles — sneakers, snapbacks, jackets and tees. Checkout in USDC, EURC or cirBTC on Circle's Arc, plus an on-chain marketplace for dance moves.",
       },
     ],
   }),
