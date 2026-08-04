@@ -1,33 +1,27 @@
-# Merch product imagery
+# Merch first, move licensing second
 
-Right now every product card falls back to a grey bag icon because the Shopify products have no images. This adds real generated product shots for all 7 pieces in the drop.
+Reframe the site so the streetwear store is the headline product and the on-chain move registry reads as a secondary "marketplace for moves" layer that sits behind it.
 
-## Look and feel
+## Homepage
 
-One consistent art direction so the grid reads like a single drop, matching the Midnight Indigo theme:
+- **Hero**: lead with the drop. New headline along the lines of "Wear the culture. Own the move." Subline: streetwear for cyphers and battles, paid in USDC / EURC / cirBTC on Arc.
+- **CTAs**: primary button becomes "Shop the drop" → `/shop`. Secondary becomes "Marketplace for moves" → move registry.
+- **Stats strip**: swap chain trivia for commerce-first facts (pieces in the drop, settlement currencies, agent checkout, on-chain rights records).
+- **New section directly under the hero**: featured merch — 3–4 products pulled from the live Shopify catalogue with image, title, price and add-to-cart, plus a "See the full rack" link.
+- **"Three moves" flow section**: rewritten around buying merch (pick a piece → pay in stablecoins → move rights travel with the drop).
+- **Move registry**: demoted to a section lower on the page, reframed as "Marketplace for moves" — register, license and settle choreography rights. Keeps the existing mint form and treasury card, just repositioned and re-copied as a secondary offer.
 
-- Studio product shot on a deep near-black indigo backdrop
-- Soft violet rim light, subtle floor reflection, slight film grain
-- Square 1:1 framing, product centred, generous margin
-- No text, no logos, no people
+## Navigation and metadata
 
-## What gets an image
+- Nav order becomes Shop · Moves · Negotiate · Markets · Deck, with Shop as the default emphasis.
+- Add a `/moves` entry point that scrolls to the registry section so it has its own nav target.
+- Update the homepage title and meta description to lead with streetwear commerce, keeping the rights registry as the supporting hook.
 
-1. Krump Kicks Low sneakers
-2. StreetKode Snapback
-3. Baseball jacket
-4. Trousers / cargos
-5. Crew socks
-6. Tee
-7. Bandana
+## Not changing
 
-## How it works
+- Shopify catalogue, cart and checkout logic.
+- The Arc contract, Privy auth, mint flow, GX/agent mode and x402 endpoints — only their placement and copy on the homepage.
 
-- Generate one 1024x1024 image per product.
-- Register each file as a hosted asset so it has a stable public URL.
-- Attach those URLs to the matching Shopify products so images come from the real catalogue — the storefront, cart drawer, product page and the GX/x402 agent catalogue all pick them up with no extra frontend code.
-- Keep the existing bag-icon fallback for any product without an image.
+## Technical notes
 
-## Notes
-
-Attaching images updates the connected Shopify store's product data (the dev store), not just the Lovable UI.
+Work is confined to `src/routes/index.tsx`, `src/components/dance/Header.tsx`, and a new featured-merch component that reuses the existing Shopify fetch helper and `ProductCard`. No backend, contract or cart changes.
