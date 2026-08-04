@@ -122,11 +122,14 @@ export const runNegotiation = createServerFn({ method: "POST" })
         { role: "user", content: transcriptToText(transcript) },
       ]);
       const seller = SellerReplySchema.parse(sellerRaw);
+      const normalizedQuote = seller.quote
+        ? normalizeQuote(seller.quote, data.catalog)
+        : null;
       transcript.push({
         role: "seller",
         message: seller.reply,
         action: seller.action,
-        quote: seller.quote ?? null,
+        quote: normalizedQuote,
       });
 
       if (seller.action === "accept" || seller.action === "reject") break;
