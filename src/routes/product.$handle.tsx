@@ -10,14 +10,22 @@ import { useCartStore } from "@/stores/cartStore";
 import { useCartSync } from "@/hooks/useCartSync";
 import { Button } from "@/components/ui/button";
 import { Loader2, Minus, Plus } from "lucide-react";
+import { PrivyRoot } from "@/components/PrivyRoot";
+import { ModeToggle } from "@/components/gx/ModeToggle";
+import { GxOffer } from "@/components/gx/GxOffer";
+import { useGxMode } from "@/lib/gx-mode";
+import { getPublicConfig } from "@/lib/config.functions";
 
 export const Route = createFileRoute("/product/$handle")({
+  loader: () => getPublicConfig(),
   component: ProductPage,
 });
 
 function ProductPage() {
   useCartSync();
   const { handle } = Route.useParams();
+  const { privyAppId } = Route.useLoaderData();
+  const [mode] = useGxMode();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [variantIdx, setVariantIdx] = useState(0);
@@ -28,6 +36,7 @@ function ProductPage() {
   useEffect(() => {
     setQty(1);
   }, [variantIdx]);
+
 
   useEffect(() => {
     (async () => {
