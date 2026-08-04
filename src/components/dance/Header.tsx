@@ -79,7 +79,7 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
         </nav>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-          {extra}
+          {extra ? <span className="hidden md:inline-flex">{extra}</span> : null}
           <ModeToggle />
 
           {ready && (
@@ -101,27 +101,31 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
         </div>
       </div>
 
-      <div className="relative md:hidden">
-        <nav className="rail flex items-center gap-1.5 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {NAV.map((n) => {
-            const active = pathname.startsWith(n.to);
-            return (
-              <Link
-                key={n.to}
-                to={n.to}
-                className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${
-                  active
-                    ? "border-primary/60 bg-primary/15 text-foreground"
-                    : "border-border text-muted-foreground"
-                }`}
-              >
-                {n.label}
-              </Link>
-            );
-          })}
-        </nav>
-        <span className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-linear-to-l from-background to-transparent" />
+      <div className="rail flex items-center gap-2 pb-2 md:hidden">
+        <div className="relative min-w-0 flex-1">
+          <nav className="flex items-center gap-1.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {NAV.map((n) => {
+              const active = pathname.startsWith(n.to);
+              return (
+                <Link
+                  key={n.to}
+                  to={n.to}
+                  className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${
+                    active
+                      ? "border-primary/60 bg-primary/15 text-foreground"
+                      : "border-border text-muted-foreground"
+                  }`}
+                >
+                  {n.label}
+                </Link>
+              );
+            })}
+          </nav>
+          <span className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-linear-to-l from-background to-transparent" />
+        </div>
+        {extra ? <div className="shrink-0">{extra}</div> : null}
       </div>
+
 
     </header>
   );
