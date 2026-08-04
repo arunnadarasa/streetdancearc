@@ -1,3 +1,4 @@
+import { SiteFooter } from "@/components/layout/SiteFooter";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Deck } from "@/components/deck/Deck";
 
