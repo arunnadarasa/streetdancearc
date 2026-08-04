@@ -1,5 +1,7 @@
 import { usePrivy } from "@privy-io/react-auth";
 import { Link } from "@tanstack/react-router";
+import { ModeToggle } from "@/components/gx/ModeToggle";
+
 
 export function Header() {
   const { authenticated, login, logout, user, ready } = usePrivy();
