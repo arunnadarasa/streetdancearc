@@ -51,14 +51,14 @@ export function GxShop() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-[#1DB954]/30 bg-gradient-to-br from-[#1DB954]/15 via-neutral-900 to-black p-5 sm:p-7">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1DB954]">
+      <section className="rounded-3xl border border-primary/30 bg-linear-to-br from-primary/15 via-surface to-black p-5 sm:p-7">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-glow">
           GET /api/public/catalog
         </p>
-        <h2 className="mt-2 text-2xl font-black leading-tight text-white sm:text-3xl">
+        <h2 className="mt-2 text-2xl font-black leading-tight text-foreground sm:text-3xl">
           The storefront, as an agent reads it
         </h2>
-        <p className="mt-2 max-w-lg text-sm leading-relaxed text-neutral-400">
+        <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted-foreground">
           Same Shopify inventory as H2H mode — no product photography, no hero copy. Each SKU is a
           typed offer carrying availability, listed price, and the exact USDC amount and Arc address
           that settles it.
@@ -67,7 +67,7 @@ export function GxShop() {
 
       {loading && (
         <div className="grid place-items-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-[#1DB954]" />
+          <Loader2 className="h-6 w-6 animate-spin text-glow" />
         </div>
       )}
 
@@ -86,8 +86,8 @@ export function GxShop() {
                 onClick={() => setSelected(o.sku)}
                 className={`rounded-full border px-3 py-1.5 font-mono text-[11px] font-bold transition ${
                   o.sku === selected
-                    ? "border-[#1DB954] bg-[#1DB954]/10 text-[#1DB954]"
-                    : "border-neutral-700 text-neutral-400 hover:border-neutral-500"
+                    ? "border-primary bg-primary/10 text-glow"
+                    : "border-border text-muted-foreground hover:border-primary/60"
                 }`}
               >
                 {o.sku}
@@ -96,10 +96,10 @@ export function GxShop() {
           </div>
 
           {offer && (
-            <section className="space-y-3 rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5">
+            <section className="space-y-3 rounded-2xl border border-border bg-card/70 p-5">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h3 className="text-lg font-black text-white">{offer.title}</h3>
-                <span className="rounded-full border border-neutral-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-neutral-400">
+                <h3 className="text-lg font-black text-foreground">{offer.title}</h3>
+                <span className="rounded-full border border-border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   {offer.category}
                 </span>
               </div>

@@ -30,37 +30,43 @@ export function ProductCard({ product }: { product: ShopifyProduct }) {
     <Link
       to="/product/$handle"
       params={{ handle: product.node.handle }}
-      className="group rounded-2xl border border-neutral-800 bg-neutral-900/60 overflow-hidden hover:border-[#1DB954]/50 transition-colors"
+      className="lift group flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card/70"
     >
-      <div className="aspect-square bg-neutral-800/50 overflow-hidden">
+      <div className="relative aspect-square overflow-hidden bg-muted/40">
         {img ? (
           <img
             src={img.url}
             alt={img.altText || product.node.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-110"
           />
         ) : (
-          <div className="w-full h-full grid place-items-center text-neutral-700">
+          <div className="grid h-full w-full place-items-center text-muted-foreground/50">
             <ShoppingBag className="h-12 w-12" />
           </div>
         )}
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-background via-background/10 to-transparent opacity-90" />
+        <span className="absolute left-3 top-3 rounded-full border border-border bg-background/70 px-2.5 py-1 text-[10px] font-bold tracking-widest text-glow backdrop-blur">
+          USDC
+        </span>
+        <span className="display absolute bottom-3 left-3 text-lg text-foreground drop-shadow-lg">
+          {price.currencyCode} {parseFloat(price.amount).toFixed(2)}
+        </span>
       </div>
-      <div className="p-3 sm:p-4 space-y-2">
-        <h3 className="font-bold text-white truncate text-sm sm:text-base">{product.node.title}</h3>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <span className="text-[#1DB954] font-black text-sm sm:text-base">
-            {price.currencyCode} {parseFloat(price.amount).toFixed(2)}
-          </span>
-          <Button
-            size="sm"
-            onClick={handleAdd}
-            disabled={isLoading || !variant}
-            className="bg-white text-black hover:bg-neutral-200 h-8 rounded-full text-xs font-bold w-full sm:w-auto"
-          >
-            {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Add"}
-          </Button>
-        </div>
+      <div className="flex flex-1 flex-col gap-3 p-4">
+        <h3 className="truncate text-sm font-semibold text-foreground sm:text-base">
+          {product.node.title}
+        </h3>
+        <Button
+          size="sm"
+          onClick={handleAdd}
+          disabled={isLoading || !variant}
+          className="mt-auto h-9 w-full rounded-full bg-secondary text-xs font-bold text-foreground transition group-hover:bg-linear-to-r group-hover:from-primary group-hover:to-glow group-hover:text-primary-foreground"
+        >
+          {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : "Add to cart"}
+        </Button>
       </div>
     </Link>
   );
 }
+

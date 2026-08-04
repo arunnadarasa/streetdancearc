@@ -108,15 +108,15 @@ export function MintForm() {
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-neutral-800 bg-neutral-900/60 p-6">
+    <div className="space-y-4 rounded-2xl border border-border bg-card/70 p-6">
       <div>
-        <p className="mb-2 text-xs uppercase tracking-widest text-neutral-500">Pay with</p>
+        <p className="mb-2 text-xs uppercase tracking-widest text-muted-foreground">Pay with</p>
         <TokenSwitcher value={token} onChange={setToken} />
-        <p className="mt-2 text-xs text-neutral-500">{TOKENS[token].label}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{TOKENS[token].label}</p>
       </div>
 
       <div>
-        <label className="text-xs uppercase tracking-widest text-neutral-500">IPFS CID (rights metadata)</label>
+        <label className="text-xs uppercase tracking-widest text-muted-foreground">IPFS CID (rights metadata)</label>
         <input
           value={cid}
           onChange={(e) => setCid(e.target.value)}
@@ -124,12 +124,12 @@ export function MintForm() {
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
-          className="mt-1 w-full rounded-lg border border-neutral-800 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#1DB954]"
+          className="mt-1 w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
         />
       </div>
 
       <div>
-        <label className="text-xs uppercase tracking-widest text-neutral-500">
+        <label className="text-xs uppercase tracking-widest text-muted-foreground">
           Amount ({TOKENS[token].symbol})
         </label>
         <input
@@ -140,17 +140,17 @@ export function MintForm() {
           pattern="[0-9]*\.?[0-9]*"
           min="0"
           step="0.01"
-          className="mt-1 w-full rounded-lg border border-neutral-800 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#1DB954]"
+          className="mt-1 w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
         />
       </div>
 
       {authenticated && contractDeployed && (
-        <div className="rounded-lg border border-neutral-800 bg-black/30 p-3 text-xs text-neutral-400">
-          You'll approve <span className="font-semibold text-white">{amount || "0"} {TOKENS[token].symbol}</span>{" "}
+        <div className="rounded-lg border border-border bg-background/40 p-3 text-xs text-muted-foreground">
+          You'll approve <span className="font-semibold text-foreground">{amount || "0"} {TOKENS[token].symbol}</span>{" "}
           to be spent by the DanceMoveTokens contract, then log the move.
           <br />
-          <span className="text-neutral-500">
-            Token: <code className="break-all text-neutral-300">{TOKENS[token].address.slice(0, 6)}…{TOKENS[token].address.slice(-4)}</code>
+          <span className="text-muted-foreground">
+            Token: <code className="break-all text-muted-foreground">{TOKENS[token].address.slice(0, 6)}…{TOKENS[token].address.slice(-4)}</code>
             {" · "}Privy's modal shows your USDC gas balance, not the approval amount.
           </span>
         </div>
@@ -159,18 +159,18 @@ export function MintForm() {
       <button
         disabled={busy}
         onClick={onSubmit}
-        className="h-12 w-full rounded-full bg-[#1DB954] px-4 text-base font-bold text-black transition hover:bg-[#1ed760] disabled:opacity-50"
+        className="h-12 w-full rounded-full bg-primary px-4 text-base font-bold text-primary-foreground transition hover:bg-primary/85 disabled:opacity-50"
       >
         {busy ? "Working…" : authenticated ? "Approve & Log Move" : "Sign in with Google"}
       </button>
 
-      {status && <p className="text-sm text-neutral-400">{status}</p>}
+      {status && <p className="text-sm text-muted-foreground">{status}</p>}
       {txHash && (
         <a
           href={`${ARC_EXPLORER}/tx/${txHash}`}
           target="_blank"
           rel="noreferrer"
-          className="block break-all text-sm text-[#1DB954] hover:underline"
+          className="block break-all text-sm text-glow hover:underline"
         >
           View tx on Arcscan → {txHash}
         </a>

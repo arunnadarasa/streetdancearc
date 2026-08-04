@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { STOREFRONT_QUERY, storefrontApiRequest, type ShopifyProduct } from "@/lib/shopify";
 import { ProductCard } from "@/components/shop/ProductCard";
@@ -6,10 +6,14 @@ import { CartDrawer } from "@/components/shop/CartDrawer";
 import { useCartSync } from "@/hooks/useCartSync";
 import { Loader2 } from "lucide-react";
 import { PrivyRoot } from "@/components/PrivyRoot";
-import { ModeToggle } from "@/components/gx/ModeToggle";
+import { Header } from "@/components/dance/Header";
+import { Section, SectionHead } from "@/components/layout/Section";
+import { Reveal } from "@/components/layout/Reveal";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 import { GxShop } from "@/components/gx/GxShop";
 import { useGxMode } from "@/lib/gx-mode";
 import { getPublicConfig } from "@/lib/config.functions";
+
 
 export const Route = createFileRoute("/shop")({
   loader: () => getPublicConfig(),
@@ -54,76 +58,72 @@ function ShopPage() {
 
   return (
     <PrivyRoot appId={privyAppId}>
-    <main className="min-h-screen bg-[#0a0a0a] text-white">
-
-      <div className="mx-auto max-w-6xl px-4 py-6 space-y-6 sm:px-5 sm:py-10 sm:space-y-8">
-        <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#1DB954] text-black font-black">
-              ♪
-            </div>
-            <div className="min-w-0">
-              <h1 className="truncate text-lg font-black tracking-tight sm:text-xl">StreetKode Merch</h1>
-              <p className="hidden truncate text-xs text-neutral-500 sm:block">Street dance culture · Physical drops</p>
-            </div>
-          </div>
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <ModeToggle />
-            <Link
-              to="/"
-              className="hidden text-xs font-bold text-neutral-400 hover:text-white sm:inline"
-            >
-              ← Tokens
-            </Link>
-            {mode === "h2h" && <CartDrawer />}
-          </div>
-        </header>
+      <div className="min-h-screen bg-background text-foreground">
+        <Header extra={mode === "h2h" ? <CartDrawer /> : undefined} />
 
         {mode === "gx" ? (
-          <GxShop />
+          <Section tone="base" lines>
+            <GxShop />
+          </Section>
         ) : (
           <>
-            <section className="rounded-3xl border border-neutral-800 bg-gradient-to-br from-[#1DB954]/20 via-neutral-900 to-black p-6 sm:p-8">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1DB954]">
-                Fresh drop
-              </p>
-              <h2 className="mt-2 text-3xl font-black leading-tight sm:text-4xl">
-                Wear the culture.<br />Move the streets.
-              </h2>
-              <p className="mt-3 max-w-md text-sm text-neutral-400">
-                Sneakers, snapbacks, baseball jackets, trousers, socks, tees, bandanas —
-                built for cyphers, battles and everyday flex.
-              </p>
+            <section className="aurora-bg relative">
+              <div className="rail relative flex min-h-[52vh] flex-col justify-center py-16 sm:py-24">
+                <Reveal>
+                  <p className="eyebrow">Fresh drop · StreetKode Merch</p>
+                </Reveal>
+                <Reveal delay={90}>
+                  <h1 className="display mt-5 text-[12vw] leading-[0.9] sm:text-6xl lg:text-7xl">
+                    <span className="block text-foreground">Wear the culture.</span>
+                    <span className="block text-gradient">Move the streets.</span>
+                  </h1>
+                </Reveal>
+                <Reveal delay={170}>
+                  <p className="mt-6 max-w-xl text-base text-muted-foreground">
+                    Sneakers, snapbacks, baseball jackets, trousers, socks, tees and bandanas —
+                    built for cyphers, battles and everyday flex.
+                  </p>
+                </Reveal>
+              </div>
             </section>
 
-            {loading ? (
-              <div className="grid place-items-center py-24">
-                <Loader2 className="h-8 w-8 animate-spin text-[#1DB954]" />
-              </div>
-            ) : products.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-neutral-800 p-12 text-center">
-                <p className="text-neutral-400">No products found.</p>
-                <p className="mt-2 text-xs text-neutral-600">
-                  Tell the chat what to add (e.g. "add a £120 Krump Kicks sneaker").
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {products.map((p) => (
-                  <ProductCard key={p.node.id} product={p} />
-                ))}
-              </div>
-            )}
+            <Section tone="raised">
+              {loading ? (
+                <div className="grid place-items-center py-24">
+                  <Loader2 className="h-8 w-8 animate-spin text-glow" />
+                </div>
+              ) : products.length === 0 ? (
+                <div className="rounded-3xl border border-dashed border-border p-12 text-center">
+                  <p className="text-muted-foreground">No products found.</p>
+                  <p className="mt-2 text-xs text-muted-foreground/70">
+                    Tell the chat what to add (e.g. "add a £120 Krump Kicks sneaker").
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <Reveal>
+                    <SectionHead
+                      eyebrow={`${products.length} pieces in the drop`}
+                      title="The rack"
+                      blurb="Physical goods, Shopify-fulfilled. Agents can buy the same catalogue over x402 in GX mode."
+                    />
+                  </Reveal>
+                  <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
+                    {products.map((p, i) => (
+                      <Reveal key={p.node.id} delay={Math.min(i, 7) * 70}>
+                        <ProductCard product={p} />
+                      </Reveal>
+                    ))}
+                  </div>
+                </>
+              )}
+            </Section>
           </>
         )}
 
-        <footer className="pt-6 text-center text-xs text-neutral-500">
-          Built during the Creative AI &amp; Quantum Hackathon organised by StreetKode Fam
-          during Indian Krump Festival 14
-        </footer>
+        <SiteFooter />
       </div>
-    </main>
     </PrivyRoot>
   );
-
 }
+

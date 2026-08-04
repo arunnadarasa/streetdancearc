@@ -47,20 +47,20 @@ export function CartDrawer() {
         <Button
           variant="outline"
           size="icon"
-          className="relative border-neutral-700 bg-neutral-900 text-white hover:bg-neutral-800"
+          className="relative border-border bg-surface text-foreground hover:bg-secondary"
         >
           <ShoppingCart className="h-5 w-5" />
           {totalItems > 0 && (
-            <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-[#1DB954] text-black">
+            <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-primary text-primary-foreground">
               {totalItems}
             </Badge>
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-lg flex flex-col h-full bg-neutral-950 text-white border-neutral-800">
+      <SheetContent className="w-full sm:max-w-lg flex flex-col h-full bg-surface-2 text-foreground border-border">
         <SheetHeader className="flex-shrink-0">
-          <SheetTitle className="text-white">Your Cart</SheetTitle>
-          <SheetDescription className="text-neutral-400">
+          <SheetTitle className="text-foreground">Your Cart</SheetTitle>
+          <SheetDescription className="text-muted-foreground">
             {totalItems === 0
               ? "Your cart is empty"
               : `${totalItems} item${totalItems !== 1 ? "s" : ""} in your cart`}
@@ -70,8 +70,8 @@ export function CartDrawer() {
           {items.length === 0 ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
-                <ShoppingCart className="h-12 w-12 text-neutral-600 mx-auto mb-4" />
-                <p className="text-neutral-500">Your cart is empty</p>
+                <ShoppingCart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Your cart is empty</p>
               </div>
             </div>
           ) : (
@@ -82,7 +82,7 @@ export function CartDrawer() {
                     const img = item.product.node.images?.edges?.[0]?.node;
                     return (
                       <div key={item.variantId} className="flex gap-4 p-2">
-                        <div className="w-16 h-16 bg-neutral-800 rounded-md overflow-hidden flex-shrink-0">
+                        <div className="w-16 h-16 bg-secondary rounded-md overflow-hidden flex-shrink-0">
                           {img && (
                             <img
                               src={img.url}
@@ -92,13 +92,13 @@ export function CartDrawer() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium truncate text-white">
+                          <h4 className="font-medium truncate text-foreground">
                             {item.product.node.title}
                           </h4>
-                          <p className="text-sm text-neutral-500">
+                          <p className="text-sm text-muted-foreground">
                             {item.selectedOptions.map((o) => o.value).join(" • ")}
                           </p>
-                          <p className="font-semibold text-[#1DB954]">
+                          <p className="font-semibold text-glow">
                             {item.price.currencyCode}{" "}
                             {parseFloat(item.price.amount).toFixed(2)}
                           </p>
@@ -107,7 +107,7 @@ export function CartDrawer() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-neutral-400 hover:text-white"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
                             onClick={() => removeItem(item.variantId)}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -116,7 +116,7 @@ export function CartDrawer() {
                             <Button
                               variant="outline"
                               size="icon"
-                              className="h-8 w-8 border-neutral-700 bg-neutral-900"
+                              className="h-8 w-8 border-border bg-surface"
                               onClick={() =>
                                 updateQuantity(item.variantId, item.quantity - 1)
                               }
@@ -129,7 +129,7 @@ export function CartDrawer() {
                             <Button
                               variant="outline"
                               size="icon"
-                              className="h-8 w-8 border-neutral-700 bg-neutral-900"
+                              className="h-8 w-8 border-border bg-surface"
                               onClick={() =>
                                 updateQuantity(item.variantId, item.quantity + 1)
                               }
@@ -143,16 +143,16 @@ export function CartDrawer() {
                   })}
                 </div>
               </div>
-              <div className="flex-shrink-0 space-y-4 pt-4 border-t border-neutral-800">
+              <div className="flex-shrink-0 space-y-4 pt-4 border-t border-border">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total</span>
-                  <span className="text-xl font-black text-[#1DB954]">
+                  <span className="text-xl font-black text-glow">
                     {items[0]?.price.currencyCode || "£"} {totalPrice.toFixed(2)}
                   </span>
                 </div>
                 <Button
                   onClick={handleCheckout}
-                  className="w-full bg-[#1DB954] text-black hover:bg-[#1ed760] font-bold"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/85 font-bold"
                   size="lg"
                   disabled={items.length === 0 || isLoading || isSyncing}
                 >

@@ -29,7 +29,7 @@ export function Deck() {
   return (
     <div className="flex flex-col gap-3">
       <div
-        className="relative w-full overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950"
+        className="relative w-full overflow-hidden rounded-2xl border border-border bg-surface-2"
         style={{ aspectRatio: "16 / 9" }}
         onTouchStart={(e) => {
           touchX.current = e.touches[0].clientX;
@@ -44,9 +44,9 @@ export function Deck() {
         {slides[i].render()}
       </div>
 
-      <div className="h-1 w-full overflow-hidden rounded-full bg-neutral-900">
+      <div className="h-1 w-full overflow-hidden rounded-full bg-surface">
         <div
-          className="h-full bg-[#1DB954] transition-all"
+          className="h-full bg-primary transition-all"
           style={{ width: `${((i + 1) / total) * 100}%` }}
         />
       </div>
@@ -55,7 +55,7 @@ export function Deck() {
         <button
           onClick={prev}
           disabled={i === 0}
-          className="rounded-full border border-neutral-700 px-4 py-2 text-xs font-bold text-white hover:bg-neutral-900 disabled:opacity-40"
+          className="rounded-full border border-border px-4 py-2 text-xs font-bold text-foreground hover:bg-surface disabled:opacity-40"
         >
           ← Prev
         </button>
@@ -66,7 +66,7 @@ export function Deck() {
               aria-label={`Slide ${idx + 1}`}
               onClick={() => go(idx)}
               className={`h-2 w-2 rounded-full transition ${
-                idx === i ? "bg-[#1DB954]" : "bg-neutral-700 hover:bg-neutral-500"
+                idx === i ? "bg-primary" : "bg-muted hover:bg-glow"
               }`}
             />
           ))}
@@ -74,13 +74,13 @@ export function Deck() {
         <button
           onClick={next}
           disabled={i === total - 1}
-          className="rounded-full bg-white px-4 py-2 text-xs font-bold text-black hover:bg-neutral-200 disabled:opacity-40"
+          className="rounded-full bg-foreground px-4 py-2 text-xs font-bold text-background hover:bg-foreground/85 disabled:opacity-40"
         >
           Next →
         </button>
       </div>
 
-      <div className="text-center text-[11px] text-neutral-500">
+      <div className="text-center text-[11px] text-muted-foreground">
         {i + 1} / {total} · ← → to navigate · swipe on mobile
       </div>
     </div>

@@ -12,8 +12,8 @@ export function TokenSwitcher({ value, onChange }: { value: TokenKey; onChange: 
             className={
               "rounded-full px-4 py-2 text-sm font-semibold transition " +
               (active
-                ? "bg-[#1DB954] text-black"
-                : "bg-neutral-900 text-neutral-300 hover:bg-neutral-800")
+                ? "bg-primary text-primary-foreground"
+                : "bg-surface text-muted-foreground hover:bg-secondary")
             }
           >
             {TOKENS[k].symbol}
