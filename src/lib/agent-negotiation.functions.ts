@@ -85,7 +85,7 @@ function transcriptToText(transcript: NegotiationTurn[]): string {
 const SellerQuoteSchema = z.object({
   sku: z.string().optional().default(""),
   title: z.string().optional().default(""),
-  quantity: z.number().int().positive().optional().default(1),
+  quantity: z.number().int().optional().default(1),
   unitPriceUsdc: z.number().optional().default(0),
   totalUsdc: z.number().optional().default(0),
 });
