@@ -11,7 +11,11 @@ import { useCartSync } from "@/hooks/useCartSync";
 import { Button } from "@/components/ui/button";
 import { Loader2, Minus, Plus } from "lucide-react";
 import { PrivyRoot } from "@/components/PrivyRoot";
-import { ModeToggle } from "@/components/gx/ModeToggle";
+import { Header } from "@/components/dance/Header";
+import { Section } from "@/components/layout/Section";
+import { Reveal } from "@/components/layout/Reveal";
+import { SiteFooter } from "@/components/layout/SiteFooter";
+
 import { GxOffer } from "@/components/gx/GxOffer";
 import { useGxMode } from "@/lib/gx-mode";
 import { getPublicConfig } from "@/lib/config.functions";
