@@ -63,6 +63,7 @@ export function evaluatePolicy(
 // Rendered as the AP2 payment-mandate constraint set the agent carries.
 export function toMandateConstraints(policy: SpendPolicy) {
   return {
+    ap2Version: "0.1",
     type: "ap2.payment-mandate.constraints",
     agent_id: policy.agentId,
     currency: "USDC",

@@ -5,6 +5,7 @@ import { ModeToggle } from "@/components/gx/ModeToggle";
 
 const NAV = [
   { to: "/shop", label: "Shop" },
+  { to: "/agent-negotiation", label: "Negotiate" },
   { to: "/markets", label: "Markets" },
   { to: "/deck", label: "Deck" },
 ] as const;
