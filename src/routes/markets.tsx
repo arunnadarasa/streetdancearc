@@ -31,39 +31,42 @@ export const Route = createFileRoute("/markets")({
   component: MarketsPage,
 });
 
-const GREEN = "#4f46e5";
+const GREEN = "var(--glow)";
 
 function MarketsPage() {
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-14">
-      <Link
-        to="/"
-        className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
-      >
-        ← Back
-      </Link>
+  const { privyAppId } = Route.useLoaderData();
 
-      <p
-        className="mt-8 text-[10px] font-black uppercase tracking-[0.25em] sm:text-xs"
-        style={{ color: GREEN }}
-      >
-        Market opportunity
-      </p>
-      <h1 className="mt-3 text-3xl font-black leading-[0.95] tracking-tight text-foreground sm:text-5xl md:text-6xl">
+  return (
+    <PrivyRoot appId={privyAppId}>
+    <div className="min-h-screen bg-background text-foreground">
+    <Header />
+    <section className="aurora-bg relative">
+      <div className="rail relative py-16 sm:py-24">
+      <Reveal>
+      <p className="eyebrow">Market opportunity</p>
+      </Reveal>
+      <Reveal delay={90}>
+      <h1 className="display mt-4 text-[11vw] leading-[0.92] text-foreground sm:text-5xl md:text-6xl">
         Where the money
         <br />
-        <span style={{ color: GREEN }}>loses value faster</span>
+        <span className="text-gradient">loses value faster</span>
         <br />
         than the culture does.
       </h1>
-      <p className="mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-lg">
+      </Reveal>
+      <Reveal delay={170}>
+      <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-lg">
         Street dance travels through exactly the countries where the local currency
         does not hold. A dancer in Lagos can go viral worldwide and still be unable
         to check out on a global store, or receive a royalty that keeps its value
         for a month. A dollar-denominated rail is not a crypto flourish here — it is
         the only version of this product that works.
       </p>
+      </Reveal>
+      </div>
+    </section>
+    <main className="rail py-12 sm:py-16">
+
 
       {/* Sizing */}
       <section className="mt-10 grid gap-3 sm:mt-14 sm:grid-cols-3 sm:gap-4">
