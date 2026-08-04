@@ -14,6 +14,7 @@ import { getPublicConfig } from "@/lib/config.functions";
 
 
 export const Route = createFileRoute("/markets")({
+  loader: () => getPublicConfig(),
   head: () => ({
     meta: [
       { title: "Target Markets — Why USDC-First for Street Dance Commerce" },
@@ -159,7 +160,7 @@ function MarketsPage() {
               </div>
 
               <p className="mt-4 rounded-xl border border-border bg-background/50 p-3 text-xs text-muted-foreground sm:text-sm">
-                <span className="font-bold text-[#E63946]">Main risk · </span>
+                <span className="font-bold text-destructive">Main risk · </span>
                 {m.risk}
               </p>
             </article>
