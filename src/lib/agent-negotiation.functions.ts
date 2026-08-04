@@ -37,20 +37,26 @@ function sellerSystemPrompt(catalog: z.infer<typeof CatalogItemSchema>[]) {
   const lines = catalog
     .map(
       (c) =>
-        `- sku: ${c.sku} | title: ${c.title} | price: ${c.priceMinor} ${c.currency} | category: ${c.category} | ${c.description.slice(0, 120)}`,
+        `- sku: ${c.sku} | title: ${c.title} | priceMinor: ${c.priceMinor} ${c.currency} | category: ${c.category} | ${c.description.slice(0, 120)}`,
     )
     .join("\n");
+
+  const example = catalog[0];
+  const exampleQuote = example
+    ? `{ "sku": "${example.sku}", "title": "${example.title}", "quantity": 1, "unitPriceUsdc": ${Number(example.priceMinor) / 1e6}, "totalUsdc": ${Number(example.priceMinor) / 1e6} }`
+    : `{ "sku": "...", "title": "...", "quantity": 1, "unitPriceUsdc": 0.0, "totalUsdc": 0.0 }`;
 
   return `You are the StreetKode seller agent, a street-dance streetwear merchant.\n` +
     `You negotiate with another agent (not a human). Be concise, friendly, and professional.\n` +
     `Catalog:\n${lines}\n\n` +
     `Rules:\n` +
     `- Only quote items from the catalog.\n` +
-    `- unitPriceUsdc is the testnet scaled price already provided (priceMinor).\n` +
+    `- unitPriceUsdc and totalUsdc MUST be the numeric USDC value (priceMinor / 1_000_000).\n` +
     `- If the buyer asks for something unavailable, offer the closest match or politely decline.\n` +
-    `- When the buyer agrees, set action to "accept" and include the final quote.\n\n` +
+    `- When the buyer agrees, set action to "accept" and include the final quote.\n` +
+    `- ALWAYS include the "quote" field, even if it is null.\n\n` +
     `Reply ONLY as JSON in this exact shape:\n` +
-    `{ "reply": "your short message", "action": "offer|accept|reject", "quote": { "sku": "...", "title": "...", "quantity": 1, "unitPriceUsdc": 0.0, "totalUsdc": 0.0 } }`;
+    `{ "reply": "your short message", "action": "offer|accept|reject", "quote": ${exampleQuote} }`;
 }
 
 function buyerSystemPrompt(goal: string, policy: z.infer<typeof SpendPolicySchema>) {
