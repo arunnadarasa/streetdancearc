@@ -35,6 +35,7 @@ const GREEN = "#1DB954";
 
 function MarketsPage() {
   return (
+    <div className="min-h-screen bg-black text-white">
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-14">
       <Link
         to="/"
@@ -98,9 +99,6 @@ function MarketsPage() {
               className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5 sm:p-7"
             >
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <span className="text-2xl sm:text-3xl" aria-hidden="true">
-                  {m.flag}
-                </span>
                 <h3 className="text-xl font-black tracking-tight text-white sm:text-2xl">
                   {i + 1}. {m.country}
                 </h3>
@@ -203,7 +201,6 @@ function MarketsPage() {
               className="rounded-xl border border-neutral-800 bg-neutral-950 p-4"
             >
               <div className="flex items-baseline gap-2">
-                <span aria-hidden="true">{w.flag}</span>
                 <span className="font-black text-white">{w.country}</span>
                 <span className="text-[10px] font-bold text-neutral-500">{w.currency}</span>
                 <span className="ml-auto text-sm font-black" style={{ color: GREEN }}>
@@ -235,5 +232,6 @@ function MarketsPage() {
         </Link>
       </div>
     </main>
+    </div>
   );
 }

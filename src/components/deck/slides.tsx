@@ -412,7 +412,7 @@ function SlideMarkets() {
             key={m.country}
             className="whitespace-nowrap rounded-full border border-neutral-700 px-2.5 py-1 text-[10px] font-bold text-neutral-200 sm:px-3.5 sm:py-1.5 sm:text-sm"
           >
-            {m.flag} {m.country}{" "}
+            {m.country}{" "}
             <span className="text-neutral-500">{m.inflation}</span>
           </span>
         ))}
