@@ -9,8 +9,9 @@ const NAV = [
   { to: "/deck", label: "Deck" },
 ] as const;
 
-export function Header() {
+export function Header({ extra }: { extra?: React.ReactNode }) {
   const { authenticated, login, logout, user, ready } = usePrivy();
+
   const addr = user?.wallet?.address;
   const [scrolled, setScrolled] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
