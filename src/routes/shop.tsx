@@ -68,7 +68,7 @@ function ShopPage() {
         ) : (
           <>
             <section className="aurora-bg relative">
-              <div className="rail relative flex min-h-[52vh] flex-col justify-center py-16 sm:py-24">
+              <div className="rail relative flex min-h-[40vh] flex-col justify-center py-12 sm:min-h-[52vh] sm:py-24">
                 <Reveal>
                   <p className="eyebrow">Fresh drop · StreetKode Merch</p>
                 </Reveal>
