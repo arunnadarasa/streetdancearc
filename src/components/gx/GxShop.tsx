@@ -103,7 +103,22 @@ export function GxShop() {
                   {offer.category}
                 </span>
               </div>
-              <JsonBlock label="offer object" value={offer} tone="green" />
+              <JsonBlock
+                label="offer object"
+                value={{
+                  ...offer,
+                  variants: offer.variants.slice(0, 3).map((v) => ({
+                    id: v.id,
+                    title: v.title,
+                    available: v.available,
+                  })),
+                  ...(offer.variants.length > 3
+                    ? { variants_truncated: `+${offer.variants.length - 3} more via /api/public/catalog` }
+                    : {}),
+                }}
+                tone="green"
+              />
+
             </section>
           )}
 
