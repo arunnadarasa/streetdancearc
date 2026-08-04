@@ -34,6 +34,8 @@ export const Route = createFileRoute("/shop")({
 
 function ShopPage() {
   useCartSync();
+  const { privyAppId } = Route.useLoaderData();
+  const [mode] = useGxMode();
   const [products, setProducts] = useState<ShopifyProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -51,7 +53,9 @@ function ShopPage() {
   }, []);
 
   return (
+    <PrivyRoot appId={privyAppId}>
     <main className="min-h-screen bg-[#0a0a0a] text-white">
+
       <div className="mx-auto max-w-6xl px-4 py-6 space-y-6 sm:px-5 sm:py-10 sm:space-y-8">
         <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
