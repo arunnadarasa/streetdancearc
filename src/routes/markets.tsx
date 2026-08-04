@@ -235,6 +235,9 @@ function MarketsPage() {
         </Link>
       </div>
     </main>
+    <SiteFooter />
     </div>
+    </PrivyRoot>
   );
 }
+
