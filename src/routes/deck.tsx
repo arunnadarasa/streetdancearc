@@ -51,7 +51,9 @@ function DeckPage() {
           <Deck />
         </div>
       </div>
+      <SiteFooter />
     </div>
+
   );
 }
 
