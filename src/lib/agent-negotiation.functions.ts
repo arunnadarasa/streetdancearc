@@ -101,6 +101,24 @@ const BuyerReplySchema = z.object({
   action: z.enum(["counter", "accept", "reject"]),
 });
 
+function normalizeQuote(
+  quote: z.infer<typeof SellerQuoteSchema>,
+  catalog: z.infer<typeof CatalogItemSchema>[],
+): z.infer<typeof SellerQuoteSchema> {
+  const item = catalog.find((c) => c.sku.toLowerCase() === quote.sku.toLowerCase()) ?? catalog[0];
+  if (!item) return quote;
+
+  const qty = Math.max(1, Number(quote.quantity) || 1);
+  const unit = Number(quote.unitPriceUsdc) || Number(item.priceMinor) / 1e6;
+  return {
+    sku: item.sku,
+    title: item.title,
+    quantity: qty,
+    unitPriceUsdc: unit,
+    totalUsdc: unit * qty,
+  };
+}
+
 export const runNegotiation = createServerFn({ method: "POST" })
   .validator((data: unknown) => Input.parse(data))
   .handler(async ({ data }) => {
