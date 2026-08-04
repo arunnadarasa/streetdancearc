@@ -22,7 +22,7 @@ function DeckPage() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="min-w-0">
               <p className="eyebrow">Encode × Arc · Programmable Money Hackathon</p>
-              <h1 className="display mt-3 text-4xl sm:text-5xl">Judges Deck</h1>
+              <h1 className="display mt-3 text-[clamp(1.75rem,7vw,2.25rem)] sm:text-5xl">Judges Deck</h1>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Link

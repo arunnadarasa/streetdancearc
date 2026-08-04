@@ -53,7 +53,7 @@ function MarketsPage() {
       <p className="eyebrow">Market opportunity</p>
       </Reveal>
       <Reveal delay={90}>
-      <h1 className="display mt-4 text-[11vw] leading-[0.92] text-foreground sm:text-5xl md:text-6xl">
+      <h1 className="display mt-4 text-[clamp(2rem,8vw,2.75rem)] leading-[0.95] text-foreground sm:text-5xl md:text-6xl">
         Where the money
         <br />
         <span className="text-gradient">loses value faster</span>
