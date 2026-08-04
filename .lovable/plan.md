@@ -1,28 +1,50 @@
-## Goal
-Replace the PDF `<object>` embed on `/deck` with an interactive React slide deck that renders the 10 judges' slides inline, is keyboard/tap navigable, and works on both mobile and desktop.
+# USDC Market Research: Volatile-Currency Countries
 
-## Approach
+Research is running now across Sub-Saharan Africa, Latin America, and selected Asian/MENA markets. Once it lands, the findings ship in four places.
 
-Keep `/deck` as the single route. Reuse the existing route header (title, Back, Open PDF ↗, Download PDF, Download PPTX buttons — kept as a fallback/handoff). Replace the PDF viewer block with an interactive `<Deck />` component.
+## 1. Research brief (document)
 
-### New files
-- `src/components/deck/slides.tsx` — array of 10 slide React components with content extracted from the existing PPTX (title/hero, problem, insight, what we built, live on arc, agentic economy flow, defi, criteria mapping, roadmap, closing). Each is a self-contained JSX block styled with the site's Spotify-dark palette (`bg-black`, `#1DB954` accents, `#E63946` cherry for problem highlights, neutral borders) — matches the current `/` and `/shop` look.
-- `src/components/deck/Deck.tsx` — client component that:
-  - Renders one slide at a time inside a 16:9 aspect-ratio frame (`aspect-video`) that scales to container width, so it works from 375px up.
-  - Prev/Next pill buttons, slide counter "N / 10", and a thin progress bar.
-  - Keyboard: ←/→/Space/Home/End. Touch: swipe left/right (basic pointer-based, no dep).
-  - Small dot indicators under the frame (tap to jump).
-  - No full-screen scaling engine (no 1920×1080 transform system) — content is authored responsively with Tailwind so it reads well at any width. This keeps scope tight and avoids the slides-app scaffolding.
+`USDC-Market-Opportunity.md` in your documents, alongside the PRD and GX leads brief.
 
-### Edits
-- `src/routes/deck.tsx` — replace the `<object>` block with `<Deck />`. Keep the download/open-PDF buttons as secondary actions (relabel "Open PDF ↗" → "PDF version ↗" to signal the interactive deck is primary).
+Structure:
+- Executive summary — the impact story first (why dollar access changes outcomes for young creators in these markets), sizing tables underneath.
+- Ranked shortlist of 12–18 countries: currency, inflation, 3-yr depreciation vs USD, parallel-market premium, capital controls, young urban population, smartphone penetration, remittance inflows, existing stablecoin adoption evidence.
+- Regulatory reality per market: is USDC legal to hold and receive, VASP licensing, on/off-ramp availability (exchanges, mobile money like M-Pesa, local P2P).
+- Circle-specific signals: Circle Mint availability, Circle Payments Network corridors, Arc positioning, announced Africa/LatAm partnerships.
+- Cultural fit: street dance and streetwear scenes per market (Nigeria legwork, Ghana azonto, South Africa amapiano, Angola kuduro, Brazil passinho, Philippines).
+- Top 5 launch markets with rationale, main risk, and what USDC-first checkout unlocks that cards cannot — no chargebacks, sub-cent fees, no FX spread, instant creator payout, works without a bank card.
+- Full source list, with explicit gaps where reliable data was not found.
 
-### Out of scope
-- No URL-driven slide index, no presenter view, no fullscreen API, no thumbnail grid, no notes panel, no print mode.
-- No PPTX regeneration; existing files stay in `public/` as downloads.
-- No changes to home, shop, or product routes.
+Every figure carries a source. Anything unverifiable gets marked as an estimate rather than stated as fact.
+
+## 2. New PRD section
+
+Add `§19 Target Markets & Economic Rationale` to `PRD-DanceMoveTokens.md`:
+- Condensed top-5 launch market table.
+- Two-paragraph "why USDC-first, not card-first" argument tied to the hackathon's Programmable Money framing.
+- Cross-reference to the full brief.
+- Add matching tasks to the existing §17 sprint timeline (market-specific copy, currency display, corridor research follow-ups).
+
+## 3. Judges' deck slide
+
+Add one slide to the interactive deck at `/deck` (`src/components/deck/slides.tsx`, registered in `Deck.tsx`):
+- Title: the market opportunity.
+- A world-map-free, type-led layout: 3 headline stats (young urban population reachable, combined remittance inflows, stablecoin users today) plus the top 5 markets as pills.
+- Matches the existing Spotify-dark deck styling and slide numbering; navigation, dots, and swipe pick it up automatically.
+
+The downloadable PPTX/PDF currently on `/deck` is a static export from earlier — it will be one slide behind the interactive deck unless you want it regenerated too. Say the word and I will re-export both.
+
+## 4. In-app `/markets` page
+
+New route `src/routes/markets.tsx`, linked from the header next to Deck:
+- Hero: the thesis in one sentence.
+- Launch-market cards: flag, currency, inflation figure, one-line "what USDC fixes here", cited source link.
+- A "Why stablecoins here" section contrasting card checkout vs USDC checkout on fees, settlement time, chargebacks, and card access.
+- Own `head()` metadata (title, description, og tags) so it is shareable and indexable.
+- Mobile-first, reusing the existing dark token palette and card patterns from `/shop`.
 
 ## Technical notes
-- Pure React state (`useState` for current index). No new dependencies.
-- Slides authored at any viewport — use `text-2xl sm:text-4xl md:text-6xl` scales, `grid`/`flex` layouts, and `min-h-0` where needed to prevent overflow.
-- Frame uses `aspect-[16/9]` with `overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950` to match the current card treatment.
+
+- Market data lives in one typed module (`src/data/markets.ts`) so the page, the slide, and future copy all read the same numbers — no duplicated figures drifting apart.
+- No backend, no new dependencies. Static data, server-rendered.
+- Header gets one more link; on mobile the existing stacked layout absorbs it, but I will check the pill row does not overflow at 360px.
