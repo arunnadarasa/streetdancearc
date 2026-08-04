@@ -12,11 +12,16 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as MarketsRouteImport } from './routes/markets'
 import { Route as DeckRouteImport } from './routes/deck'
+import { Route as AgentNegotiationRouteImport } from './routes/agent-negotiation'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
 import { Route as ApiPublicPurchaseRouteImport } from './routes/api/public/purchase'
 import { Route as ApiPublicCatalogRouteImport } from './routes/api/public/catalog'
 import { Route as ApiPublicAgentCardRouteImport } from './routes/api/public/agent-card'
+import { Route as ApiPublicUcpSelfTestRouteImport } from './routes/api/public/ucp/self-test'
+import { Route as ApiPublicUcpDiscoveryRouteImport } from './routes/api/public/ucp/discovery'
+import { Route as ApiPublicAp2MandateRouteImport } from './routes/api/public/ap2/mandate'
+import { Route as ApiPublicA2aMessageRouteImport } from './routes/api/public/a2a/message'
 
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
@@ -31,6 +36,11 @@ const MarketsRoute = MarketsRouteImport.update({
 const DeckRoute = DeckRouteImport.update({
   id: '/deck',
   path: '/deck',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentNegotiationRoute = AgentNegotiationRouteImport.update({
+  id: '/agent-negotiation',
+  path: '/agent-negotiation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -58,9 +68,30 @@ const ApiPublicAgentCardRoute = ApiPublicAgentCardRouteImport.update({
   path: '/api/public/agent-card',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicUcpSelfTestRoute = ApiPublicUcpSelfTestRouteImport.update({
+  id: '/api/public/ucp/self-test',
+  path: '/api/public/ucp/self-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicUcpDiscoveryRoute = ApiPublicUcpDiscoveryRouteImport.update({
+  id: '/api/public/ucp/discovery',
+  path: '/api/public/ucp/discovery',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAp2MandateRoute = ApiPublicAp2MandateRouteImport.update({
+  id: '/api/public/ap2/mandate',
+  path: '/api/public/ap2/mandate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicA2aMessageRoute = ApiPublicA2aMessageRouteImport.update({
+  id: '/api/public/a2a/message',
+  path: '/api/public/a2a/message',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agent-negotiation': typeof AgentNegotiationRoute
   '/deck': typeof DeckRoute
   '/markets': typeof MarketsRoute
   '/shop': typeof ShopRoute
@@ -68,9 +99,14 @@ export interface FileRoutesByFullPath {
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/purchase': typeof ApiPublicPurchaseRoute
+  '/api/public/a2a/message': typeof ApiPublicA2aMessageRoute
+  '/api/public/ap2/mandate': typeof ApiPublicAp2MandateRoute
+  '/api/public/ucp/discovery': typeof ApiPublicUcpDiscoveryRoute
+  '/api/public/ucp/self-test': typeof ApiPublicUcpSelfTestRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agent-negotiation': typeof AgentNegotiationRoute
   '/deck': typeof DeckRoute
   '/markets': typeof MarketsRoute
   '/shop': typeof ShopRoute
@@ -78,10 +114,15 @@ export interface FileRoutesByTo {
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/purchase': typeof ApiPublicPurchaseRoute
+  '/api/public/a2a/message': typeof ApiPublicA2aMessageRoute
+  '/api/public/ap2/mandate': typeof ApiPublicAp2MandateRoute
+  '/api/public/ucp/discovery': typeof ApiPublicUcpDiscoveryRoute
+  '/api/public/ucp/self-test': typeof ApiPublicUcpSelfTestRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/agent-negotiation': typeof AgentNegotiationRoute
   '/deck': typeof DeckRoute
   '/markets': typeof MarketsRoute
   '/shop': typeof ShopRoute
@@ -89,11 +130,16 @@ export interface FileRoutesById {
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/purchase': typeof ApiPublicPurchaseRoute
+  '/api/public/a2a/message': typeof ApiPublicA2aMessageRoute
+  '/api/public/ap2/mandate': typeof ApiPublicAp2MandateRoute
+  '/api/public/ucp/discovery': typeof ApiPublicUcpDiscoveryRoute
+  '/api/public/ucp/self-test': typeof ApiPublicUcpSelfTestRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/agent-negotiation'
     | '/deck'
     | '/markets'
     | '/shop'
@@ -101,9 +147,14 @@ export interface FileRouteTypes {
     | '/api/public/agent-card'
     | '/api/public/catalog'
     | '/api/public/purchase'
+    | '/api/public/a2a/message'
+    | '/api/public/ap2/mandate'
+    | '/api/public/ucp/discovery'
+    | '/api/public/ucp/self-test'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/agent-negotiation'
     | '/deck'
     | '/markets'
     | '/shop'
@@ -111,9 +162,14 @@ export interface FileRouteTypes {
     | '/api/public/agent-card'
     | '/api/public/catalog'
     | '/api/public/purchase'
+    | '/api/public/a2a/message'
+    | '/api/public/ap2/mandate'
+    | '/api/public/ucp/discovery'
+    | '/api/public/ucp/self-test'
   id:
     | '__root__'
     | '/'
+    | '/agent-negotiation'
     | '/deck'
     | '/markets'
     | '/shop'
@@ -121,10 +177,15 @@ export interface FileRouteTypes {
     | '/api/public/agent-card'
     | '/api/public/catalog'
     | '/api/public/purchase'
+    | '/api/public/a2a/message'
+    | '/api/public/ap2/mandate'
+    | '/api/public/ucp/discovery'
+    | '/api/public/ucp/self-test'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AgentNegotiationRoute: typeof AgentNegotiationRoute
   DeckRoute: typeof DeckRoute
   MarketsRoute: typeof MarketsRoute
   ShopRoute: typeof ShopRoute
@@ -132,6 +193,10 @@ export interface RootRouteChildren {
   ApiPublicAgentCardRoute: typeof ApiPublicAgentCardRoute
   ApiPublicCatalogRoute: typeof ApiPublicCatalogRoute
   ApiPublicPurchaseRoute: typeof ApiPublicPurchaseRoute
+  ApiPublicA2aMessageRoute: typeof ApiPublicA2aMessageRoute
+  ApiPublicAp2MandateRoute: typeof ApiPublicAp2MandateRoute
+  ApiPublicUcpDiscoveryRoute: typeof ApiPublicUcpDiscoveryRoute
+  ApiPublicUcpSelfTestRoute: typeof ApiPublicUcpSelfTestRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -155,6 +220,13 @@ declare module '@tanstack/react-router' {
       path: '/deck'
       fullPath: '/deck'
       preLoaderRoute: typeof DeckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agent-negotiation': {
+      id: '/agent-negotiation'
+      path: '/agent-negotiation'
+      fullPath: '/agent-negotiation'
+      preLoaderRoute: typeof AgentNegotiationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -192,11 +264,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicAgentCardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/ucp/self-test': {
+      id: '/api/public/ucp/self-test'
+      path: '/api/public/ucp/self-test'
+      fullPath: '/api/public/ucp/self-test'
+      preLoaderRoute: typeof ApiPublicUcpSelfTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ucp/discovery': {
+      id: '/api/public/ucp/discovery'
+      path: '/api/public/ucp/discovery'
+      fullPath: '/api/public/ucp/discovery'
+      preLoaderRoute: typeof ApiPublicUcpDiscoveryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ap2/mandate': {
+      id: '/api/public/ap2/mandate'
+      path: '/api/public/ap2/mandate'
+      fullPath: '/api/public/ap2/mandate'
+      preLoaderRoute: typeof ApiPublicAp2MandateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/a2a/message': {
+      id: '/api/public/a2a/message'
+      path: '/api/public/a2a/message'
+      fullPath: '/api/public/a2a/message'
+      preLoaderRoute: typeof ApiPublicA2aMessageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AgentNegotiationRoute: AgentNegotiationRoute,
   DeckRoute: DeckRoute,
   MarketsRoute: MarketsRoute,
   ShopRoute: ShopRoute,
@@ -204,17 +305,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAgentCardRoute: ApiPublicAgentCardRoute,
   ApiPublicCatalogRoute: ApiPublicCatalogRoute,
   ApiPublicPurchaseRoute: ApiPublicPurchaseRoute,
+  ApiPublicA2aMessageRoute: ApiPublicA2aMessageRoute,
+  ApiPublicAp2MandateRoute: ApiPublicAp2MandateRoute,
+  ApiPublicUcpDiscoveryRoute: ApiPublicUcpDiscoveryRoute,
+  ApiPublicUcpSelfTestRoute: ApiPublicUcpSelfTestRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

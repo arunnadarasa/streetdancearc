@@ -1,10 +1,69 @@
 {
   "protocolVersion": "0.3.0",
   "name": "streetkode-storefront",
-  "description": "Street dance streetwear storefront settling in USDC on Circle's Arc Testnet. Fetch the live card (with the current payTo treasury address) from the canonical URL below.",
+  "description": "Street dance streetwear storefront. Speaks A2A 0.3 JSON-RPC, exposes the live catalog as typed offers, and settles orders in USDC on Circle's Arc Testnet over an a2a-x402 payment challenge. Also publishes a UCP discovery profile and AP2 cart/payment mandates.",
   "canonicalUrl": "/api/public/agent-card",
+  "version": "1.1.0",
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "stateTransitionHistory": true
+  },
+  "defaultInputModes": ["application/json", "text/plain"],
+  "defaultOutputModes": ["application/json", "text/plain"],
   "skills": [
-    { "id": "browse_catalog", "endpoint": { "method": "GET", "path": "/api/public/catalog" } },
-    { "id": "purchase", "endpoint": { "method": "POST", "path": "/api/public/purchase" } }
-  ]
+    {
+      "id": "browse_catalog",
+      "name": "Browse catalog",
+      "description": "Return every purchasable SKU as a typed offer: title, sizes, availability, price and the stablecoins accepted.",
+      "tags": ["commerce", "catalog", "streetwear"],
+      "endpoint": { "method": "GET", "path": "/api/public/catalog" }
+    },
+    {
+      "id": "a2a_message",
+      "name": "A2A message/send",
+      "description": "JSON-RPC endpoint for agent negotiation. Returns AP2 CartMandate + a2a-x402 payment-required on turn 1, and a PaymentMandate receipt on turn 2.",
+      "tags": ["a2a", "ap2", "x402", "agent"],
+      "endpoint": { "method": "POST", "path": "/api/public/a2a/message" }
+    },
+    {
+      "id": "ucp_discovery",
+      "name": "UCP discovery",
+      "description": "Universal Commerce Protocol discovery profile for the Arc Testnet USDC payment handler.",
+      "tags": ["ucp", "discovery", "commerce"],
+      "endpoint": { "method": "GET", "path": "/api/public/ucp/discovery" }
+    },
+    {
+      "id": "ap2_mandate",
+      "name": "AP2 mandate",
+      "description": "Generate an AP2 CartMandate + PaymentMandate + x402 requirement for a given SKU.",
+      "tags": ["ap2", "mandate", "x402"],
+      "endpoint": { "method": "POST", "path": "/api/public/ap2/mandate" }
+    },
+    {
+      "id": "purchase",
+      "name": "Purchase",
+      "description": "Re-send the order with an X-PAYMENT header carrying the Arc transaction hash. The server verifies the transfer on-chain before releasing the fulfilment object.",
+      "tags": ["commerce", "x402", "settlement", "usdc"],
+      "endpoint": { "method": "POST", "path": "/api/public/purchase" }
+    }
+  ],
+  "extensions": {
+    "payments": {
+      "protocol": "a2a-x402",
+      "schemes": ["exact"],
+      "networks": ["eip155:5042002"],
+      "assets": [
+        { "symbol": "USDC", "address": "0x3600000000000000000000000000000000000000", "decimals": 6, "caip19": "eip155:5042002/erc20:0x3600000000000000000000000000000000000000" }
+      ],
+      "demoScale": 0.001,
+      "gasToken": "USDC"
+    },
+    "rights": {
+      "registry": "0x4d13b45f823f8944522890c20d8695b6005465f0",
+      "chain": "eip155:5042002",
+      "explorer": "https://testnet.arcscan.app/address/0x4d13b45f823f8944522890c20d8695b6005465f0",
+      "description": "DanceMoveTokens — the move-rights registry. An offer's provenance pointer resolves to a log() event naming the choreographer and the IPFS rights CID."
+    }
+  }
 }
