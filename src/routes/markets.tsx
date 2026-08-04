@@ -6,6 +6,12 @@ import {
   sizing,
   watchlist,
 } from "@/data/markets";
+import { PrivyRoot } from "@/components/PrivyRoot";
+import { Header } from "@/components/dance/Header";
+import { Reveal } from "@/components/layout/Reveal";
+import { SiteFooter } from "@/components/layout/SiteFooter";
+import { getPublicConfig } from "@/lib/config.functions";
+
 
 export const Route = createFileRoute("/markets")({
   head: () => ({
