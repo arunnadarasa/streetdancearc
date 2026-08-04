@@ -33,20 +33,20 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
       }`}
     >
       <div
-        className={`rail flex items-center justify-between gap-3 transition-all duration-300 ${
-          scrolled ? "py-2.5" : "py-4"
+        className={`rail grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 transition-all duration-300 sm:gap-3 ${
+          scrolled ? "py-2" : "py-2.5 sm:py-4"
         }`}
       >
-        <Link to="/" className="group flex min-w-0 items-center gap-3">
+        <Link to="/" className="group flex min-w-0 items-center gap-2 sm:gap-3">
           <span
             className={`grid shrink-0 place-items-center rounded-xl bg-linear-to-br from-primary to-glow font-black text-primary-foreground shadow-glow-sm transition-all duration-300 ${
-              scrolled ? "h-8 w-8 text-sm" : "h-10 w-10 text-base"
+              scrolled ? "h-7 w-7 text-xs sm:h-8 sm:w-8 sm:text-sm" : "h-8 w-8 text-sm sm:h-10 sm:w-10 sm:text-base"
             }`}
           >
             ♪
           </span>
           <span className="min-w-0">
-            <span className="display block truncate text-[15px] text-foreground sm:text-lg">
+            <span className="display block truncate text-[13px] leading-tight text-foreground sm:text-lg">
               Dance Move Tokens
             </span>
             <span
