@@ -10,14 +10,22 @@ import { useCartStore } from "@/stores/cartStore";
 import { useCartSync } from "@/hooks/useCartSync";
 import { Button } from "@/components/ui/button";
 import { Loader2, Minus, Plus } from "lucide-react";
+import { PrivyRoot } from "@/components/PrivyRoot";
+import { ModeToggle } from "@/components/gx/ModeToggle";
+import { GxOffer } from "@/components/gx/GxOffer";
+import { useGxMode } from "@/lib/gx-mode";
+import { getPublicConfig } from "@/lib/config.functions";
 
 export const Route = createFileRoute("/product/$handle")({
+  loader: () => getPublicConfig(),
   component: ProductPage,
 });
 
 function ProductPage() {
   useCartSync();
   const { handle } = Route.useParams();
+  const { privyAppId } = Route.useLoaderData();
+  const [mode] = useGxMode();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [variantIdx, setVariantIdx] = useState(0);
@@ -28,6 +36,7 @@ function ProductPage() {
   useEffect(() => {
     setQty(1);
   }, [variantIdx]);
+
 
   useEffect(() => {
     (async () => {
@@ -79,6 +88,21 @@ function ProductPage() {
     toast.success(`${qty} × ${product.title} added to cart`, { position: "top-center" });
   };
 
+  if (mode === "gx") {
+    return (
+      <PrivyRoot appId={privyAppId}>
+        <main className="min-h-screen bg-[#0a0a0a] text-white">
+          <div className="mx-auto max-w-3xl px-4 py-6 space-y-6 sm:px-5 sm:py-10">
+            <div className="flex justify-end">
+              <ModeToggle />
+            </div>
+            <GxOffer product={product} />
+          </div>
+        </main>
+      </PrivyRoot>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-white">
       <div className="mx-auto max-w-4xl px-4 py-6 space-y-6 sm:px-5 sm:py-10 sm:space-y-8">
@@ -86,8 +110,12 @@ function ProductPage() {
           <Link to="/shop" className="text-xs font-bold text-neutral-400 hover:text-white">
             ← Shop
           </Link>
-          <CartDrawer />
+          <div className="flex items-center gap-2">
+            <ModeToggle />
+            <CartDrawer />
+          </div>
         </header>
+
 
         <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
           <div className="aspect-square bg-neutral-900 rounded-2xl overflow-hidden border border-neutral-800">

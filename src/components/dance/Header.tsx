@@ -1,5 +1,7 @@
 import { usePrivy } from "@privy-io/react-auth";
 import { Link } from "@tanstack/react-router";
+import { ModeToggle } from "@/components/gx/ModeToggle";
+
 
 export function Header() {
   const { authenticated, login, logout, user, ready } = usePrivy();
@@ -21,7 +23,9 @@ export function Header() {
         </div>
       </div>
       <div className="flex flex-wrap items-center justify-end gap-2">
+        <ModeToggle />
         <Link
+
           to="/markets"
           className="shrink-0 rounded-full border border-neutral-700 px-3 py-2 text-xs font-bold text-white hover:bg-neutral-900"
         >
