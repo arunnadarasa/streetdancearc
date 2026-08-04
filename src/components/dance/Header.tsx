@@ -5,10 +5,12 @@ import { ModeToggle } from "@/components/gx/ModeToggle";
 
 const NAV = [
   { to: "/shop", label: "Shop" },
+  { to: "/moves", label: "Moves" },
   { to: "/agent-negotiation", label: "Negotiate" },
   { to: "/markets", label: "Markets" },
   { to: "/deck", label: "Deck" },
 ] as const;
+
 
 export function Header({ extra }: { extra?: React.ReactNode }) {
   const { authenticated, login, logout, user, ready } = usePrivy();

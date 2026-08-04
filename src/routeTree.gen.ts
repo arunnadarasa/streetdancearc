@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ShopRouteImport } from './routes/shop'
+import { Route as MovesRouteImport } from './routes/moves'
 import { Route as MarketsRouteImport } from './routes/markets'
 import { Route as DeckRouteImport } from './routes/deck'
 import { Route as AgentNegotiationRouteImport } from './routes/agent-negotiation'
@@ -26,6 +27,11 @@ import { Route as ApiPublicA2aMessageRouteImport } from './routes/api/public/a2a
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MovesRoute = MovesRouteImport.update({
+  id: '/moves',
+  path: '/moves',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MarketsRoute = MarketsRouteImport.update({
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/agent-negotiation': typeof AgentNegotiationRoute
   '/deck': typeof DeckRoute
   '/markets': typeof MarketsRoute
+  '/moves': typeof MovesRoute
   '/shop': typeof ShopRoute
   '/product/$handle': typeof ProductHandleRoute
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/agent-negotiation': typeof AgentNegotiationRoute
   '/deck': typeof DeckRoute
   '/markets': typeof MarketsRoute
+  '/moves': typeof MovesRoute
   '/shop': typeof ShopRoute
   '/product/$handle': typeof ProductHandleRoute
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/agent-negotiation': typeof AgentNegotiationRoute
   '/deck': typeof DeckRoute
   '/markets': typeof MarketsRoute
+  '/moves': typeof MovesRoute
   '/shop': typeof ShopRoute
   '/product/$handle': typeof ProductHandleRoute
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/agent-negotiation'
     | '/deck'
     | '/markets'
+    | '/moves'
     | '/shop'
     | '/product/$handle'
     | '/api/public/agent-card'
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/agent-negotiation'
     | '/deck'
     | '/markets'
+    | '/moves'
     | '/shop'
     | '/product/$handle'
     | '/api/public/agent-card'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/agent-negotiation'
     | '/deck'
     | '/markets'
+    | '/moves'
     | '/shop'
     | '/product/$handle'
     | '/api/public/agent-card'
@@ -188,6 +200,7 @@ export interface RootRouteChildren {
   AgentNegotiationRoute: typeof AgentNegotiationRoute
   DeckRoute: typeof DeckRoute
   MarketsRoute: typeof MarketsRoute
+  MovesRoute: typeof MovesRoute
   ShopRoute: typeof ShopRoute
   ProductHandleRoute: typeof ProductHandleRoute
   ApiPublicAgentCardRoute: typeof ApiPublicAgentCardRoute
@@ -206,6 +219,13 @@ declare module '@tanstack/react-router' {
       path: '/shop'
       fullPath: '/shop'
       preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/moves': {
+      id: '/moves'
+      path: '/moves'
+      fullPath: '/moves'
+      preLoaderRoute: typeof MovesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/markets': {
@@ -300,6 +320,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgentNegotiationRoute: AgentNegotiationRoute,
   DeckRoute: DeckRoute,
   MarketsRoute: MarketsRoute,
+  MovesRoute: MovesRoute,
   ShopRoute: ShopRoute,
   ProductHandleRoute: ProductHandleRoute,
   ApiPublicAgentCardRoute: ApiPublicAgentCardRoute,
