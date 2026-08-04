@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ShopRouteImport } from './routes/shop'
+import { Route as MarketsRouteImport } from './routes/markets'
 import { Route as DeckRouteImport } from './routes/deck'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
@@ -17,6 +18,11 @@ import { Route as ProductHandleRouteImport } from './routes/product.$handle'
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketsRoute = MarketsRouteImport.update({
+  id: '/markets',
+  path: '/markets',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeckRoute = DeckRouteImport.update({
@@ -38,12 +44,14 @@ const ProductHandleRoute = ProductHandleRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/deck': typeof DeckRoute
+  '/markets': typeof MarketsRoute
   '/shop': typeof ShopRoute
   '/product/$handle': typeof ProductHandleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/deck': typeof DeckRoute
+  '/markets': typeof MarketsRoute
   '/shop': typeof ShopRoute
   '/product/$handle': typeof ProductHandleRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/deck': typeof DeckRoute
+  '/markets': typeof MarketsRoute
   '/shop': typeof ShopRoute
   '/product/$handle': typeof ProductHandleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/deck' | '/shop' | '/product/$handle'
+  fullPaths: '/' | '/deck' | '/markets' | '/shop' | '/product/$handle'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/deck' | '/shop' | '/product/$handle'
-  id: '__root__' | '/' | '/deck' | '/shop' | '/product/$handle'
+  to: '/' | '/deck' | '/markets' | '/shop' | '/product/$handle'
+  id: '__root__' | '/' | '/deck' | '/markets' | '/shop' | '/product/$handle'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DeckRoute: typeof DeckRoute
+  MarketsRoute: typeof MarketsRoute
   ShopRoute: typeof ShopRoute
   ProductHandleRoute: typeof ProductHandleRoute
 }
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/shop'
       fullPath: '/shop'
       preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/markets': {
+      id: '/markets'
+      path: '/markets'
+      fullPath: '/markets'
+      preLoaderRoute: typeof MarketsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/deck': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DeckRoute: DeckRoute,
+  MarketsRoute: MarketsRoute,
   ShopRoute: ShopRoute,
   ProductHandleRoute: ProductHandleRoute,
 }
