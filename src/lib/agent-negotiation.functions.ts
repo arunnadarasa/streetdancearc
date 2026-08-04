@@ -109,7 +109,10 @@ function normalizeQuote(
   if (!item) return quote;
 
   const qty = Math.max(1, Number(quote.quantity) || 1);
-  const unit = Number(quote.unitPriceUsdc) || Number(item.priceMinor) / 1e6;
+  // LLMs sometimes return priceMinor raw (e.g. 15000) instead of decimal USDC (0.015).
+  // If the value is clearly in minor units (> 100), convert it.
+  let unit = Number(quote.unitPriceUsdc) || Number(item.priceMinor) / 1e6;
+  if (unit > 100) unit = unit / 1e6;
   return {
     sku: item.sku,
     title: item.title,
