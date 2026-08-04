@@ -51,7 +51,7 @@ export function GxShop() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/15 via-surface to-black p-5 sm:p-7">
+      <section className="rounded-3xl border border-primary/30 bg-linear-to-br from-primary/15 via-surface to-black p-5 sm:p-7">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-glow">
           GET /api/public/catalog
         </p>

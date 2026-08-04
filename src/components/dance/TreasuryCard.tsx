@@ -16,7 +16,7 @@ export function TreasuryCard({ address }: { address?: string }) {
   const addr = address;
 
   return (
-    <div className="rounded-2xl border border-border bg-gradient-to-br from-surface to-surface-2 p-5">
+    <div className="rounded-2xl border border-border bg-linear-to-br from-surface to-surface-2 p-5">
       <p className="text-xs uppercase tracking-widest text-muted-foreground">Treasury</p>
       <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
         <code className="min-w-0 flex-1 break-all rounded bg-background/50 px-2 py-1 text-xs text-foreground/85 sm:text-sm">{addr}</code>
