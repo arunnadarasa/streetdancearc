@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { PrivyRoot } from "@/components/PrivyRoot";
 import { Header } from "@/components/dance/Header";
-import { TreasuryCard } from "@/components/dance/TreasuryCard";
-import { MintForm } from "@/components/dance/MintForm";
+import { MoveRegistry } from "@/components/dance/MoveRegistry";
+import { FeaturedMerch } from "@/components/shop/FeaturedMerch";
+import { CartDrawer } from "@/components/shop/CartDrawer";
+import { useCartSync } from "@/hooks/useCartSync";
 import { GxHome } from "@/components/gx/GxHome";
 import { Section, SectionHead } from "@/components/layout/Section";
 import { Reveal } from "@/components/layout/Reveal";
@@ -12,42 +15,61 @@ import { getPublicConfig } from "@/lib/config.functions";
 
 export const Route = createFileRoute("/")({
   loader: () => getPublicConfig(),
+  head: () => ({
+    meta: [
+      { title: "StreetKode Fam — Street Dance Merch, Paid in Stablecoins" },
+      {
+        name: "description",
+        content:
+          "Streetwear built for cyphers and battles — sneakers, snapbacks, jackets and tees. Checkout in USDC, EURC or cirBTC on Circle's Arc, plus an on-chain marketplace for dance moves.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:title", content: "StreetKode Fam — Street Dance Merch, Paid in Stablecoins" },
+      {
+        property: "og:description",
+        content:
+          "Street dance streetwear settled in USDC, EURC or cirBTC on Arc — with a marketplace for licensing choreography.",
+      },
+    ],
+  }),
   component: Index,
 });
 
 const STATS = [
-  { k: "5042002", v: "Arc Testnet chain ID" },
-  { k: "USDC", v: "Native gas token · 6 decimals" },
-  { k: "3", v: "Settlement currencies live" },
-  { k: "100%", v: "On-chain rights provenance" },
+  { k: "7", v: "Pieces in the current drop" },
+  { k: "3", v: "Stablecoins accepted at checkout" },
+  { k: "x402", v: "Agent checkout, no card needed" },
+  { k: "On-chain", v: "Rights records for every move" },
 ];
 
 const STEPS = [
   {
     n: "01",
-    t: "Pin the rights",
-    d: "Choreography metadata — creator, crew, licence terms, video hash — pinned to IPFS as JSON.",
+    t: "Pick your piece",
+    d: "Sneakers, snapbacks, jackets, tees, socks and bandanas — cut for cyphers, battles and everyday flex.",
   },
   {
     n: "02",
-    t: "Log it on Arc",
-    d: "One call to DanceMoveTokens writes token, amount and CID to Circle's Arc Testnet.",
+    t: "Pay in stablecoins",
+    d: "Checkout in USDC, EURC or cirBTC. Gas is USDC on Arc, so there's no second asset to top up.",
   },
   {
     n: "03",
-    t: "Get paid in stablecoins",
-    d: "Settle in USDC, EURC or cirBTC. Gas is USDC, so no second asset to manage.",
+    t: "The move travels with it",
+    d: "Every drop is tied to choreography with an on-chain rights record, so the creators behind the move get paid too.",
   },
 ];
 
 function Index() {
+  useCartSync();
   const { privyAppId, treasuryAddress } = Route.useLoaderData();
   const [mode] = useGxMode();
 
   return (
     <PrivyRoot appId={privyAppId}>
       <div className="min-h-screen bg-background text-foreground">
-        <Header />
+        <Header extra={mode === "h2h" ? <CartDrawer /> : undefined} />
 
         {mode === "gx" ? (
           <Section tone="base" lines>
@@ -59,35 +81,36 @@ function Index() {
             <section className="aurora-bg relative">
               <div className="rail relative flex min-h-[60vh] flex-col justify-center py-12 sm:min-h-[78vh] sm:py-28">
                 <Reveal>
-                  <p className="eyebrow">Dance &middot; Choreography &middot; Programmable money</p>
+                  <p className="eyebrow">Streetwear &middot; Street dance &middot; Stablecoins</p>
                 </Reveal>
                 <Reveal delay={90}>
                   <h1 className="display mt-4 text-[clamp(2.25rem,9vw,3.25rem)] leading-[0.92] sm:mt-5 sm:text-7xl sm:leading-[0.88] lg:text-[5.5rem]">
-                    <span className="block text-foreground">License</span>
-                    <span className="block text-gradient">your moves.</span>
-                    <span className="block text-foreground">Pin your rights.</span>
+                    <span className="block text-foreground">Wear the</span>
+                    <span className="block text-gradient">culture.</span>
+                    <span className="block text-foreground">Own the move.</span>
                   </h1>
                 </Reveal>
                 <Reveal delay={180}>
                   <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted-foreground sm:mt-7 sm:text-lg">
-                    Create, pin and trade dance moves as on-chain rights records with IPFS
-                    metadata — settled in USDC, EURC or cirBTC on Circle&apos;s Arc Testnet.
+                    Street dance streetwear built for cyphers and battles — checkout in USDC,
+                    EURC or cirBTC on Circle&apos;s Arc. Every drop is backed by a marketplace
+                    for the moves behind it.
                   </p>
                 </Reveal>
                 <Reveal delay={260}>
                   <div className="mt-7 flex flex-col items-stretch gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:items-center">
-                    <a
-                      href="#register"
+                    <Link
+                      to="/shop"
                       className="lift rounded-full bg-linear-to-r from-primary to-glow px-7 py-3.5 text-center text-sm font-bold text-primary-foreground shadow-glow"
                     >
-                      Register a move
-                    </a>
-                    <a
-                      href="/shop"
+                      Shop the drop
+                    </Link>
+                    <Link
+                      to="/moves"
                       className="lift rounded-full border border-border bg-surface/60 px-7 py-3.5 text-center text-sm font-bold text-foreground backdrop-blur"
                     >
-                      Shop the merch →
-                    </a>
+                      Marketplace for moves →
+                    </Link>
                   </div>
                 </Reveal>
 
@@ -106,13 +129,26 @@ function Index() {
               </div>
             </section>
 
-
-            {/* HOW IT WORKS */}
+            {/* FEATURED MERCH */}
             <Section tone="raised" lines>
               <Reveal>
                 <SectionHead
+                  eyebrow="The drop"
+                  title="Fresh off the rack"
+                  blurb="Physical goods, Shopify-fulfilled, settled in stablecoins. Agents can buy the same catalogue over x402."
+                />
+              </Reveal>
+              <div className="mt-10">
+                <FeaturedMerch count={4} />
+              </div>
+            </Section>
+
+            {/* HOW IT WORKS */}
+            <Section tone="base" lines>
+              <Reveal>
+                <SectionHead
                   eyebrow="The flow"
-                  title="Three moves from cypher to settlement"
+                  title="Three moves from rack to receipt"
                   blurb="No token gymnastics, no bridging, no gas asset to top up. Just stablecoins and a verifiable record."
                 />
               </Reveal>
@@ -133,25 +169,9 @@ function Index() {
               </div>
             </Section>
 
-            {/* REGISTER */}
-            <Section id="register" tone="base">
-              <div className="grid gap-10 lg:grid-cols-[0.85fr_1fr] lg:items-start">
-                <Reveal>
-                  <div className="lg:sticky lg:top-28">
-                    <SectionHead
-                      eyebrow="Rights registry"
-                      title="Register a move"
-                      blurb="Approve the stablecoin, log the CID, get an Arcscan receipt. The record is public, permanent and yours."
-                    />
-                    <div className="mt-8">
-                      <TreasuryCard address={treasuryAddress} />
-                    </div>
-                  </div>
-                </Reveal>
-                <Reveal delay={120}>
-                  <MintForm />
-                </Reveal>
-              </div>
+            {/* MOVE REGISTRY — secondary */}
+            <Section id="register" tone="raised">
+              <MoveRegistry treasuryAddress={treasuryAddress} />
             </Section>
           </>
         )}
