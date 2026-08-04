@@ -76,19 +76,18 @@ function transcriptToText(transcript: NegotiationTurn[]): string {
     .join("\n");
 }
 
+const SellerQuoteSchema = z.object({
+  sku: z.string(),
+  title: z.string(),
+  quantity: z.number().int().positive(),
+  unitPriceUsdc: z.number(),
+  totalUsdc: z.number(),
+});
+
 const SellerReplySchema = z.object({
   reply: z.string(),
   action: z.enum(["offer", "accept", "reject"]),
-  quote: z
-    .object({
-      sku: z.string(),
-      title: z.string(),
-      quantity: z.number().int().positive(),
-      unitPriceUsdc: z.number(),
-      totalUsdc: z.number(),
-    })
-    .nullable()
-    .optional(),
+  quote: SellerQuoteSchema.nullable().optional().default(null),
 });
 
 const BuyerReplySchema = z.object({
