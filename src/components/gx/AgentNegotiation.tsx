@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { useWallet } from "@/lib/wallet-context";
 import { createPublicClient, createWalletClient, custom, type Address } from "viem";
 import { toast } from "sonner";
 import { Sparkles, Loader2, ShoppingCart, Send, RotateCcw } from "lucide-react";
@@ -21,8 +21,7 @@ function categoryForTitle(title: string): string {
 }
 
 export function AgentNegotiation() {
-  const { authenticated, login } = usePrivy();
-  const { wallets } = useWallets();
+  const { authenticated, login, wallets } = useWallet();
 
   const [goal, setGoal] = useState("Buy a snapback cap under 0.03 USDC for practice sessions");
   const [products, setProducts] = useState<any[]>([]);

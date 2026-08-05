@@ -1,4 +1,4 @@
-import { usePrivy } from "@privy-io/react-auth";
+import { useWallet } from "@/lib/wallet-context";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ModeToggle } from "@/components/gx/ModeToggle";
@@ -15,7 +15,7 @@ const NAV = [
 
 
 export function Header({ extra }: { extra?: React.ReactNode }) {
-  const { authenticated, login, logout, user, ready } = usePrivy();
+  const { authenticated, login, logout, user, ready, available } = useWallet();
 
   const addr = user?.wallet?.address;
   const [scrolled, setScrolled] = useState(false);

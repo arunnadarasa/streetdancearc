@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { useWallet } from "@/lib/wallet-context";
 import { createPublicClient, createWalletClient, custom, http, type Address } from "viem";
 import { arcTestnet } from "@/lib/arc-chain";
 import {
@@ -36,8 +36,7 @@ export interface AgentOrder {
 }
 
 export function useAgentRun(policy: SpendPolicy) {
-  const { authenticated, login } = usePrivy();
-  const { wallets } = useWallets();
+  const { authenticated, login, wallets } = useWallet();
   const [steps, setSteps] = useState<RunStep[]>([]);
   const [busy, setBusy] = useState(false);
   const [interrupt, setInterrupt] = useState<{ order: AgentOrder; outcome: PolicyOutcome } | null>(
