@@ -41,6 +41,27 @@ export function CartDrawer() {
     if (open) syncCart();
   }, [open, syncCart]);
 
+  const [payToken] = usePayToken();
+  const tokenCfg = TOKENS[payToken];
+  const { authenticated, login, wallets, available } = useWallet();
+  const [treasury, setTreasury] = useState("");
+  const [arcState, setArcState] = useState<
+    { phase: "idle" } | { phase: "paying" } | { phase: "paid"; url: string; amount: string } | { phase: "error"; message: string }
+  >({ phase: "idle" });
+
+  // Same demo scaling the x402 merchant applies, so the button and the
+  // agent flow quote the same number for the same basket.
+  const arcAtomic = toAtomic(totalPrice * DEMO_SCALE * tokenCfg.perUsd, payToken);
+
+  useEffect(() => {
+    if (open) syncCart();
+  }, [open, syncCart]);
+
+  useEffect(() => {
+    if (!open || treasury) return;
+    void getPublicConfig().then((c) => setTreasury(c.treasuryAddress));
+  }, [open, treasury]);
+
   const handleCheckout = () => {
     const url = getCheckoutUrl();
     if (url) {
@@ -48,6 +69,39 @@ export function CartDrawer() {
       setOpen(false);
     }
   };
+
+  const handlePayOnArc = async () => {
+    if (!authenticated) {
+      await login();
+      return;
+    }
+    if (!treasury) {
+      setArcState({ phase: "error", message: "No merchant treasury address configured." });
+      return;
+    }
+    const embedded = wallets.find((w) => w.walletClientType === "privy") ?? wallets[0];
+    if (!embedded?.address) {
+      setArcState({ phase: "error", message: "No embedded wallet available." });
+      return;
+    }
+    setArcState({ phase: "paying" });
+    try {
+      const res = await settleOnArc(
+        embedded as Parameters<typeof settleOnArc>[0],
+        payToken,
+        treasury as Address,
+        arcAtomic,
+      );
+      setArcState({
+        phase: "paid",
+        url: res.explorer,
+        amount: formatAmount(arcAtomic, payToken),
+      });
+    } catch (e) {
+      setArcState({ phase: "error", message: e instanceof Error ? e.message : String(e) });
+    }
+  };
+
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
