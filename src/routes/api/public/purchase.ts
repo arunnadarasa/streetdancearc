@@ -9,7 +9,7 @@ const CORS = {
   "Access-Control-Expose-Headers": "X-PAYMENT-RESPONSE",
 };
 
-const RPC = "https://rpc.testnet.arc.network";
+const PUBLIC_RPC = "https://rpc.testnet.arc.network";
 const MAX_TX_AGE_SECONDS = 30 * 60;
 
 const OrderSchema = z.object({
