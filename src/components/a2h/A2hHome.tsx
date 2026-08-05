@@ -1,18 +1,23 @@
 import { Inbox, ShieldCheck } from "lucide-react";
 import { JsonBlock } from "@/components/gx/JsonBlock";
 import { InboxCard } from "./InboxCard";
-import { A2H_FEED, RIGHTS_REGISTRY, STANDING_MANDATE } from "./a2h-feed";
-import { ARC_EXPLORER } from "@/lib/tokens";
-
-const CAPS = [
-  { k: "Settle token", v: STANDING_MANDATE.settle_token },
-  { k: "Per payout", v: `${STANDING_MANDATE.per_payout_cap} USDC` },
-  { k: "Daily cap", v: `${STANDING_MANDATE.daily_cap} USDC` },
-  { k: "Expires", v: "12 Aug 2026" },
-];
+import { A2H_FEED, RIGHTS_REGISTRY, mandateFor, redenominate } from "./a2h-feed";
+import { ARC_EXPLORER, TOKENS } from "@/lib/tokens";
+import { usePayToken } from "@/lib/pay-token";
 
 export function A2hHome() {
-  const pending = A2H_FEED.filter((m) => m.kind === "approval").length;
+  const [payToken] = usePayToken();
+  const mandate = mandateFor(payToken);
+  const feed = redenominate(A2H_FEED, payToken);
+  const pending = feed.filter((m) => m.kind === "approval").length;
+
+  const CAPS = [
+    { k: "Settle token", v: TOKENS[payToken].symbol },
+    { k: "Per payout", v: `${mandate.per_payout_cap} ${payToken}` },
+    { k: "Daily cap", v: `${mandate.daily_cap} ${payToken}` },
+    { k: "Expires", v: "12 Aug 2026" },
+  ];
+
 
   return (
     <div className="space-y-6">
