@@ -9,7 +9,7 @@ let cache: { rates: FxRates; at: number } | null = null;
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 async function fetchFrankfurter(): Promise<{ usdPerGbp: number; usdPerEur: number }> {
-  const res = await fetch("https://api.frankfurter.app/v1/latest?from=USD&to=GBP,EUR");
+  const res = await fetch("https://api.frankfurter.dev/v1/latest?from=USD&to=GBP,EUR");
   if (!res.ok) throw new Error(`Frankfurter ${res.status}: ${await res.text()}`);
   const json = (await res.json()) as { rates: { GBP: number; EUR: number } };
   // rates.GBP is GBP per 1 USD; invert to get USD per 1 GBP.
