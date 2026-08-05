@@ -61,11 +61,12 @@ function ShopPage() {
       <div className="min-h-screen bg-background text-foreground">
         <Header extra={mode === "h2h" ? <CartDrawer /> : undefined} />
 
-        {mode === "gx" ? (
+        {mode !== "h2h" ? (
           <Section tone="base" lines>
-            <GxShop />
+            {mode === "h2a" ? <H2aHome /> : <GxShop />}
           </Section>
         ) : (
+
           <>
             <section className="aurora-bg relative">
               <div className="rail relative flex min-h-[40vh] flex-col justify-center py-12 sm:min-h-[52vh] sm:py-24">
