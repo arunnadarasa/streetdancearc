@@ -103,9 +103,10 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
         </div>
       </div>
 
-      <div className="rail flex items-center gap-2 pb-2 md:hidden">
+      <div className={`rail flex items-center gap-2 md:hidden ${scrolled ? "pb-1.5" : "pb-2"}`}>
         <div className="relative min-w-0 flex-1">
           <nav className="flex items-center gap-1.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+
             {NAV.map((n) => {
               const active = pathname.startsWith(n.to);
               return (
