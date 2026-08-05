@@ -24,7 +24,11 @@ function Page() {
   const { privyAppId } = Route.useLoaderData();
   return (
     <PrivyRoot appId={privyAppId}>
-      <AgentNegotiation />
+      <div className="min-h-screen bg-background text-foreground">
+        <Header />
+        <AgentNegotiation />
+        <SiteFooter />
+      </div>
     </PrivyRoot>
   );
 }
