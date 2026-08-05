@@ -93,13 +93,13 @@ function ProductPage() {
     toast.success(`${qty} × ${product.title} added to cart`, { position: "top-center" });
   };
 
-  if (mode === "gx") {
+  if (mode !== "h2h") {
     return (
       <PrivyRoot appId={privyAppId}>
         <div className="min-h-screen bg-background text-foreground">
           <Header />
           <Section tone="base" lines>
-            <GxOffer product={product} />
+            {mode === "h2a" ? <H2aHome /> : <GxOffer product={product} />}
           </Section>
           <SiteFooter />
         </div>
