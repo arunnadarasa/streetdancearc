@@ -2,6 +2,8 @@ import { useWallet } from "@/lib/wallet-context";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ModeToggle } from "@/components/gx/ModeToggle";
+import { PayTokenToggle } from "@/components/gx/PayTokenToggle";
+
 import logoMark from "@/assets/streetrail-logo.png";
 
 
