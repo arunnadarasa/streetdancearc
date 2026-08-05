@@ -97,7 +97,7 @@ export function A2hHome() {
           Every entry was initiated by an agent. Nothing here started with a click.
         </p>
         <div className="space-y-3">
-          {A2H_FEED.map((m) => (
+          {feed.map((m) => (
             <InboxCard key={m.id} msg={m} />
           ))}
         </div>
