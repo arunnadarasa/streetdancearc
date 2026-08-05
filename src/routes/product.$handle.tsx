@@ -115,12 +115,23 @@ function ProductPage() {
           <div className="rail relative grid gap-8 py-12 sm:py-16 md:grid-cols-2 md:gap-12">
             <Reveal>
               <div className="relative aspect-square overflow-hidden rounded-[2rem] border border-border bg-surface shadow-elevated">
-                {img && (
+                {img ? (
                   <img
                     src={img.url}
                     alt={img.altText || product.title}
                     className="h-full w-full object-cover"
                   />
+                ) : (
+                  <div className="grid h-full w-full place-items-center bg-linear-to-br from-indigo-950 via-slate-900 to-indigo-900">
+                    <div className="flex flex-col items-center gap-4 text-indigo-200/60">
+                      <div className="flex h-20 w-20 items-center justify-center rounded-full border border-indigo-400/20 bg-indigo-500/10 backdrop-blur">
+                        <span className="display text-3xl">{product.title?.charAt(0) || "S"}</span>
+                      </div>
+                      <span className="max-w-[70%] text-center text-xs font-bold uppercase tracking-widest">
+                        {product.title}
+                      </span>
+                    </div>
+                  </div>
                 )}
                 <div className="pointer-events-none absolute inset-0 rounded-[2rem] ring-1 ring-inset ring-foreground/10" />
               </div>
