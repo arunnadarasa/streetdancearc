@@ -1,8 +1,9 @@
 import { useGxMode, type GxMode } from "@/lib/gx-mode";
 
 const OPTIONS: Array<{ value: GxMode; label: string; hint: string }> = [
-  { value: "h2h", label: "H2H", hint: "Human interface" },
-  { value: "gx", label: "GX", hint: "Agent interface" },
+  { value: "h2h", label: "H2H", hint: "Human interface (UX)" },
+  { value: "h2a", label: "H2A", hint: "Human delegates to an agent (GX)" },
+  { value: "a2a", label: "A2A", hint: "Agent-to-agent with x402" },
 ];
 
 export function ModeToggle({ className = "" }: { className?: string }) {
@@ -20,7 +21,7 @@ export function ModeToggle({ className = "" }: { className?: string }) {
           onClick={() => setMode(o.value)}
           title={o.hint}
           aria-pressed={mode === o.value}
-          className={`rounded-full px-3 py-1.5 text-[11px] font-black tracking-wide transition ${
+          className={`whitespace-nowrap rounded-full px-2.5 py-1.5 text-[11px] font-black tracking-wide transition sm:px-3 ${
             mode === o.value
               ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:text-foreground"
