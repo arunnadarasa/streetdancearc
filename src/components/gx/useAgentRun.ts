@@ -1,7 +1,9 @@
 import { useCallback, useRef, useState } from "react";
 import { useWallet } from "@/lib/wallet-context";
-import { createPublicClient, createWalletClient, custom, http, type Address } from "viem";
-import { arcTestnet } from "@/lib/arc-chain";
+import { usePayToken } from "@/lib/pay-token";
+import { settleOnArc, settlementNote } from "@/lib/settle";
+import { TOKENS, formatAmount, isTokenKey, type TokenKey } from "@/lib/tokens";
+import type { Address } from "viem";
 import {
   addSpentToday,
   evaluatePolicy,
@@ -10,6 +12,7 @@ import {
   type PolicyOutcome,
   type SpendPolicy,
 } from "@/lib/spend-policy";
+
 
 export type StepStatus = "running" | "ok" | "blocked" | "failed" | "waiting";
 
@@ -37,6 +40,9 @@ export interface AgentOrder {
 
 export function useAgentRun(policy: SpendPolicy) {
   const { authenticated, login, wallets } = useWallet();
+  const [payToken] = usePayToken();
+  const tokenCfg = TOKENS[payToken];
+
   const [steps, setSteps] = useState<RunStep[]>([]);
   const [busy, setBusy] = useState(false);
   const [interrupt, setInterrupt] = useState<{ order: AgentOrder; outcome: PolicyOutcome } | null>(
@@ -93,6 +99,7 @@ export function useAgentRun(policy: SpendPolicy) {
           quantity: order.quantity,
           listedAmount: order.listedAmount,
           currency: order.currency,
+          token: payToken,
           agentId: policy.agentId,
           rightsCid: order.rightsCid,
         };
@@ -111,13 +118,20 @@ export function useAgentRun(policy: SpendPolicy) {
           });
           return;
         }
-        const requirement = quote.accepts[0];
-        const amountUsdc = Number(requirement.amount) / 1e6;
+        // The merchant quotes all three stablecoins; take the one the principal chose.
+        const requirement =
+          quote.accepts.find((a: { symbol?: string }) => a.symbol === tokenCfg.symbol) ??
+          quote.accepts[0];
+        const chosen: TokenKey = isTokenKey(requirement.symbol) ? requirement.symbol : payToken;
+        // Mandate caps are denominated in USD, so unwind the demo FX rate.
+        const amountUsdc =
+          Number(requirement.amount) / 10 ** TOKENS[chosen].decimals / TOKENS[chosen].perUsd;
         patch("quote", {
           status: "ok",
-          detail: `402 Payment Required — ${requirement.amountFormatted} USDC to ${requirement.payTo.slice(0, 8)}…`,
-          payloadLabel: "x402 payment requirement",
+          detail: `402 Payment Required — ${requirement.amountFormatted} to ${requirement.payTo.slice(0, 8)}… (≈ $${amountUsdc.toFixed(4)})`,
+          payloadLabel: `x402 payment requirement · ${tokenCfg.symbol}`,
           payload: requirement,
+
         });
 
         // 3 — Mandate check
@@ -169,37 +183,38 @@ export function useAgentRun(policy: SpendPolicy) {
           patch("interrupt", { status: "ok", tone: "green", detail: "Principal approved the spend." });
         }
 
-        // 5 — Settle on Arc
+        // 5 — Settle on Arc, in whichever stablecoin the principal selected
         push({
           id: "settle",
-          title: `Transfer ${requirement.amountFormatted} USDC on Arc`,
+          title: `Transfer ${requirement.amountFormatted} on Arc`,
           status: "running",
         });
         const embedded = wallets.find((w) => w.walletClientType === "privy") ?? wallets[0];
-        if (!embedded) throw new Error("No embedded wallet available.");
-        const provider = await embedded.getEthereumProvider();
-        await embedded.switchChain(arcTestnet.id);
-        const from = embedded.address as Address;
-        const walletClient = createWalletClient({
-          account: from,
-          chain: arcTestnet,
-          transport: custom(provider),
-        });
-        const publicClient = createPublicClient({ chain: arcTestnet, transport: http() });
-        const hash = await walletClient.sendTransaction({
-          to: requirement.payTo as Address,
-          value: BigInt(requirement.amount),
-          chain: arcTestnet,
-        });
-        await publicClient.waitForTransactionReceipt({ hash });
+        if (!embedded?.address) throw new Error("No embedded wallet available.");
+        const result = await settleOnArc(
+          embedded as Parameters<typeof settleOnArc>[0],
+          payToken,
+          requirement.payTo as Address,
+          BigInt(requirement.amount),
+        );
+        const { hash, from } = result;
         patch("settle", {
           status: "ok",
           tone: "green",
-          detail: "USDC is the gas token on Arc, so one native transfer settles the order.",
-          href: `https://testnet.arcscan.app/tx/${hash}`,
+          detail: settlementNote(payToken),
+          href: result.explorer,
           payloadLabel: "settlement",
-          payload: { txHash: hash, from, to: requirement.payTo, amount: requirement.amount },
+          payload: {
+            txHash: hash,
+            from,
+            to: requirement.payTo,
+            token: tokenCfg.symbol,
+            asset: requirement.asset,
+            amount: requirement.amount,
+            amountFormatted: formatAmount(BigInt(requirement.amount), payToken),
+          },
         });
+
 
         // 6 — Re-present with X-PAYMENT
         push({ id: "verify", title: "POST /api/public/purchase with X-PAYMENT", status: "running" });
@@ -236,7 +251,7 @@ export function useAgentRun(policy: SpendPolicy) {
         setInterrupt(null);
       }
     },
-    [authenticated, login, patch, policy, push, wallets],
+    [authenticated, login, patch, payToken, policy, push, tokenCfg.symbol, wallets],
   );
 
   return { steps, busy, run, interrupt, answerInterrupt };

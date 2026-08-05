@@ -2,6 +2,8 @@ import { useWallet } from "@/lib/wallet-context";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ModeToggle } from "@/components/gx/ModeToggle";
+import { PayTokenToggle } from "@/components/gx/PayTokenToggle";
+
 import logoMark from "@/assets/streetrail-logo.png";
 
 
@@ -91,7 +93,11 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           {extra ? <span className="hidden md:inline-flex">{extra}</span> : null}
+          <span className="hidden sm:inline-flex">
+            <PayTokenToggle />
+          </span>
           <ModeToggle />
+
 
           {!available ? (
             <span
@@ -145,8 +151,12 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
           </nav>
           <span className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-linear-to-l from-background to-transparent" />
         </div>
+        <span className="shrink-0 sm:hidden">
+          <PayTokenToggle />
+        </span>
         {extra ? <div className="shrink-0">{extra}</div> : null}
       </div>
+
 
 
     </header>

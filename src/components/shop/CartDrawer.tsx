@@ -9,8 +9,16 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Minus, Plus, Trash2, ExternalLink, Loader2 } from "lucide-react";
+import { ShoppingCart, Minus, Plus, Trash2, ExternalLink, Loader2, Zap } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
+import { usePayToken } from "@/lib/pay-token";
+import { useWallet } from "@/lib/wallet-context";
+import { settleOnArc, settlementNote } from "@/lib/settle";
+import { DEMO_SCALE } from "@/lib/agent-card";
+import { TOKENS, formatAmount, toAtomic } from "@/lib/tokens";
+import type { Address } from "viem";
+import { getPublicConfig } from "@/lib/config.functions";
+
 
 export function CartDrawer() {
   const [open, setOpen] = useState(false);
@@ -33,6 +41,27 @@ export function CartDrawer() {
     if (open) syncCart();
   }, [open, syncCart]);
 
+  const [payToken] = usePayToken();
+  const tokenCfg = TOKENS[payToken];
+  const { authenticated, login, wallets, available } = useWallet();
+  const [treasury, setTreasury] = useState("");
+  const [arcState, setArcState] = useState<
+    { phase: "idle" } | { phase: "paying" } | { phase: "paid"; url: string; amount: string } | { phase: "error"; message: string }
+  >({ phase: "idle" });
+
+  // Same demo scaling the x402 merchant applies, so the button and the
+  // agent flow quote the same number for the same basket.
+  const arcAtomic = toAtomic(totalPrice * DEMO_SCALE * tokenCfg.perUsd, payToken);
+
+  useEffect(() => {
+    if (open) syncCart();
+  }, [open, syncCart]);
+
+  useEffect(() => {
+    if (!open || treasury) return;
+    void getPublicConfig().then((c) => setTreasury(c.treasuryAddress));
+  }, [open, treasury]);
+
   const handleCheckout = () => {
     const url = getCheckoutUrl();
     if (url) {
@@ -40,6 +69,39 @@ export function CartDrawer() {
       setOpen(false);
     }
   };
+
+  const handlePayOnArc = async () => {
+    if (!authenticated) {
+      await login();
+      return;
+    }
+    if (!treasury) {
+      setArcState({ phase: "error", message: "No merchant treasury address configured." });
+      return;
+    }
+    const embedded = wallets.find((w) => w.walletClientType === "privy") ?? wallets[0];
+    if (!embedded?.address) {
+      setArcState({ phase: "error", message: "No embedded wallet available." });
+      return;
+    }
+    setArcState({ phase: "paying" });
+    try {
+      const res = await settleOnArc(
+        embedded as Parameters<typeof settleOnArc>[0],
+        payToken,
+        treasury as Address,
+        arcAtomic,
+      );
+      setArcState({
+        phase: "paid",
+        url: res.explorer,
+        amount: formatAmount(arcAtomic, payToken),
+      });
+    } catch (e) {
+      setArcState({ phase: "error", message: e instanceof Error ? e.message : String(e) });
+    }
+  };
+
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -143,13 +205,65 @@ export function CartDrawer() {
                   })}
                 </div>
               </div>
-              <div className="flex-shrink-0 space-y-4 pt-4 border-t border-border">
+              <div className="flex-shrink-0 space-y-3 pt-4 border-t border-border">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total</span>
                   <span className="text-xl font-black text-glow">
                     {items[0]?.price.currencyCode || "£"} {totalPrice.toFixed(2)}
                   </span>
                 </div>
+
+                <div className="flex items-baseline justify-between rounded-lg border border-border bg-surface px-3 py-2 text-xs">
+                  <span className="text-muted-foreground">
+                    Pay on Arc in <span className="font-bold text-foreground">{tokenCfg.symbol}</span>
+                  </span>
+                  <span className="font-mono text-[11px] text-glow">
+                    {formatAmount(arcAtomic, payToken)}
+                  </span>
+                </div>
+
+                {available && (
+                  <Button
+                    onClick={handlePayOnArc}
+                    variant="outline"
+                    className="w-full border-primary/50 bg-primary/10 font-bold text-foreground hover:bg-primary/20"
+                    size="lg"
+                    disabled={items.length === 0 || arcState.phase === "paying"}
+                  >
+                    {arcState.phase === "paying" ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Zap className="w-4 h-4 mr-2" />
+                        {authenticated
+                          ? `Pay ${tokenCfg.symbol} on Arc`
+                          : "Sign in to pay on Arc"}
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {arcState.phase === "paid" && (
+                  <a
+                    href={arcState.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs font-semibold text-foreground underline decoration-glow/60 underline-offset-4"
+                  >
+                    Settled {arcState.amount} — view receipt on Arcscan
+                  </a>
+                )}
+                {arcState.phase === "error" && (
+                  <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-foreground">
+                    {arcState.message}
+                  </p>
+                )}
+                {arcState.phase === "idle" && (
+                  <p className="text-[11px] leading-snug text-muted-foreground">
+                    {settlementNote(payToken)} Demo scale ×{DEMO_SCALE} so testnet balances go far.
+                  </p>
+                )}
+
                 <Button
                   onClick={handleCheckout}
                   className="w-full bg-primary text-primary-foreground hover:bg-primary/85 font-bold"
@@ -166,6 +280,7 @@ export function CartDrawer() {
                   )}
                 </Button>
               </div>
+
             </>
           )}
         </div>

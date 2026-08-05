@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useWallet } from "@/lib/wallet-context";
-import { createPublicClient, createWalletClient, custom, type Address } from "viem";
+import type { Address } from "viem";
 import { toast } from "sonner";
 import { Sparkles, Loader2, ShoppingCart, Send, RotateCcw } from "lucide-react";
 import { runNegotiation, type NegotiationTurn } from "@/lib/agent-negotiation.functions";
 import { AgentChatBubble, type ChatTurn } from "./AgentChatBubble";
 import { JsonBlock } from "./JsonBlock";
-import { arcTestnet } from "@/lib/arc-chain";
 import { DEMO_SCALE } from "@/lib/agent-card";
+import { usePayToken } from "@/lib/pay-token";
+import { settleOnArc } from "@/lib/settle";
+import { TOKENS } from "@/lib/tokens";
 import {
   STOREFRONT_QUERY,
   SHOPIFY_STOREFRONT_URL,
@@ -32,8 +34,9 @@ function categoryForTitle(title: string): string {
 
 export function AgentNegotiation() {
   const { authenticated, login, wallets } = useWallet();
+  const [payToken] = usePayToken();
 
-  const [goal, setGoal] = useState("Buy a snapback cap under 0.03 USDC for practice sessions");
+  const [goal, setGoal] = useState("Buy a snapback cap under 0.03 in the selected stablecoin for practice sessions");
   const [products, setProducts] = useState<any[]>([]);
   const [loadingCatalog, setLoadingCatalog] = useState(true);
   const [running, setRunning] = useState(false);
@@ -70,12 +73,12 @@ export function AgentNegotiation() {
           sku: n.handle,
           title: n.title,
           description: n.description?.slice(0, 160) ?? "",
-          priceMinor: (listed * DEMO_SCALE * 1e6).toFixed(0),
-          currency: "USDC",
+          priceMinor: (listed * DEMO_SCALE * TOKENS[payToken].perUsd * 10 ** TOKENS[payToken].decimals).toFixed(0),
+          currency: payToken,
           category: categoryForTitle(n.title),
         };
       }),
-    [products],
+    [products, payToken],
   );
 
   async function onRun() {
@@ -132,6 +135,7 @@ export function AgentNegotiation() {
         quantity: finalQuote.quantity,
         listedAmount,
         currency,
+        token: payToken,
         agentId: "stylist-agent-01",
       };
 
@@ -142,25 +146,20 @@ export function AgentNegotiation() {
       });
       const quote = await quoteRes.json();
       if (quoteRes.status !== 402) throw new Error(`Expected 402, got ${quoteRes.status}: ${JSON.stringify(quote)}`);
-      const requirement = quote.accepts[0];
+      // The merchant quotes all three stablecoins; take the selected one.
+      const requirement =
+        quote.accepts.find((a: { symbol?: string }) => a.symbol === payToken) ?? quote.accepts[0];
 
       const embedded = wallets.find((w) => w.walletClientType === "privy") ?? wallets[0];
-      if (!embedded) throw new Error("No embedded wallet available.");
-      const provider = await embedded.getEthereumProvider();
-      await embedded.switchChain(arcTestnet.id);
-      const from = embedded.address as Address;
-      const walletClient = createWalletClient({
-        account: from,
-        chain: arcTestnet,
-        transport: custom(provider),
-      });
-      const publicClient = createPublicClient({ chain: arcTestnet, transport: custom(provider) });
-      const hash = await walletClient.sendTransaction({
-        to: requirement.payTo as Address,
-        value: BigInt(requirement.amount),
-        chain: arcTestnet,
-      });
-      await publicClient.waitForTransactionReceipt({ hash });
+      if (!embedded?.address) throw new Error("No embedded wallet available.");
+      const settled = await settleOnArc(
+        embedded as Parameters<typeof settleOnArc>[0],
+        payToken,
+        requirement.payTo as Address,
+        BigInt(requirement.amount),
+      );
+      const { hash, from } = settled;
+
 
       const xPayment = btoa(JSON.stringify({ txHash: hash, from, nonce: requirement.nonce }));
       const paidRes = await fetch("/api/public/purchase", {
@@ -256,10 +255,10 @@ export function AgentNegotiation() {
                 <div>
                   <p className="text-xs font-bold uppercase tracking-widest text-glow">Final deal</p>
                   <p className="text-sm font-bold text-foreground">
-                    {finalQuote.quantity} × {finalQuote.title} @ {finalQuote.unitPriceUsdc.toFixed(6)} USDC
+                    {finalQuote.quantity} × {finalQuote.title} @ {(finalQuote.unitPriceUsdc * TOKENS[payToken].perUsd).toFixed(6)} {payToken}
                   </p>
                   <p className="text-lg font-black text-foreground">
-                    {finalQuote.totalUsdc.toFixed(6)} USDC
+                    {(finalQuote.totalUsdc * TOKENS[payToken].perUsd).toFixed(6)} {payToken}
                   </p>
                 </div>
                 <button
