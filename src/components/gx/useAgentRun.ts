@@ -172,37 +172,38 @@ export function useAgentRun(policy: SpendPolicy) {
           patch("interrupt", { status: "ok", tone: "green", detail: "Principal approved the spend." });
         }
 
-        // 5 — Settle on Arc
+        // 5 — Settle on Arc, in whichever stablecoin the principal selected
         push({
           id: "settle",
-          title: `Transfer ${requirement.amountFormatted} USDC on Arc`,
+          title: `Transfer ${requirement.amountFormatted} on Arc`,
           status: "running",
         });
         const embedded = wallets.find((w) => w.walletClientType === "privy") ?? wallets[0];
-        if (!embedded) throw new Error("No embedded wallet available.");
-        const provider = await embedded.getEthereumProvider();
-        await embedded.switchChain(arcTestnet.id);
-        const from = embedded.address as Address;
-        const walletClient = createWalletClient({
-          account: from,
-          chain: arcTestnet,
-          transport: custom(provider),
-        });
-        const publicClient = createPublicClient({ chain: arcTestnet, transport: http() });
-        const hash = await walletClient.sendTransaction({
-          to: requirement.payTo as Address,
-          value: BigInt(requirement.amount),
-          chain: arcTestnet,
-        });
-        await publicClient.waitForTransactionReceipt({ hash });
+        if (!embedded?.address) throw new Error("No embedded wallet available.");
+        const result = await settleOnArc(
+          embedded as Parameters<typeof settleOnArc>[0],
+          payToken,
+          requirement.payTo as Address,
+          BigInt(requirement.amount),
+        );
+        const { hash, from } = result;
         patch("settle", {
           status: "ok",
           tone: "green",
-          detail: "USDC is the gas token on Arc, so one native transfer settles the order.",
-          href: `https://testnet.arcscan.app/tx/${hash}`,
+          detail: settlementNote(payToken),
+          href: result.explorer,
           payloadLabel: "settlement",
-          payload: { txHash: hash, from, to: requirement.payTo, amount: requirement.amount },
+          payload: {
+            txHash: hash,
+            from,
+            to: requirement.payTo,
+            token: tokenCfg.symbol,
+            asset: requirement.asset,
+            amount: requirement.amount,
+            amountFormatted: formatAmount(BigInt(requirement.amount), payToken),
+          },
         });
+
 
         // 6 — Re-present with X-PAYMENT
         push({ id: "verify", title: "POST /api/public/purchase with X-PAYMENT", status: "running" });
