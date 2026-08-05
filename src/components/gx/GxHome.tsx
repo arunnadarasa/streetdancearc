@@ -29,17 +29,18 @@ export function GxHome() {
     <div className="space-y-6">
       <section className="rounded-3xl border border-primary/30 bg-linear-to-br from-primary/15 via-surface to-black p-6 sm:p-8">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-glow">
-          Generative Experience · agent-to-agent
+          Agent-to-agent · x402 settlement
         </p>
         <h2 className="mt-2 text-3xl font-black leading-tight text-foreground sm:text-4xl">
           No pages.<br />Just offers, mandates and receipts.
         </h2>
         <p className="mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
-          H2H mode renders pixels for a person. GX mode renders the same commerce as machine
-          surface: an A2A-discoverable agent card, UCP checkout profile, AP2 spend mandates, and an
-          AIsa-powered buyer/seller negotiation that settles in real USDC on Circle's Arc Testnet —
+          In A2A mode no human touches checkout. A buyer agent discovers this store through its A2A
+          0.3 agent card and UCP profile, negotiates against the seller agent, signs an AP2 mandate,
+          gets a 402 payment challenge back, and settles in real USDC on Circle&apos;s Arc Testnet —
           testnet amounts are scaled to {DEMO_SCALE} × the listed price.
         </p>
+
         <Link
           to="/agent-negotiation"
           className="mt-5 inline-flex items-center gap-2 rounded-full bg-glow px-5 py-2.5 text-sm font-black text-glow-foreground transition hover:bg-glow/85"
