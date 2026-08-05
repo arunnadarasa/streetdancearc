@@ -238,8 +238,10 @@ function SlideInterfaces() {
         ))}
       </div>
       <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
-        All three settle to the same contract on Arc Testnet, in stablecoins.
+        All three are live in the app behind one toggle — H2H / H2A / A2A — and settle to the same
+        contract on Arc Testnet, in stablecoins.
       </p>
+
     </Slide>
   );
 }
