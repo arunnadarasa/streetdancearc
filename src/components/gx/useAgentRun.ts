@@ -1,7 +1,9 @@
 import { useCallback, useRef, useState } from "react";
 import { useWallet } from "@/lib/wallet-context";
-import { createPublicClient, createWalletClient, custom, http, type Address } from "viem";
-import { arcTestnet } from "@/lib/arc-chain";
+import { usePayToken } from "@/lib/pay-token";
+import { settleOnArc, settlementNote } from "@/lib/settle";
+import { TOKENS, formatAmount, isTokenKey, type TokenKey } from "@/lib/tokens";
+import type { Address } from "viem";
 import {
   addSpentToday,
   evaluatePolicy,
@@ -10,6 +12,7 @@ import {
   type PolicyOutcome,
   type SpendPolicy,
 } from "@/lib/spend-policy";
+
 
 export type StepStatus = "running" | "ok" | "blocked" | "failed" | "waiting";
 
