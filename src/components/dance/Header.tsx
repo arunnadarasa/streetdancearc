@@ -113,7 +113,7 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
                 <Link
                   key={n.to}
                   to={n.to}
-                  className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${
+                  className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-bold transition ${
                     active
                       ? "border-primary/60 bg-primary/15 text-foreground"
                       : "border-border text-muted-foreground"
