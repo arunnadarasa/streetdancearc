@@ -93,22 +93,32 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
           {extra ? <span className="hidden md:inline-flex">{extra}</span> : null}
           <ModeToggle />
 
-          {ready && (
-            <button
-              onClick={authenticated ? logout : login}
-              className="lift shrink-0 rounded-full bg-linear-to-r from-primary to-glow px-3 py-1.5 text-[11px] font-bold text-primary-foreground shadow-glow-sm sm:px-4 sm:py-2 sm:text-xs"
+          {!available ? (
+            <span
+              title="No Privy app ID resolved (server secret PRIVY_APP_ID and build-time VITE_PRIVY_APP_ID are both empty)."
+              className="shrink-0 rounded-full border border-border/80 bg-secondary/60 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground sm:px-4 sm:py-2 sm:text-xs"
             >
-              {authenticated
-                ? addr
-                  ? `${addr.slice(0, 4)}…${addr.slice(-4)}`
-                  : "Sign out"
-                : (
-                  <>
-                    Sign in<span className="hidden sm:inline"> with Google</span>
-                  </>
-                )}
-            </button>
+              Wallet unavailable
+            </span>
+          ) : (
+            ready && (
+              <button
+                onClick={authenticated ? logout : login}
+                className="lift shrink-0 rounded-full bg-linear-to-r from-primary to-glow px-3 py-1.5 text-[11px] font-bold text-primary-foreground shadow-glow-sm sm:px-4 sm:py-2 sm:text-xs"
+              >
+                {authenticated
+                  ? addr
+                    ? `${addr.slice(0, 4)}…${addr.slice(-4)}`
+                    : "Sign out"
+                  : (
+                    <>
+                      Sign in<span className="hidden sm:inline"> with Google</span>
+                    </>
+                  )}
+              </button>
+            )
           )}
+
         </div>
       </div>
 
