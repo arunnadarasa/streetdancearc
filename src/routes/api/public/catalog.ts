@@ -83,7 +83,7 @@ export const Route = createFileRoute("/api/public/catalog")({
         return Response.json(
           {
             type: "catalog",
-            merchant: "streetkode-storefront",
+            merchant: "streetrail-storefront",
             generated_at: new Date().toISOString(),
             count: offers.length,
             offers,

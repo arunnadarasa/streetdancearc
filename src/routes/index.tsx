@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
   loader: () => getPublicConfig(),
   head: () => ({
     meta: [
-      { title: "StreetKode Fam — Street Dance Merch, Paid in Stablecoins" },
+      { title: "StreetRail — Street Dance Merch, Paid in Stablecoins" },
       {
         name: "description",
         content:
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:title", content: "StreetKode Fam — Street Dance Merch, Paid in Stablecoins" },
+      { property: "og:title", content: "StreetRail — Street Dance Merch, Paid in Stablecoins" },
       {
         property: "og:description",
         content:

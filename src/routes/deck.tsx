@@ -5,10 +5,10 @@ import { Deck } from "@/components/deck/Deck";
 export const Route = createFileRoute("/deck")({
   head: () => ({
     meta: [
-      { title: "Judges Deck · Dance Move Tokens" },
-      { name: "description", content: "Interactive pitch deck for Dance Move Tokens — Encode × Arc Programmable Money Hackathon." },
-      { property: "og:title", content: "Judges Deck · Dance Move Tokens" },
-      { property: "og:description", content: "Interactive pitch deck for Dance Move Tokens — Encode × Arc Programmable Money Hackathon." },
+      { title: "Judges Deck · StreetRail" },
+      { name: "description", content: "Interactive pitch deck for StreetRail — Encode × Arc Programmable Money Hackathon." },
+      { property: "og:title", content: "Judges Deck · StreetRail" },
+      { property: "og:description", content: "Interactive pitch deck for StreetRail — Encode × Arc Programmable Money Hackathon." },
     ],
   }),
   component: DeckPage,

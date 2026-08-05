@@ -73,7 +73,7 @@ export function toMandateConstraints(policy: SpendPolicy) {
       daily_max: policy.dailyCapUsdc,
       human_confirmation_above: policy.confirmAboveUsdc,
     },
-    merchant_allowlist: ["streetkode-storefront"],
+    merchant_allowlist: ["streetrail-storefront"],
     category_allowlist: policy.allowedCategories,
   };
 }

@@ -2,6 +2,8 @@ import { usePrivy } from "@privy-io/react-auth";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ModeToggle } from "@/components/gx/ModeToggle";
+import logoMark from "@/assets/streetrail-logo.png";
+
 
 const NAV = [
   { to: "/shop", label: "Shop" },
@@ -41,23 +43,30 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
       >
         <Link to="/" className="group flex min-w-0 items-center gap-2 sm:gap-3">
           <span
-            className={`grid shrink-0 place-items-center rounded-xl bg-linear-to-br from-primary to-glow font-black text-primary-foreground shadow-glow-sm transition-all duration-300 ${
-              scrolled ? "h-7 w-7 text-xs sm:h-8 sm:w-8 sm:text-sm" : "h-8 w-8 text-sm sm:h-10 sm:w-10 sm:text-base"
+            className={`grid shrink-0 place-items-center rounded-xl bg-linear-to-br from-primary to-glow p-1.5 shadow-glow-sm transition-all duration-300 ${
+              scrolled ? "h-7 w-7 sm:h-8 sm:w-8" : "h-8 w-8 sm:h-10 sm:w-10"
             }`}
           >
-            ♪
+            <img
+              src={logoMark}
+              alt="StreetRail logo"
+              width={1024}
+              height={1024}
+              className="h-full w-full object-contain brightness-0 invert"
+            />
           </span>
           <span className="min-w-0">
             <span className="display block truncate text-[13px] leading-tight text-foreground sm:text-lg">
-              Dance Move Tokens
+              StreetRail
             </span>
             <span
               className={`block truncate text-[11px] tracking-wide text-muted-foreground transition-all duration-300 ${
                 scrolled ? "hidden" : "hidden sm:block"
               }`}
             >
-              Arc Testnet · Movement licensing on IPFS
+              Street dance merch · settled on Arc
             </span>
+
           </span>
         </Link>
 

@@ -21,13 +21,13 @@ export const Route = createFileRoute("/shop")({
 
   head: () => ({
     meta: [
-      { title: "Shop — StreetKode Fam Merch" },
+      { title: "Shop — StreetRail Merch" },
       {
         name: "description",
         content:
           "Street dance merchandise: sneakers, snapbacks, jackets, tees, bandanas and more. Crafted for cyphers, battles and the culture.",
       },
-      { property: "og:title", content: "Shop — StreetKode Fam Merch" },
+      { property: "og:title", content: "Shop — StreetRail Merch" },
       {
         property: "og:description",
         content: "Street dance culture merch. Sneakers, snapbacks, jackets & more.",
@@ -72,7 +72,7 @@ function ShopPage() {
             <section className="aurora-bg relative">
               <div className="rail relative flex min-h-[40vh] flex-col justify-center py-12 sm:min-h-[52vh] sm:py-24">
                 <Reveal>
-                  <p className="eyebrow">Fresh drop · StreetKode Merch</p>
+                  <p className="eyebrow">Fresh drop · StreetRail Merch</p>
                 </Reveal>
                 <Reveal delay={90}>
                   <h1 className="display mt-5 text-[clamp(2.1rem,8.5vw,3rem)] leading-[0.95] sm:text-6xl lg:text-7xl">

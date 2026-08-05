@@ -7,7 +7,7 @@ const CHERRY = "#E63946";
 function Chrome({ n, total = 13 }: { n: number; total?: number }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden items-center justify-between px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground sm:flex sm:px-6 sm:py-3 sm:text-xs">
-      <span>Dance Move Tokens · Arc Testnet</span>
+      <span>StreetRail · Arc Testnet</span>
       <span>
         {n} / {total}
       </span>
@@ -53,13 +53,14 @@ function SlideTitle() {
         <Kicker>Encode × Arc · Stablecoin Hackathon · Aug 2026</Kicker>
         <div>
           <h2 className="text-4xl font-black leading-[0.9] tracking-tight sm:text-6xl md:text-7xl">
-            Dance Move
+            Street
             <br />
-            <span style={{ color: GREEN }}>Tokens.</span>
+            <span style={{ color: GREEN }}>Rail.</span>
           </h2>
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:mt-5 sm:text-lg">
-            Onchain rights + streetwear, settled in stablecoins on Circle's Arc.
+            Streetwear + onchain move rights, settled in stablecoins on Circle's Arc.
           </p>
+
         </div>
         <div className="flex flex-wrap gap-1.5 text-[10px] font-bold sm:gap-2 sm:text-xs">
           {["H2H · H2A · A2A", "USDC gas", "EURC + cirBTC", "Privy · Google login", "Verified on Arcscan"].map(
