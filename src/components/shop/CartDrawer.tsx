@@ -9,8 +9,16 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Minus, Plus, Trash2, ExternalLink, Loader2 } from "lucide-react";
+import { ShoppingCart, Minus, Plus, Trash2, ExternalLink, Loader2, Zap } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
+import { usePayToken } from "@/lib/pay-token";
+import { useWallet } from "@/lib/wallet-context";
+import { settleOnArc, settlementNote } from "@/lib/settle";
+import { DEMO_SCALE } from "@/lib/agent-card";
+import { TOKENS, formatAmount, toAtomic } from "@/lib/tokens";
+import type { Address } from "viem";
+import { getPublicConfig } from "@/lib/config.functions";
+
 
 export function CartDrawer() {
   const [open, setOpen] = useState(false);
