@@ -99,6 +99,7 @@ export function useAgentRun(policy: SpendPolicy) {
           quantity: order.quantity,
           listedAmount: order.listedAmount,
           currency: order.currency,
+          token: payToken,
           agentId: policy.agentId,
           rightsCid: order.rightsCid,
         };
@@ -117,13 +118,20 @@ export function useAgentRun(policy: SpendPolicy) {
           });
           return;
         }
-        const requirement = quote.accepts[0];
-        const amountUsdc = Number(requirement.amount) / 1e6;
+        // The merchant quotes all three stablecoins; take the one the principal chose.
+        const requirement =
+          quote.accepts.find((a: { symbol?: string }) => a.symbol === tokenCfg.symbol) ??
+          quote.accepts[0];
+        const chosen: TokenKey = isTokenKey(requirement.symbol) ? requirement.symbol : payToken;
+        // Mandate caps are denominated in USD, so unwind the demo FX rate.
+        const amountUsdc =
+          Number(requirement.amount) / 10 ** TOKENS[chosen].decimals / TOKENS[chosen].perUsd;
         patch("quote", {
           status: "ok",
-          detail: `402 Payment Required — ${requirement.amountFormatted} USDC to ${requirement.payTo.slice(0, 8)}…`,
-          payloadLabel: "x402 payment requirement",
+          detail: `402 Payment Required — ${requirement.amountFormatted} to ${requirement.payTo.slice(0, 8)}… (≈ $${amountUsdc.toFixed(4)})`,
+          payloadLabel: `x402 payment requirement · ${tokenCfg.symbol}`,
           payload: requirement,
+
         });
 
         // 3 — Mandate check
