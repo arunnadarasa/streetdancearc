@@ -32,7 +32,7 @@ export function A2hHome() {
         </h2>
         <p className="mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
           A2H flips the direction. Nobody opens an app. The Rights Agent watches the rail, sees
-          your move earn, pushes the USDC and drops the receipt in your inbox. When it wants to
+          your move earn, pushes the {payToken} and drops the receipt in your inbox. When it wants to
           act outside its mandate, it asks — and waits.
         </p>
       </section>

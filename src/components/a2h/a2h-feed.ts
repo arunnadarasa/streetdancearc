@@ -79,7 +79,7 @@ export const A2H_FEED: A2hMessage[] = [
     at: "2026-08-05T06:48:19Z",
     title: "Approve 12.80 EURC payout? Above your cap",
     body:
-      "A Paris studio licensed 'toprock-cypher-01' for a campaign. The payout is 12.80 EURC — over your 5.00 per-payout ceiling, so it's paused until you say yes.",
+      "A Paris studio licensed 'toprock-cypher-01' for a campaign. The payout is 12.80 EURC — over your per-payout ceiling, so it's paused until you say yes.",
     amount: { value: "12.80", token: "EURC" },
     envelope: {
       jsonrpc: "2.0",
