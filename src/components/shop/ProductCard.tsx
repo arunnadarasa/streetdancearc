@@ -41,8 +41,13 @@ export function ProductCard({ product }: { product: ShopifyProduct }) {
             className="h-full w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-110"
           />
         ) : (
-          <div className="grid h-full w-full place-items-center text-muted-foreground/50">
-            <ShoppingBag className="h-12 w-12" />
+          <div className="grid h-full w-full place-items-center bg-linear-to-br from-indigo-950 via-slate-900 to-indigo-900">
+            <div className="flex flex-col items-center gap-3 text-indigo-200/60">
+              <ShoppingBag className="h-10 w-10" />
+              <span className="max-w-[80%] text-center text-[10px] font-bold uppercase tracking-widest">
+                {product.node.title}
+              </span>
+            </div>
           </div>
         )}
         <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-background via-background/10 to-transparent opacity-90" />
