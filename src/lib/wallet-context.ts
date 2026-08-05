@@ -4,8 +4,11 @@ export type WalletUser = { wallet?: { address?: string } } | null;
 export type WalletLike = {
   address?: string;
   walletClientType?: string;
-  getEthereumProvider: () => Promise<unknown>;
+  switchChain: (chainId: number) => Promise<void>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getEthereumProvider: () => Promise<any>;
 };
+
 
 export type WalletApi = {
   /** false when no Privy app ID could be resolved — wallet features are disabled. */
