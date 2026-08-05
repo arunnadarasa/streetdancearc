@@ -132,6 +132,7 @@ export function AgentNegotiation() {
         quantity: finalQuote.quantity,
         listedAmount,
         currency,
+        token: payToken,
         agentId: "stylist-agent-01",
       };
 
@@ -142,25 +143,20 @@ export function AgentNegotiation() {
       });
       const quote = await quoteRes.json();
       if (quoteRes.status !== 402) throw new Error(`Expected 402, got ${quoteRes.status}: ${JSON.stringify(quote)}`);
-      const requirement = quote.accepts[0];
+      // The merchant quotes all three stablecoins; take the selected one.
+      const requirement =
+        quote.accepts.find((a: { symbol?: string }) => a.symbol === payToken) ?? quote.accepts[0];
 
       const embedded = wallets.find((w) => w.walletClientType === "privy") ?? wallets[0];
-      if (!embedded) throw new Error("No embedded wallet available.");
-      const provider = await embedded.getEthereumProvider();
-      await embedded.switchChain(arcTestnet.id);
-      const from = embedded.address as Address;
-      const walletClient = createWalletClient({
-        account: from,
-        chain: arcTestnet,
-        transport: custom(provider),
-      });
-      const publicClient = createPublicClient({ chain: arcTestnet, transport: custom(provider) });
-      const hash = await walletClient.sendTransaction({
-        to: requirement.payTo as Address,
-        value: BigInt(requirement.amount),
-        chain: arcTestnet,
-      });
-      await publicClient.waitForTransactionReceipt({ hash });
+      if (!embedded?.address) throw new Error("No embedded wallet available.");
+      const settled = await settleOnArc(
+        embedded as Parameters<typeof settleOnArc>[0],
+        payToken,
+        requirement.payTo as Address,
+        BigInt(requirement.amount),
+      );
+      const { hash, from } = settled;
+
 
       const xPayment = btoa(JSON.stringify({ txHash: hash, from, nonce: requirement.nonce }));
       const paidRes = await fetch("/api/public/purchase", {
