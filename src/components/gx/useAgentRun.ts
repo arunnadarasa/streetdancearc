@@ -1,8 +1,9 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { useWallet } from "@/lib/wallet-context";
 import { usePayToken } from "@/lib/pay-token";
 import { settleOnArc, settlementNote } from "@/lib/settle";
-import { TOKENS, formatAmount, isTokenKey, type TokenKey } from "@/lib/tokens";
+import { TOKENS, formatAmount, isTokenKey, getTokenUsdRate, type TokenKey, type FxRates } from "@/lib/tokens";
 import type { Address } from "viem";
 import {
   addSpentToday,
@@ -12,6 +13,7 @@ import {
   type PolicyOutcome,
   type SpendPolicy,
 } from "@/lib/spend-policy";
+import { fetchFxRates } from "@/lib/fx.functions";
 
 
 export type StepStatus = "running" | "ok" | "blocked" | "failed" | "waiting";
@@ -49,6 +51,16 @@ export function useAgentRun(policy: SpendPolicy) {
     null,
   );
   const resolveRef = useRef<((approved: boolean) => void) | null>(null);
+  const [fx, setFx] = useState<FxRates | null>(null);
+  const getFx = useServerFn(fetchFxRates);
+
+  useEffect(() => {
+    let mounted = true;
+    void getFx({ data: undefined }).then((rates) => {
+      if (mounted) setFx(rates);
+    });
+    return () => { mounted = false; };
+  }, [getFx]);
 
   const push = useCallback((s: RunStep) => setSteps((prev) => [...prev, s]), []);
   const patch = useCallback(
@@ -123,9 +135,9 @@ export function useAgentRun(policy: SpendPolicy) {
           quote.accepts.find((a: { symbol?: string }) => a.symbol === tokenCfg.symbol) ??
           quote.accepts[0];
         const chosen: TokenKey = isTokenKey(requirement.symbol) ? requirement.symbol : payToken;
-        // Mandate caps are denominated in USD, so unwind the demo FX rate.
+        // Mandate caps are denominated in USD, so unwind the live FX rate.
         const amountUsdc =
-          Number(requirement.amount) / 10 ** TOKENS[chosen].decimals / TOKENS[chosen].perUsd;
+          Number(requirement.amount) / 10 ** TOKENS[chosen].decimals / getTokenUsdRate(chosen, fx);
         patch("quote", {
           status: "ok",
           detail: `402 Payment Required — ${requirement.amountFormatted} to ${requirement.payTo.slice(0, 8)}… (≈ $${amountUsdc.toFixed(4)})`,
@@ -251,7 +263,7 @@ export function useAgentRun(policy: SpendPolicy) {
         setInterrupt(null);
       }
     },
-    [authenticated, login, patch, payToken, policy, push, tokenCfg.symbol, wallets],
+    [authenticated, login, patch, payToken, policy, push, tokenCfg.symbol, wallets, fx],
   );
 
   return { steps, busy, run, interrupt, answerInterrupt };

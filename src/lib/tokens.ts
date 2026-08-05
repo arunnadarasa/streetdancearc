@@ -8,14 +8,13 @@ export const ARC_EXPLORER = "https://testnet.arcscan.app";
  * `native: true` means the token IS Arc's gas token, so paying it is a plain
  * value transfer. Everything else is an ERC-20 and settles via transfer().
  *
- * `perUsd` is a FIXED DEMO ORACLE, not a price feed. It converts a listed
- * fiat price into token units so the same catalogue can be paid in any of the
- * three. Swap for a real oracle before anything touches mainnet.
+ * FX conversion is handled by src/lib/fx.ts using live Frankfurter (fiat) and
+ * CoinGecko (BTC/USD) rates, with hardcoded fallbacks for offline demos.
  */
 export const TOKENS = {
-  USDC:   { symbol: "USDC",   address: "0x3600000000000000000000000000000000000000", decimals: 6, native: true,  perUsd: 1,          label: "US Dollar (native gas)" },
-  EURC:   { symbol: "EURC",   address: "0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a", decimals: 6, native: false, perUsd: 0.92,       label: "Euro Coin" },
-  cirBTC: { symbol: "cirBTC", address: "0xf0C4a4CE82A5746AbAAd9425360Ab04fbBA432BF", decimals: 8, native: false, perUsd: 0.00000091, label: "Circle Wrapped BTC" },
+  USDC:   { symbol: "USDC",   address: "0x3600000000000000000000000000000000000000", decimals: 6, native: true,  label: "US Dollar (native gas)" },
+  EURC:   { symbol: "EURC",   address: "0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a", decimals: 6, native: false, label: "Euro Coin" },
+  cirBTC: { symbol: "cirBTC", address: "0xf0C4a4CE82A5746AbAAd9425360Ab04fbBA432BF", decimals: 8, native: false, label: "Circle Wrapped BTC" },
 } as const;
 export type TokenKey = keyof typeof TOKENS;
 
@@ -51,10 +50,9 @@ export function formatAmount(atomic: bigint | string, token: TokenKey): string {
   return `${n.toFixed(places)} ${TOKENS[token].symbol}`;
 }
 
-/** Listed fiat price -> token amount, via the demo oracle above. */
-export function convertFromUsd(usd: number, token: TokenKey): number {
-  return usd * TOKENS[token].perUsd;
-}
+// Re-export FX helpers so callers only need one import path.
+export type { FxRates } from "./fx";
+export { getTokenUsdRate, fiatToUsd, convertFromFiat, convertFromUsd, FALLBACK_RATES } from "./fx";
 
 /** CAIP-19 asset id used in x402 / AP2 / UCP payloads. */
 export function caip19(token: TokenKey): string {

@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { ARC_CAIP2, DEMO_SCALE } from "@/lib/agent-card";
-import { TOKENS, TOKEN_KEYS, caip19, formatAmount, toAtomic, type TokenKey } from "@/lib/tokens";
+import { TOKENS, TOKEN_KEYS, caip19, formatAmount, toAtomic, convertFromFiat, FALLBACK_RATES, type TokenKey, type FxRates } from "@/lib/tokens";
+import { getFxRates } from "@/lib/fx.server";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -49,9 +50,9 @@ async function rpc(method: string, params: unknown[]) {
 }
 
 /** Listed fiat -> atomic units of the chosen settlement token, scaled for testnet funds. */
-function requiredAtomic(listedAmount: number, quantity: number, token: TokenKey) {
-  const usd = listedAmount * quantity * DEMO_SCALE;
-  return toAtomic(TOKENS[token].perUsd * usd, token);
+function requiredAtomic(listedAmount: number, quantity: number, currency: string, token: TokenKey, fx: FxRates) {
+  const tokenAmount = convertFromFiat(listedAmount * quantity * DEMO_SCALE, currency, token, fx);
+  return toAtomic(tokenAmount, token);
 }
 
 const pad32 = (addr: string) => `0x${addr.slice(2).toLowerCase().padStart(64, "0")}`;
@@ -130,7 +131,16 @@ export const Route = createFileRoute("/api/public/purchase")({
         const order = parsed.data;
         const token = order.token;
         const cfg = TOKENS[token];
-        const atomic = requiredAtomic(order.listedAmount, order.quantity, token);
+
+        let fx: FxRates;
+        try {
+          fx = await getFxRates();
+        } catch {
+          // Should never throw because getFxRates falls back, but keep a safe default.
+          fx = FALLBACK_RATES;
+        }
+
+        const atomic = requiredAtomic(order.listedAmount, order.quantity, order.currency, token, fx);
         const resource = new URL(request.url).toString();
 
         const paymentHeader = request.headers.get("X-PAYMENT");
@@ -143,7 +153,7 @@ export const Route = createFileRoute("/api/public/purchase")({
               error: "payment_required",
               accepts: TOKEN_KEYS.map((k) => {
                 const t = TOKENS[k];
-                const a = requiredAtomic(order.listedAmount, order.quantity, k);
+                const a = requiredAtomic(order.listedAmount, order.quantity, order.currency, k, fx);
                 return {
                   scheme: "exact",
                   network: ARC_CAIP2,
@@ -164,7 +174,13 @@ export const Route = createFileRoute("/api/public/purchase")({
                       : `ERC-20 transfer() of ${t.symbol} on Arc — gas still paid in USDC`,
                     tokenAddress: t.address,
                     demoScale: DEMO_SCALE,
-                    fxNote: `demo oracle: 1 USD = ${t.perUsd} ${t.symbol}`,
+                    fx: {
+                      source: fx.source,
+                      usdPerGbp: fx.usdPerGbp,
+                      usdPerEur: fx.usdPerEur,
+                      usdPerBtc: fx.usdPerBtc,
+                      perUsd: convertFromFiat(1, "USD", k, fx),
+                    },
                     listed: `${order.listedAmount.toFixed(2)} ${order.currency} × ${order.quantity}`,
                   },
                 };

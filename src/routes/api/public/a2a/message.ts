@@ -13,6 +13,8 @@ import {
 } from "@/lib/a2a";
 import { ARC_CAIP2, DEMO_SCALE, USDC_ARC, type AgentCard } from "@/lib/agent-card";
 import { buildCartMandate, buildPaymentMandate, type CatalogItem } from "@/lib/ap2";
+import { convertFromFiat } from "@/lib/tokens";
+import { getFxRates } from "@/lib/fx.server";
 import {
   SHOPIFY_STOREFRONT_TOKEN,
   SHOPIFY_STOREFRONT_URL,
@@ -36,24 +38,29 @@ const MessageSchema = z.object({
 });
 
 async function fetchCatalog(): Promise<CatalogItem[]> {
-  const upstream = await fetch(SHOPIFY_STOREFRONT_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Shopify-Storefront-Access-Token": SHOPIFY_STOREFRONT_TOKEN,
-    },
-    body: JSON.stringify({ query: STOREFRONT_QUERY, variables: { first: 24 } }),
-  });
+  const [upstream, fx] = await Promise.all([
+    fetch(SHOPIFY_STOREFRONT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Storefront-Access-Token": SHOPIFY_STOREFRONT_TOKEN,
+      },
+      body: JSON.stringify({ query: STOREFRONT_QUERY, variables: { first: 24 } }),
+    }),
+    getFxRates(),
+  ]);
   if (!upstream.ok) return [];
   const json = (await upstream.json()) as any;
   return (json?.data?.products?.edges ?? []).map((e: any) => {
     const n = e.node;
     const listed = Number(n.priceRange?.minVariantPrice?.amount ?? 0);
+    const currency = n.priceRange?.minVariantPrice?.currencyCode ?? "GBP";
+    const usdMinor = convertFromFiat(listed * DEMO_SCALE, currency, "USDC", fx) * 1e6;
     return {
       sku: n.handle,
       title: n.title,
       description: n.description?.slice(0, 200) ?? "",
-      priceMinor: (listed * DEMO_SCALE * 1e6).toFixed(0),
+      priceMinor: usdMinor.toFixed(0),
       currency: "USDC",
       category: categoryFor(n.title),
     };

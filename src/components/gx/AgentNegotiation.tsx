@@ -10,13 +10,14 @@ import { JsonBlock } from "./JsonBlock";
 import { DEMO_SCALE } from "@/lib/agent-card";
 import { usePayToken } from "@/lib/pay-token";
 import { settleOnArc } from "@/lib/settle";
-import { TOKENS } from "@/lib/tokens";
+import { TOKENS, getTokenUsdRate, type FxRates } from "@/lib/tokens";
 import {
   STOREFRONT_QUERY,
   SHOPIFY_STOREFRONT_URL,
   SHOPIFY_STOREFRONT_TOKEN,
 } from "@/lib/shopify";
 import { categoryFor } from "@/routes/api/public/catalog";
+import { fetchFxRates } from "@/lib/fx.functions";
 
 function explorerUrl(value: unknown): string | null {
   try {
@@ -45,8 +46,10 @@ export function AgentNegotiation() {
   const [settling, setSettling] = useState(false);
   const [receipt, setReceipt] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fx, setFx] = useState<FxRates | null>(null);
 
   const negotiate = useServerFn(runNegotiation);
+  const getFx = useServerFn(fetchFxRates);
 
   useEffect(() => {
     fetch(SHOPIFY_STOREFRONT_URL, {
@@ -65,20 +68,32 @@ export function AgentNegotiation() {
       .finally(() => setLoadingCatalog(false));
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    void getFx({ data: undefined }).then((rates) => {
+      if (mounted) setFx(rates);
+    });
+    return () => { mounted = false; };
+  }, [getFx]);
+
   const catalog = useMemo(
     () =>
       products.map((n) => {
         const listed = Number(n.priceRange?.minVariantPrice?.amount ?? 0);
+        const currency = n.priceRange?.minVariantPrice?.currencyCode ?? "GBP";
+        // priceMinor is always expressed in USD minor units (6 decimals) so the
+        // seller prompt can reason in USDC regardless of the settlement token.
+        const priceMinor = (listed * DEMO_SCALE * (fx?.usdPerGbp ?? 1.27) * 1e6).toFixed(0);
         return {
           sku: n.handle,
           title: n.title,
           description: n.description?.slice(0, 160) ?? "",
-          priceMinor: (listed * DEMO_SCALE * TOKENS[payToken].perUsd * 10 ** TOKENS[payToken].decimals).toFixed(0),
-          currency: payToken,
+          priceMinor,
+          currency: "USDC",
           category: categoryForTitle(n.title),
         };
       }),
-    [products, payToken],
+    [products, fx],
   );
 
   async function onRun() {
@@ -224,6 +239,13 @@ export function AgentNegotiation() {
           </p>
         )}
 
+        {fx && (
+          <p className="text-[11px] text-muted-foreground">
+            FX: {fx.source} · 1 GBP ≈ {fx.usdPerGbp.toFixed(4)} USD · 1 EUR ≈ {fx.usdPerEur.toFixed(4)} USD
+            {fx.stale && " (fallback)"}
+          </p>
+        )}
+
         {error && (
           <p className="rounded-xl border border-red-500/40 bg-red-500/5 p-3 text-xs text-red-300">
             {error}
@@ -255,10 +277,10 @@ export function AgentNegotiation() {
                 <div>
                   <p className="text-xs font-bold uppercase tracking-widest text-glow">Final deal</p>
                   <p className="text-sm font-bold text-foreground">
-                    {finalQuote.quantity} × {finalQuote.title} @ {(finalQuote.unitPriceUsdc * TOKENS[payToken].perUsd).toFixed(6)} {payToken}
+                    {finalQuote.quantity} × {finalQuote.title} @ {(finalQuote.unitPriceUsdc * getTokenUsdRate(payToken, fx)).toFixed(6)} {payToken}
                   </p>
                   <p className="text-lg font-black text-foreground">
-                    {(finalQuote.totalUsdc * TOKENS[payToken].perUsd).toFixed(6)} {payToken}
+                    {(finalQuote.totalUsdc * getTokenUsdRate(payToken, fx)).toFixed(6)} {payToken}
                   </p>
                 </div>
                 <button

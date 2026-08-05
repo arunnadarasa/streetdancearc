@@ -1,4 +1,4 @@
-import { ARC_EXPLORER, TOKENS, caip19, type TokenKey } from "@/lib/tokens";
+import { ARC_EXPLORER, TOKENS, caip19, getTokenUsdRate, type TokenKey, type FxRates } from "@/lib/tokens";
 import contract from "@/data/contract.json";
 
 export const RIGHTS_REGISTRY = contract.address;
@@ -172,16 +172,16 @@ export const A2H_FEED: A2hMessage[] = [
  * Re-denominate the inbox into the currently selected settlement token.
  *
  * The seeded feed is written in whatever token the agent originally used;
- * switching the global toggle re-quotes every payout through the same demo
- * FX oracle the merchant uses, so A2H honours the currency choice like the
+ * switching the global toggle re-quotes every payout through the same live
+ * FX feed the merchant uses, so A2H honours the currency choice like the
  * other three modes.
  */
-export function redenominate(feed: A2hMessage[], token: TokenKey): A2hMessage[] {
+export function redenominate(feed: A2hMessage[], token: TokenKey, fx?: FxRates | null): A2hMessage[] {
   return feed.map((msg) => {
     if (!msg.amount || msg.amount.token === token) return msg;
-    const usd = Number(msg.amount.value) / TOKENS[msg.amount.token].perUsd;
+    const usd = Number(msg.amount.value) / getTokenUsdRate(msg.amount.token, fx);
     const places = TOKENS[token].decimals === 8 ? 8 : 2;
-    const value = (usd * TOKENS[token].perUsd).toFixed(places);
+    const value = (usd * getTokenUsdRate(token, fx)).toFixed(places);
     return {
       ...msg,
       title: msg.title.replace(
@@ -198,8 +198,9 @@ export function redenominate(feed: A2hMessage[], token: TokenKey): A2hMessage[] 
 }
 
 /** The standing mandate, expressed in the active settlement token. */
-export function mandateFor(token: TokenKey) {
-  const cap = (usd: string) => (Number(usd) * TOKENS[token].perUsd).toFixed(TOKENS[token].decimals === 8 ? 8 : 2);
+export function mandateFor(token: TokenKey, fx?: FxRates | null) {
+  const cap = (usd: string) =>
+    (Number(usd) * getTokenUsdRate(token, fx)).toFixed(TOKENS[token].decimals === 8 ? 8 : 2);
   return {
     ...STANDING_MANDATE,
     settle_token: token,

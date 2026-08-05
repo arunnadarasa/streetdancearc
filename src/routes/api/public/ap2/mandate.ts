@@ -3,6 +3,8 @@ import { z } from "zod";
 import { ARC_CAIP2, DEMO_SCALE, USDC_ARC } from "@/lib/agent-card";
 import { buildCartMandate, buildPaymentMandate, buildSpendConstraints, type CatalogItem } from "@/lib/ap2";
 import { categoryFor } from "../catalog";
+import { convertFromFiat } from "@/lib/tokens";
+import { getFxRates } from "@/lib/fx.server";
 import {
   SHOPIFY_STOREFRONT_TOKEN,
   SHOPIFY_STOREFRONT_URL,
@@ -22,24 +24,29 @@ const Input = z.object({
 });
 
 async function fetchProduct(sku: string): Promise<CatalogItem | null> {
-  const upstream = await fetch(SHOPIFY_STOREFRONT_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Shopify-Storefront-Access-Token": SHOPIFY_STOREFRONT_TOKEN,
-    },
-    body: JSON.stringify({ query: PRODUCT_BY_HANDLE_QUERY, variables: { handle: sku } }),
-  });
+  const [upstream, fx] = await Promise.all([
+    fetch(SHOPIFY_STOREFRONT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Storefront-Access-Token": SHOPIFY_STOREFRONT_TOKEN,
+      },
+      body: JSON.stringify({ query: PRODUCT_BY_HANDLE_QUERY, variables: { handle: sku } }),
+    }),
+    getFxRates(),
+  ]);
   if (!upstream.ok) return null;
   const json = (await upstream.json()) as any;
   const n = json?.data?.product;
   if (!n) return null;
   const listed = Number(n.priceRange?.minVariantPrice?.amount ?? 0);
+  const currency = n.priceRange?.minVariantPrice?.currencyCode ?? "GBP";
+  const usdMinor = convertFromFiat(listed * DEMO_SCALE, currency, "USDC", fx) * 1e6;
   return {
     sku: n.handle,
     title: n.title,
     description: n.description?.slice(0, 200) ?? "",
-    priceMinor: (listed * DEMO_SCALE * 1e6).toFixed(0),
+    priceMinor: usdMinor.toFixed(0),
     currency: "USDC",
     category: categoryFor(n.title),
   };

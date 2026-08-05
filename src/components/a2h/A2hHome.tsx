@@ -2,13 +2,28 @@ import { Inbox, ShieldCheck } from "lucide-react";
 import { JsonBlock } from "@/components/gx/JsonBlock";
 import { InboxCard } from "./InboxCard";
 import { A2H_FEED, RIGHTS_REGISTRY, mandateFor, redenominate } from "./a2h-feed";
-import { ARC_EXPLORER, TOKENS } from "@/lib/tokens";
+import { ARC_EXPLORER, TOKENS, getTokenUsdRate } from "@/lib/tokens";
 import { usePayToken } from "@/lib/pay-token";
+import { useServerFn } from "@tanstack/react-start";
+import { fetchFxRates } from "@/lib/fx.functions";
+import { useEffect, useState } from "react";
+import type { FxRates } from "@/lib/tokens";
 
 export function A2hHome() {
   const [payToken] = usePayToken();
-  const mandate = mandateFor(payToken);
-  const feed = redenominate(A2H_FEED, payToken);
+  const [fx, setFx] = useState<FxRates | null>(null);
+  const getFx = useServerFn(fetchFxRates);
+
+  useEffect(() => {
+    let mounted = true;
+    void getFx({ data: undefined }).then((rates) => {
+      if (mounted) setFx(rates);
+    });
+    return () => { mounted = false; };
+  }, [getFx]);
+
+  const mandate = mandateFor(payToken, fx);
+  const feed = redenominate(A2H_FEED, payToken, fx);
   const pending = feed.filter((m) => m.kind === "approval").length;
 
   const CAPS = [
@@ -51,6 +66,13 @@ export function A2hHome() {
               The same AP2 mandate shape H2A uses for spend guardrails, pointed the other way:
               you pre-sign <em>receive and notify</em> instead of <em>spend</em>.
             </p>
+
+            {fx && (
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                FX: {fx.source} · 1 USD ≈ {getTokenUsdRate(payToken, fx).toPrecision(4)} {payToken}
+                {fx.stale && " (fallback)"}
+              </p>
+            )}
 
             <dl className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border/60 sm:grid-cols-4">
               {CAPS.map((c) => (
