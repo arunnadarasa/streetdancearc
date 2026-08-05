@@ -18,7 +18,18 @@ The same catalog, the same settlement rail, four interfaces. A global toggle in 
 | `H2H` · UX     | Human           | Classic storefront: browse merch, add to cart, checkout. Move registry available as a secondary surface.       |
 | `H2A` · GX     | Human → agent   | You state intent and a spend policy; the agent shops, pauses on interrupts, and logs every step to an audit ledger. |
 | `A2A` · x402   | Agent → agent   | No UI in the loop: agent-card discovery, UCP/AP2 mandates, AIsa negotiation, then `402 Payment Required` → settle → receipt. |
-| `A2H` · inbox  | Agent → human   | The agent initiates. The Rights Agent pushes royalty payouts in USDC, requests approval when a payout breaks the standing AP2 mandate, and drops an Arcscan receipt in a payout inbox. |
+| `A2H` · inbox  | Agent → human   | The agent initiates. The Rights Agent pushes royalty payouts, requests approval when a payout breaks the standing AP2 mandate, and drops an Arcscan receipt in a payout inbox. |
+
+### Settlement currency
+
+A second header toggle picks the settlement token — **USDC**, **EURC** or **cirBTC** — and applies to all four modes at once. It persists to `localStorage` and rides in the `?pay=` query param, so `/?mode=a2a&pay=cirBTC` links a judge straight into an agent-to-agent run priced in wrapped BTC.
+
+- **USDC** is Arc's gas token, so paying it is a native value transfer.
+- **EURC** (6 decimals) and **cirBTC** (8 decimals) are ERC-20s, settled with `transfer()` — gas is still paid in USDC.
+- `purchase.ts` quotes all three in its `402` challenge and verifies whichever arrived: native `value` for USDC, matching `Transfer` logs for the ERC-20s.
+- Fiat list prices convert through a fixed **demo FX oracle** in `src/lib/tokens.ts`. Swap it for a real feed before mainnet.
+
+
 
 **Agent surface** (all under `src/routes/api/public/`, callable by external agents):
 
