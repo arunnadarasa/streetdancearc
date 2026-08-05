@@ -63,7 +63,7 @@ async function fetchCatalog(): Promise<CatalogItem[]> {
 function buildCard(origin: string, payTo: string): AgentCard {
   return {
     protocolVersion: A2A_PROTOCOL_VERSION,
-    name: "streetkode-storefront",
+    name: "streetrail-storefront",
     description:
       "Street dance streetwear storefront. Speaks A2A 0.3 JSON-RPC, exposes the live catalog as typed offers, and settles orders in USDC on Circle's Arc Testnet via an a2a-x402 payment challenge.",
     url: `${origin}/api/public/a2a/message`,
@@ -158,7 +158,7 @@ export const Route = createFileRoute("/api/public/a2a/message")({
                 ap2Version: AP2_VERSION,
                 type: "CartMandate",
                 cartId: "unknown",
-                merchant: { name: "streetkode-storefront", payTo: payTo as `0x${string}` },
+                merchant: { name: "streetrail-storefront", payTo: payTo as `0x${string}` },
                 items: [],
                 totals: [{ label: "Total", value: "0", asset: "USDC" }],
                 network: ARC_CAIP2,
@@ -210,7 +210,7 @@ export const Route = createFileRoute("/api/public/a2a/message")({
             return Response.json(rpcOk(parsed.id, empty), { headers: CORS });
           }
 
-          const cart = buildCartMandate(item, 1, payTo as `0x${string}`, "streetkode-storefront");
+          const cart = buildCartMandate(item, 1, payTo as `0x${string}`, "streetrail-storefront");
           const total = cart.totals[0]?.value ?? "0";
           const requirement = {
             x402Version: 2,

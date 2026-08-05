@@ -1,4 +1,4 @@
-# Dance Move Tokens
+# StreetRail
 
 Streetwear commerce on **Circle's Arc Testnet** (chain id `5042002`) — a shop that humans can browse and agents can buy from, settled in stablecoins on the same rail.
 

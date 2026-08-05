@@ -1,7 +1,7 @@
-// Shared A2A-style Agent Card for the StreetKode storefront agent.
+// Shared A2A-style Agent Card for the StreetRail storefront agent.
 // Imported by the public discovery route (server) and the GX UI (client).
 
-export const AGENT_NAME = "streetkode-storefront";
+export const AGENT_NAME = "streetrail-storefront";
 export const DEMO_SCALE = 0.001; // testnet settles 1/1000 of the listed price
 
 export const ARC_CAIP2 = "eip155:5042002";

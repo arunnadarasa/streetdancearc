@@ -72,7 +72,7 @@ export const Route = createFileRoute("/api/public/ap2/mandate")({
           return Response.json({ error: "unknown_sku", sku: parsed.data.sku }, { status: 404, headers: CORS });
         }
 
-        const cart = buildCartMandate(item, parsed.data.quantity, payTo, "streetkode-storefront");
+        const cart = buildCartMandate(item, parsed.data.quantity, payTo, "streetrail-storefront");
         const total = cart.totals[0]?.value ?? "0";
         const paymentMandate = parsed.data.payer
           ? buildPaymentMandate(cart, parsed.data.payer as `0x${string}`)

@@ -46,7 +46,7 @@ function sellerSystemPrompt(catalog: z.infer<typeof CatalogItemSchema>[]) {
     ? `{ "sku": "${example.sku}", "title": "${example.title}", "quantity": 1, "unitPriceUsdc": ${Number(example.priceMinor) / 1e6}, "totalUsdc": ${Number(example.priceMinor) / 1e6} }`
     : `{ "sku": "...", "title": "...", "quantity": 1, "unitPriceUsdc": 0.0, "totalUsdc": 0.0 }`;
 
-  return `You are the StreetKode seller agent, a street-dance streetwear merchant.\n` +
+  return `You are the StreetRail seller agent, a street-dance streetwear merchant.\n` +
     `You negotiate with another agent (not a human). Be concise, friendly, and professional.\n` +
     `Catalog:\n${lines}\n\n` +
     `Rules:\n` +
