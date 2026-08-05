@@ -1,6 +1,7 @@
 // src/lib/tokens.ts - the three stablecoins every Creative Blockchain app must support
 export const ARC_CHAIN_ID = 5042002;
-export const ARC_RPC_URL  = import.meta.env.VITE_ARC_RPC_URL ?? "https://rpc.testnet.arc.network";
+// Browser calls go through a same-origin proxy so the provider key stays server-side.
+export const ARC_RPC_URL  = "/api/public/arc-rpc";
 export const ARC_EXPLORER = "https://testnet.arcscan.app";
 
 export const TOKENS = {

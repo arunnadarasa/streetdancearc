@@ -9,7 +9,7 @@ const CORS = {
   "Access-Control-Expose-Headers": "X-PAYMENT-RESPONSE",
 };
 
-const RPC = "https://rpc.testnet.arc.network";
+const PUBLIC_RPC = "https://rpc.testnet.arc.network";
 const MAX_TX_AGE_SECONDS = 30 * 60;
 
 const OrderSchema = z.object({
@@ -29,7 +29,7 @@ const PaymentSchema = z.object({
 });
 
 async function rpc(method: string, params: unknown[]) {
-  const res = await fetch(RPC, {
+  const res = await fetch(process.env["ARC_RPC_URL"] || PUBLIC_RPC, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
