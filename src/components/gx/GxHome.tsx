@@ -91,10 +91,15 @@ export function GxHome() {
             <h3 className="mt-1 text-lg font-black text-foreground">{card.name}</h3>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{card.description}</p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <JsonBlock label="skills" value={card.skills.map((s: any) => ({ id: s.id, endpoint: s.endpoint }))} />
-            <JsonBlock label="payments extension" value={card.extensions.payments} tone="green" />
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+            <div className="min-w-0">
+              <JsonBlock label="skills" value={card.skills.map((s: any) => ({ id: s.id, endpoint: s.endpoint }))} />
+            </div>
+            <div className="min-w-0">
+              <JsonBlock label="payments extension" value={card.extensions.payments} tone="green" />
+            </div>
           </div>
+
           <a
             href={`https://testnet.arcscan.app/address/${RIGHTS_REGISTRY}`}
             target="_blank"
