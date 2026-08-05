@@ -4,8 +4,14 @@ import { arcTestnet } from "@/lib/arc-chain";
 import { WalletBridge } from "./wallet-bridge";
 import { WalletContext, WALLET_UNAVAILABLE } from "@/lib/wallet-context";
 
-/** Publishable Privy app ID — safe in the client bundle. */
-const BUILD_TIME_APP_ID = (import.meta.env.VITE_PRIVY_APP_ID as string | undefined) ?? "";
+/**
+ * Publishable Privy app ID — safe in the client bundle (it already ships to the
+ * browser today). Used as a fallback when the server secret PRIVY_APP_ID is not
+ * present in the environment serving the page.
+ */
+const BUILD_TIME_APP_ID =
+  ((import.meta.env.VITE_PRIVY_APP_ID as string | undefined) ?? "cmmv0z6dv06bs0djs07c7vrl3").trim();
+
 
 export default function PrivyClientEntry({ children, appId }: { children: ReactNode; appId?: string }) {
   const resolved = (appId && appId.trim()) || BUILD_TIME_APP_ID.trim();
