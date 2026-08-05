@@ -11,6 +11,7 @@ import { Section, SectionHead } from "@/components/layout/Section";
 import { Reveal } from "@/components/layout/Reveal";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { useGxMode } from "@/lib/gx-mode";
+import { H2aHome } from "@/components/h2a/H2aHome";
 import { getPublicConfig } from "@/lib/config.functions";
 
 export const Route = createFileRoute("/")({
@@ -71,7 +72,7 @@ function Index() {
       <div className="min-h-screen bg-background text-foreground">
         <Header extra={mode === "h2h" ? <CartDrawer /> : undefined} />
 
-        {mode === "gx" ? (
+        {mode !== "h2h" ? (
           <Section tone="base" lines>
             <GxHome />
           </Section>

@@ -12,6 +12,7 @@ import { Reveal } from "@/components/layout/Reveal";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { GxShop } from "@/components/gx/GxShop";
 import { useGxMode } from "@/lib/gx-mode";
+import { H2aHome } from "@/components/h2a/H2aHome";
 import { getPublicConfig } from "@/lib/config.functions";
 
 
