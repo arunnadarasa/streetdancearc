@@ -77,6 +77,35 @@ export function GxHome() {
         </ul>
       </section>
 
+      <section className="space-y-3 rounded-2xl border border-glow/30 bg-glow/5 p-5">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-glow">x402 flow</p>
+          <h3 className="mt-1 text-lg font-black text-foreground">
+            402 challenge → settle → verified receipt
+          </h3>
+        </div>
+        <ol className="space-y-2">
+          {[
+            { k: "1", t: "POST /api/public/purchase", d: "Seller answers 402 with a payment challenge: amount, token, Arc address." },
+            { k: "2", t: "AP2 mandate", d: "Buyer agent checks the challenge against its signed spend mandate." },
+            { k: "3", t: "Settle on Arc", d: "USDC transfer on Arc Testnet (chain 5042002) — USDC is also the gas token." },
+            { k: "4", t: "Receipt", d: "Retry with the payment proof; seller verifies on-chain and returns the order + tx hash." },
+          ].map((s) => (
+            <li key={s.k} className="flex min-w-0 gap-3 rounded-xl border border-border bg-background/50 p-3">
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-glow text-[11px] font-black text-glow-foreground">
+                {s.k}
+              </span>
+              <div className="min-w-0">
+                <p className="break-words font-mono text-xs font-bold text-foreground">{s.t}</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{s.d}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+
+
       {err && (
         <p className="rounded-2xl border border-red-500/40 bg-red-500/5 p-4 text-xs text-red-300">
           Could not load the agent card: {err}
