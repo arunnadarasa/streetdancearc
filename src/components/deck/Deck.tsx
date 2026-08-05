@@ -29,8 +29,7 @@ export function Deck() {
   return (
     <div className="flex flex-col gap-3">
       <div
-        className="relative w-full overflow-hidden rounded-2xl border border-border bg-surface-2"
-        style={{ aspectRatio: "16 / 9" }}
+        className="relative aspect-3/4 w-full overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-surface-2 [-webkit-overflow-scrolling:touch] sm:aspect-video sm:overflow-hidden"
         onTouchStart={(e) => {
           touchX.current = e.touches[0].clientX;
         }}
@@ -55,11 +54,11 @@ export function Deck() {
         <button
           onClick={prev}
           disabled={i === 0}
-          className="rounded-full border border-border px-4 py-2 text-xs font-bold text-foreground hover:bg-surface disabled:opacity-40"
+          className="min-h-11 rounded-full border border-border px-5 py-2.5 text-sm font-bold text-foreground hover:bg-surface disabled:opacity-40 sm:px-4 sm:py-2 sm:text-xs"
         >
           ← Prev
         </button>
-        <div className="flex flex-wrap items-center justify-center gap-1.5">
+        <div className="hidden flex-wrap items-center justify-center gap-1.5 sm:flex">
           {slides.map((s, idx) => (
             <button
               key={s.id}
@@ -71,17 +70,23 @@ export function Deck() {
             />
           ))}
         </div>
+        <span className="text-xs font-bold tabular-nums text-muted-foreground sm:hidden">
+          {i + 1} of {total}
+        </span>
         <button
           onClick={next}
           disabled={i === total - 1}
-          className="rounded-full bg-foreground px-4 py-2 text-xs font-bold text-background hover:bg-foreground/85 disabled:opacity-40"
+          className="min-h-11 rounded-full bg-foreground px-5 py-2.5 text-sm font-bold text-background hover:bg-foreground/85 disabled:opacity-40 sm:px-4 sm:py-2 sm:text-xs"
         >
           Next →
         </button>
       </div>
 
       <div className="text-center text-[11px] text-muted-foreground">
-        {i + 1} / {total} · ← → to navigate · swipe on mobile
+        <span className="sm:hidden">Swipe to navigate</span>
+        <span className="hidden sm:inline">
+          {i + 1} / {total} · ← → to navigate
+        </span>
       </div>
     </div>
   );

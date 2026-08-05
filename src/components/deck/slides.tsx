@@ -6,7 +6,7 @@ const CHERRY = "#E63946";
 
 function Chrome({ n, total = 11 }: { n: number; total?: number }) {
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground sm:px-6 sm:py-3 sm:text-xs">
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden items-center justify-between px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground sm:flex sm:px-6 sm:py-3 sm:text-xs">
       <span>Dance Move Tokens · Arc Testnet</span>
       <span>
         {n} / {total}
@@ -36,8 +36,8 @@ function Slide({
   bg?: string;
 }) {
   return (
-    <div className={`relative h-full w-full ${bg} text-foreground`}>
-      <div className="flex h-full w-full flex-col p-5 pb-10 sm:p-10 sm:pb-14 md:p-14 md:pb-16">
+    <div className={`relative min-h-full w-full ${bg} text-foreground`}>
+      <div className="flex min-h-full w-full flex-col p-5 pb-6 sm:p-10 sm:pb-14 md:p-14 md:pb-16">
         {children}
       </div>
       <Chrome n={n} />
