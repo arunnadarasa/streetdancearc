@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { useWallet } from "@/lib/wallet-context";
 import {
   createWalletClient,
   createPublicClient,
@@ -28,8 +28,7 @@ const ERC20_APPROVE_ABI = [
 ] as const;
 
 export function MintForm() {
-  const { authenticated, login } = usePrivy();
-  const { wallets } = useWallets();
+  const { authenticated, login, wallets } = useWallet();
   const [token, setToken] = useState<TokenKey>("USDC");
   const [cid, setCid] = useState("");
   const [amount, setAmount] = useState("1");

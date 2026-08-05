@@ -1,25 +1,29 @@
 import { PrivyProvider } from "@privy-io/react-auth";
 import type { ReactNode } from "react";
 import { arcTestnet } from "@/lib/arc-chain";
+import { WalletBridge } from "./wallet-bridge";
+import { WalletContext, WALLET_UNAVAILABLE } from "@/lib/wallet-context";
+
+/**
+ * Publishable Privy app ID — safe in the client bundle (it already ships to the
+ * browser today). Used as a fallback when the server secret PRIVY_APP_ID is not
+ * present in the environment serving the page.
+ */
+const BUILD_TIME_APP_ID =
+  ((import.meta.env.VITE_PRIVY_APP_ID as string | undefined) ?? "cmmv0z6dv06bs0djs07c7vrl3").trim();
+
 
 export default function PrivyClientEntry({ children, appId }: { children: ReactNode; appId?: string }) {
-  if (!appId) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-8">
-        <div className="max-w-md text-center space-y-3">
-          <h1 className="text-2xl font-bold text-glow">Missing PRIVY_APP_ID</h1>
-          <p className="text-sm text-muted-foreground">
-            Paste your Privy app ID in Project Settings → Secrets as
-            <code className="mx-1 rounded bg-secondary px-1">PRIVY_APP_ID</code>
-            and reload.
-          </p>
-        </div>
-      </div>
-    );
+  const resolved = (appId && appId.trim()) || BUILD_TIME_APP_ID.trim();
+
+  if (!resolved) {
+    // Wallet features are unavailable, but the storefront still renders.
+    return <WalletContext.Provider value={WALLET_UNAVAILABLE}>{children}</WalletContext.Provider>;
   }
+
   return (
     <PrivyProvider
-      appId={appId}
+      appId={resolved}
       config={{
         loginMethods: ["google"],
         embeddedWallets: { ethereum: { createOnLogin: "users-without-wallets" } },
@@ -31,7 +35,7 @@ export default function PrivyClientEntry({ children, appId }: { children: ReactN
         },
       }}
     >
-      {children}
+      <WalletBridge>{children}</WalletBridge>
     </PrivyProvider>
   );
 }
