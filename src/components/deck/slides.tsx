@@ -535,7 +535,9 @@ function SlideClose() {
           <span style={{ color: GREEN }}>its receipts.</span>
         </h2>
         <p className="text-xs text-muted-foreground sm:text-sm">
-          streetdancearc.lovable.app · DanceMoveTokens.sol on Arc Testnet
+          streetrail.lovable.app · DanceMoveTokens.sol on Arc Testnet
+          <br />
+          github.com/arunnadarasa/streetdancearc
         </p>
       </div>
     </Slide>

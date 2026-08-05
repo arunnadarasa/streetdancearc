@@ -14,6 +14,14 @@ export function SiteFooter() {
           <a href="/markets" className="hover:text-foreground">Markets</a>
           <a href="/deck" className="hover:text-foreground">Deck</a>
           <a
+            href="https://github.com/arunnadarasa/streetdancearc"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-foreground"
+          >
+            GitHub
+          </a>
+          <a
             href="/.well-known/agent-card.json"
             className="hover:text-foreground"
           >
