@@ -21,13 +21,13 @@ export const Route = createFileRoute("/shop")({
 
   head: () => ({
     meta: [
-      { title: "Shop — StreetKode Fam Merch" },
+      { title: "Shop — StreetRail Merch" },
       {
         name: "description",
         content:
           "Street dance merchandise: sneakers, snapbacks, jackets, tees, bandanas and more. Crafted for cyphers, battles and the culture.",
       },
-      { property: "og:title", content: "Shop — StreetKode Fam Merch" },
+      { property: "og:title", content: "Shop — StreetRail Merch" },
       {
         property: "og:description",
         content: "Street dance culture merch. Sneakers, snapbacks, jackets & more.",

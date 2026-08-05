@@ -7,7 +7,7 @@ const CHERRY = "#E63946";
 function Chrome({ n, total = 13 }: { n: number; total?: number }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden items-center justify-between px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground sm:flex sm:px-6 sm:py-3 sm:text-xs">
-      <span>Dance Move Tokens · Arc Testnet</span>
+      <span>StreetRail · Arc Testnet</span>
       <span>
         {n} / {total}
       </span>
