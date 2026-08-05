@@ -205,13 +205,65 @@ export function CartDrawer() {
                   })}
                 </div>
               </div>
-              <div className="flex-shrink-0 space-y-4 pt-4 border-t border-border">
+              <div className="flex-shrink-0 space-y-3 pt-4 border-t border-border">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total</span>
                   <span className="text-xl font-black text-glow">
                     {items[0]?.price.currencyCode || "£"} {totalPrice.toFixed(2)}
                   </span>
                 </div>
+
+                <div className="flex items-baseline justify-between rounded-lg border border-border bg-surface px-3 py-2 text-xs">
+                  <span className="text-muted-foreground">
+                    Pay on Arc in <span className="font-bold text-foreground">{tokenCfg.symbol}</span>
+                  </span>
+                  <span className="font-mono text-[11px] text-glow">
+                    {formatAmount(arcAtomic, payToken)}
+                  </span>
+                </div>
+
+                {available && (
+                  <Button
+                    onClick={handlePayOnArc}
+                    variant="outline"
+                    className="w-full border-primary/50 bg-primary/10 font-bold text-foreground hover:bg-primary/20"
+                    size="lg"
+                    disabled={items.length === 0 || arcState.phase === "paying"}
+                  >
+                    {arcState.phase === "paying" ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Zap className="w-4 h-4 mr-2" />
+                        {authenticated
+                          ? `Pay ${tokenCfg.symbol} on Arc`
+                          : "Sign in to pay on Arc"}
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {arcState.phase === "paid" && (
+                  <a
+                    href={arcState.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs font-semibold text-foreground underline decoration-glow/60 underline-offset-4"
+                  >
+                    Settled {arcState.amount} — view receipt on Arcscan
+                  </a>
+                )}
+                {arcState.phase === "error" && (
+                  <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-foreground">
+                    {arcState.message}
+                  </p>
+                )}
+                {arcState.phase === "idle" && (
+                  <p className="text-[11px] leading-snug text-muted-foreground">
+                    {settlementNote(payToken)} Demo scale ×{DEMO_SCALE} so testnet balances go far.
+                  </p>
+                )}
+
                 <Button
                   onClick={handleCheckout}
                   className="w-full bg-primary text-primary-foreground hover:bg-primary/85 font-bold"
@@ -228,6 +280,7 @@ export function CartDrawer() {
                   )}
                 </Button>
               </div>
+
             </>
           )}
         </div>
