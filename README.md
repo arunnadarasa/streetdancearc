@@ -2,7 +2,8 @@
 
 Streetwear commerce on **Circle's Arc Testnet** (chain id `5042002`) — a shop that humans can browse and agents can buy from, settled in stablecoins on the same rail.
 
-Live demo: https://streetdancearc.lovable.app
+Live demo: https://streetrail.lovable.app  
+Source: https://github.com/arunnadarasa/streetdancearc
 
 Merch is the product. The on-chain move registry is the culture layer underneath it: dancers stamp a choreography CID on-chain and the drop it belongs to inherits that provenance. USDC is the native gas token on Arc; EURC and cirBTC are supported as payment tokens.
 
