@@ -2,6 +2,8 @@ import { usePrivy } from "@privy-io/react-auth";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ModeToggle } from "@/components/gx/ModeToggle";
+import logoMark from "@/assets/streetrail-logo.png";
+
 
 const NAV = [
   { to: "/shop", label: "Shop" },
