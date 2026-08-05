@@ -4,8 +4,10 @@ import { Loader2, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { useCartStore } from "@/stores/cartStore";
 import type { ShopifyProduct } from "@/lib/shopify";
+import { usePayToken } from "@/lib/pay-token";
 
 export function ProductCard({ product }: { product: ShopifyProduct }) {
+  const [payToken] = usePayToken();
   const addItem = useCartStore((s) => s.addItem);
   const isLoading = useCartStore((s) => s.isLoading);
   const variant = product.node.variants.edges[0]?.node;
@@ -52,7 +54,7 @@ export function ProductCard({ product }: { product: ShopifyProduct }) {
         )}
         <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-background via-background/10 to-transparent opacity-90" />
         <span className="absolute left-3 top-3 rounded-full border border-border bg-background/70 px-2.5 py-1 text-[10px] font-bold tracking-widest text-glow backdrop-blur">
-          USDC
+          {payToken}
         </span>
         <span className="display absolute bottom-3 left-3 text-lg text-foreground drop-shadow-lg">
           {price.currencyCode} {parseFloat(price.amount).toFixed(2)}
