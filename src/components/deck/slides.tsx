@@ -4,7 +4,7 @@ import { launchMarkets, sizing } from "@/data/markets";
 const GREEN = "#4f46e5";
 const CHERRY = "#E63946";
 
-function Chrome({ n, total = 13 }: { n: number; total?: number }) {
+function Chrome({ n, total = 14 }: { n: number; total?: number }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden items-center justify-between px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground sm:flex sm:px-6 sm:py-3 sm:text-xs">
       <span>StreetRail · Arc Testnet</span>
@@ -210,26 +210,32 @@ function SlideInterfaces() {
       body: "Two agents negotiate, no human.",
       points: ["A2A 0.3 message/send", "AP2 mandates + UCP checkout", "x402 settlement"],
     },
+    {
+      tag: "A2H",
+      title: "Agent to human",
+      body: "The agent starts. You get paid.",
+      points: ["Royalties pushed, not claimed", "Asks when over mandate", "Receipt in the inbox"],
+    },
   ];
   return (
     <Slide n={5}>
       <Kicker>Interfaces</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
-        Three interfaces, <span style={{ color: GREEN }}>one rail.</span>
+        Four interfaces, <span style={{ color: GREEN }}>one rail.</span>
       </h3>
-      <div className="mt-3 grid gap-2.5 sm:mt-6 sm:grid-cols-3 sm:gap-4">
+      <div className="mt-3 grid grid-cols-2 gap-2.5 sm:mt-6 sm:grid-cols-4 sm:gap-3">
         {modes.map((m) => (
-          <div key={m.tag} className="rounded-xl border border-border p-3 sm:p-5">
+          <div key={m.tag} className="rounded-xl border border-border p-3 sm:p-4">
             <div className="text-lg font-black sm:text-2xl" style={{ color: GREEN }}>
               {m.tag}
             </div>
-            <div className="mt-0.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
+            <div className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
               {m.title}
             </div>
-            <p className="mt-1.5 text-xs font-bold sm:text-sm">{m.body}</p>
-            <ul className="mt-2 space-y-1 text-[11px] text-muted-foreground sm:text-sm">
+            <p className="mt-1.5 text-[11px] font-bold sm:text-sm">{m.body}</p>
+            <ul className="mt-2 space-y-1 text-[10px] text-muted-foreground sm:text-xs">
               {m.points.map((p) => (
-                <li key={p} className="flex gap-2">
+                <li key={p} className="flex gap-1.5">
                   <span style={{ color: GREEN }}>·</span>
                   <span>{p}</span>
                 </li>
@@ -239,13 +245,61 @@ function SlideInterfaces() {
         ))}
       </div>
       <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
-        All three are live in the app behind one toggle — H2H / H2A / A2A — and settle to the same
-        contract on Arc Testnet, in stablecoins.
+        All four are live in the app behind one toggle — H2H / H2A / A2A / A2H — and settle to the
+        same contract on Arc Testnet, in stablecoins.
       </p>
 
     </Slide>
   );
 }
+
+// 6
+function SlideA2h() {
+  const quadrants: Array<{ tag: string; who: string; body: string; dim?: boolean }> = [
+    { tag: "H2H", who: "Human → Human", body: "Shop, cart, checkout. The interface everyone has already built." },
+    { tag: "H2A", who: "Human → Agent", body: "Delegate a purchase under a spend mandate. The agent buys." },
+    { tag: "A2A", who: "Agent → Agent", body: "Buyer and seller agents negotiate and settle over x402." },
+    { tag: "A2H", who: "Agent → Human", body: "The agent initiates. Royalties are pushed, approvals requested." },
+  ];
+  return (
+    <Slide n={6}>
+      <Kicker>A2H · The missing direction</Kicker>
+      <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
+        Nobody builds agent-to-human,{" "}
+        <span style={{ color: GREEN }}>because there was no rail to push value over.</span>
+      </h3>
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3">
+        {quadrants.map((q) => {
+          const live = q.tag === "A2H";
+          return (
+            <div
+              key={q.tag}
+              className="rounded-xl border p-3 sm:p-4"
+              style={{ borderColor: live ? GREEN : undefined }}
+            >
+              <div
+                className="text-base font-black sm:text-xl"
+                style={{ color: live ? CHERRY : GREEN }}
+              >
+                {q.tag}
+              </div>
+              <div className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
+                {q.who}
+              </div>
+              <p className="mt-1.5 text-[11px] text-muted-foreground sm:text-sm">{q.body}</p>
+            </div>
+          );
+        })}
+      </div>
+      <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
+        In StreetRail the Rights Agent pays the choreographer in USDC the moment a move earns,
+        pauses when the payout breaks the AP2 mandate, and drops an Arcscan receipt in a payout
+        inbox. Same standards stack, run outbound.
+      </p>
+    </Slide>
+  );
+}
+
 
 // 6
 function SlideLive() {
@@ -255,7 +309,7 @@ function SlideLive() {
     { k: "6", v: "decimals — USDC is gas" },
   ];
   return (
-    <Slide n={6}>
+    <Slide n={7}>
       <Kicker>Live on Arc</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
         Shipped. Deployed. <span style={{ color: GREEN }}>Verified.</span>
@@ -295,7 +349,7 @@ function SlideAgent() {
     ["Ledger", "Every step logged, Arcscan tx as the receipt."],
   ];
   return (
-    <Slide n={7}>
+    <Slide n={8}>
       <Kicker>H2A · Human to agent</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         You set the policy. <span style={{ color: GREEN }}>The agent spends inside it.</span>
@@ -326,14 +380,14 @@ function SlideAgent() {
 // 8
 function SlideProtocolStack() {
   const layers: [string, string][] = [
-    ["A2A 0.3", "Agent card discovery + message/send task loop"],
+    ["A2A 0.3", "Agent card discovery + message/send — inbound for A2A, outbound for A2H"],
     ["AP2", "Intent, cart, and payment mandates the buyer signs"],
     ["UCP", "Discovery, checkout, order + conformance self-test"],
     ["x402", "402 challenge, payment payload, verified receipt"],
     ["Arc Testnet", "USDC settlement, real tx hash on Arcscan"],
   ];
   return (
-    <Slide n={8}>
+    <Slide n={9}>
       <Kicker>A2A · Agent to agent</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         A standards stack, <span style={{ color: GREEN }}>not a custom flow.</span>
@@ -353,7 +407,9 @@ function SlideProtocolStack() {
         ))}
       </div>
       <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
-        Buyer and seller agents negotiate live in GX mode, then settle on-chain.
+        Buyer and seller agents negotiate live in GX mode, then settle on-chain. In A2H the same
+        stack runs outbound: the AP2 mandate is the standing authorization, x402 settles, Arc is
+        the receipt.
       </p>
     </Slide>
   );
@@ -362,7 +418,7 @@ function SlideProtocolStack() {
 // 9
 function SlideDefi() {
   return (
-    <Slide n={9}>
+    <Slide n={10}>
       <Kicker>Track 2 · DeFi</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
         Programmable money <span style={{ color: GREEN }}>for the culture.</span>
@@ -399,7 +455,7 @@ function SlideCriteria() {
     ["Uses Agent Stack", "Circle agent-stack-starter-kits scaffolds the Rights Agent"],
   ];
   return (
-    <Slide n={10}>
+    <Slide n={11}>
       <Kicker>How we map to the criteria</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Every judging bullet has a feature behind it.
@@ -442,7 +498,7 @@ function SlideRoadmap() {
     "Demo Day rehearsal + judge Q&A pack",
   ];
   return (
-    <Slide n={11}>
+    <Slide n={12}>
       <Kicker>Traction & Roadmap</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Working today. Shipping through <span style={{ color: GREEN }}>Demo Day.</span>
@@ -478,7 +534,7 @@ function SlideRoadmap() {
 // 12
 function SlideMarkets() {
   return (
-    <Slide n={12}>
+    <Slide n={13}>
       <Kicker>Market opportunity</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-[0.95] tracking-tight sm:text-4xl md:text-5xl">
         Street dance travels
@@ -526,7 +582,7 @@ function SlideMarkets() {
 // 13
 function SlideClose() {
   return (
-    <Slide n={13} bg="bg-background">
+    <Slide n={14} bg="bg-background">
       <div className="flex h-full flex-col justify-between">
         <Kicker>Built for Encode × Arc</Kicker>
         <h2 className="text-4xl font-black leading-[0.9] tracking-tight sm:text-6xl md:text-7xl">
@@ -550,6 +606,7 @@ export const slides: Array<{ id: string; render: () => ReactNode }> = [
   { id: "insight", render: () => <SlideInsight /> },
   { id: "built", render: () => <SlideWhatWeBuilt /> },
   { id: "interfaces", render: () => <SlideInterfaces /> },
+  { id: "a2h", render: () => <SlideA2h /> },
   { id: "live", render: () => <SlideLive /> },
   { id: "agent", render: () => <SlideAgent /> },
   { id: "protocols", render: () => <SlideProtocolStack /> },

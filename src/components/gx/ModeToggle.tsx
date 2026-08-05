@@ -4,6 +4,7 @@ const OPTIONS: Array<{ value: GxMode; label: string; hint: string }> = [
   { value: "h2h", label: "H2H", hint: "Human interface (UX)" },
   { value: "h2a", label: "H2A", hint: "Human delegates to an agent (GX)" },
   { value: "a2a", label: "A2A", hint: "Agent-to-agent with x402" },
+  { value: "a2h", label: "A2H", hint: "Agent initiates, human is the endpoint" },
 ];
 
 export function ModeToggle({ className = "" }: { className?: string }) {
@@ -21,7 +22,7 @@ export function ModeToggle({ className = "" }: { className?: string }) {
           onClick={() => setMode(o.value)}
           title={o.hint}
           aria-pressed={mode === o.value}
-          className={`whitespace-nowrap rounded-full px-2.5 py-1.5 text-[11px] font-black tracking-wide transition sm:px-3 ${
+          className={`whitespace-nowrap rounded-full px-2 py-1.5 text-[10px] font-black tracking-wide transition sm:px-2.5 sm:text-[11px] ${
             mode === o.value
               ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:text-foreground"

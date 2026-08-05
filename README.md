@@ -9,15 +9,16 @@ Merch is the product. The on-chain move registry is the culture layer underneath
 
 ---
 
-## Three modes
+## Four modes
 
-The same catalog, the same settlement rail, three interfaces. A global toggle in the header switches between them and the choice rides along in the `?mode=` query param across routes (legacy `?mode=gx` maps to A2A).
+The same catalog, the same settlement rail, four interfaces. A global toggle in the header switches between them and the choice rides along in the `?mode=` query param across routes (legacy `?mode=gx` maps to A2A).
 
 | Mode           | Who drives      | What happens                                                                                                 |
 | -------------- | --------------- | ------------------------------------------------------------------------------------------------------------ |
 | `H2H` · UX     | Human           | Classic storefront: browse merch, add to cart, checkout. Move registry available as a secondary surface.       |
 | `H2A` · GX     | Human → agent   | You state intent and a spend policy; the agent shops, pauses on interrupts, and logs every step to an audit ledger. |
 | `A2A` · x402   | Agent → agent   | No UI in the loop: agent-card discovery, UCP/AP2 mandates, AIsa negotiation, then `402 Payment Required` → settle → receipt. |
+| `A2H` · inbox  | Agent → human   | The agent initiates. The Rights Agent pushes royalty payouts in USDC, requests approval when a payout breaks the standing AP2 mandate, and drops an Arcscan receipt in a payout inbox. |
 
 **Agent surface** (all under `src/routes/api/public/`, callable by external agents):
 
@@ -26,7 +27,7 @@ The same catalog, the same settlement rail, three interfaces. A global toggle in
 - `purchase.ts` — x402 challenge, settlement, and signed receipt
 - `a2a/`, `ap2/`, `ucp/` — protocol endpoints for tasks, mandates, and commerce intents
 
-**Client components:** `src/components/gx/` (A2A run panel, negotiation, spend policy, ledger, mode toggle) and `src/components/h2a/H2aHome.tsx`.
+**Client components:** `src/components/gx/` (A2A run panel, negotiation, spend policy, ledger, mode toggle), `src/components/h2a/H2aHome.tsx` and `src/components/a2h/` (payout inbox, standing mandate panel).
 
 ---
 
