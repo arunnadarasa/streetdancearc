@@ -12,6 +12,7 @@ import { Reveal } from "@/components/layout/Reveal";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { useGxMode } from "@/lib/gx-mode";
 import { H2aHome } from "@/components/h2a/H2aHome";
+import { A2hHome } from "@/components/a2h/A2hHome";
 import { getPublicConfig } from "@/lib/config.functions";
 
 export const Route = createFileRoute("/")({
@@ -74,7 +75,7 @@ function Index() {
 
         {mode !== "h2h" ? (
           <Section tone="base" lines>
-            {mode === "h2a" ? <H2aHome /> : <GxHome />}
+            {mode === "h2a" ? <H2aHome /> : mode === "a2h" ? <A2hHome /> : <GxHome />}
           </Section>
         ) : (
           <>
