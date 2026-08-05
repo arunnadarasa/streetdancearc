@@ -1,4 +1,4 @@
-import { ARC_EXPLORER } from "@/lib/tokens";
+import { ARC_EXPLORER, TOKENS, caip19, type TokenKey } from "@/lib/tokens";
 import contract from "@/data/contract.json";
 
 export const RIGHTS_REGISTRY = contract.address;
@@ -12,7 +12,7 @@ export interface A2hMessage {
   at: string;
   title: string;
   body: string;
-  amount?: { value: string; token: "USDC" | "EURC" | "cirBTC" };
+  amount?: { value: string; token: TokenKey };
   receiptUrl?: string;
   envelope: Record<string, unknown>;
 }
@@ -167,3 +167,44 @@ export const A2H_FEED: A2hMessage[] = [
     },
   },
 ];
+
+/**
+ * Re-denominate the inbox into the currently selected settlement token.
+ *
+ * The seeded feed is written in whatever token the agent originally used;
+ * switching the global toggle re-quotes every payout through the same demo
+ * FX oracle the merchant uses, so A2H honours the currency choice like the
+ * other three modes.
+ */
+export function redenominate(feed: A2hMessage[], token: TokenKey): A2hMessage[] {
+  return feed.map((msg) => {
+    if (!msg.amount || msg.amount.token === token) return msg;
+    const usd = Number(msg.amount.value) / TOKENS[msg.amount.token].perUsd;
+    const places = TOKENS[token].decimals === 8 ? 8 : 2;
+    const value = (usd * TOKENS[token].perUsd).toFixed(places);
+    return {
+      ...msg,
+      title: msg.title.replace(
+        `${msg.amount.value} ${msg.amount.token}`,
+        `${value} ${token}`,
+      ),
+      body: msg.body.replace(
+        `${msg.amount.value} ${msg.amount.token}`,
+        `${value} ${token}`,
+      ),
+      amount: { value, token },
+    };
+  });
+}
+
+/** The standing mandate, expressed in the active settlement token. */
+export function mandateFor(token: TokenKey) {
+  const cap = (usd: string) => (Number(usd) * TOKENS[token].perUsd).toFixed(TOKENS[token].decimals === 8 ? 8 : 2);
+  return {
+    ...STANDING_MANDATE,
+    settle_token: token,
+    settle_asset: caip19(token),
+    per_payout_cap: cap(STANDING_MANDATE.per_payout_cap),
+    daily_cap: cap(STANDING_MANDATE.daily_cap),
+  };
+}
