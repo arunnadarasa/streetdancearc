@@ -16,8 +16,18 @@ import {
 } from "@/lib/shopify";
 import { categoryFor } from "@/routes/api/public/catalog";
 
+function explorerUrl(value: unknown): string | null {
+  try {
+    const match = JSON.stringify(value)?.match(/https?:\/\/[^\s"'<>)\]]*\/tx\/[^\s"'<>)\]]+/);
+    return match ? match[0] : null;
+  } catch {
+    return null;
+  }
+}
+
 function categoryForTitle(title: string): string {
   return categoryFor(title);
+
 }
 
 export function AgentNegotiation() {
