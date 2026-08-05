@@ -15,9 +15,11 @@ import { usePayToken } from "@/lib/pay-token";
 import { useWallet } from "@/lib/wallet-context";
 import { settleOnArc, settlementNote } from "@/lib/settle";
 import { DEMO_SCALE } from "@/lib/agent-card";
-import { TOKENS, formatAmount, toAtomic } from "@/lib/tokens";
+import { TOKENS, formatAmount, toAtomic, convertFromFiat, type FxRates } from "@/lib/tokens";
 import type { Address } from "viem";
 import { getPublicConfig } from "@/lib/config.functions";
+import { useServerFn } from "@tanstack/react-start";
+import { fetchFxRates } from "@/lib/fx.functions";
 
 
 export function CartDrawer() {
@@ -45,13 +47,19 @@ export function CartDrawer() {
   const tokenCfg = TOKENS[payToken];
   const { authenticated, login, wallets, available } = useWallet();
   const [treasury, setTreasury] = useState("");
+  const [fx, setFx] = useState<FxRates | null>(null);
+  const getFx = useServerFn(fetchFxRates);
+
   const [arcState, setArcState] = useState<
     { phase: "idle" } | { phase: "paying" } | { phase: "paid"; url: string; amount: string } | { phase: "error"; message: string }
   >({ phase: "idle" });
 
-  // Same demo scaling the x402 merchant applies, so the button and the
-  // agent flow quote the same number for the same basket.
-  const arcAtomic = toAtomic(totalPrice * DEMO_SCALE * tokenCfg.perUsd, payToken);
+  // Live FX: convert the listed GBP total into the selected token's atomic units.
+  const currencyCode = items[0]?.price.currencyCode ?? "GBP";
+  const arcAtomic = toAtomic(
+    convertFromFiat(totalPrice * DEMO_SCALE, currencyCode, payToken, fx),
+    payToken,
+  );
 
   useEffect(() => {
     if (open) syncCart();
@@ -61,6 +69,14 @@ export function CartDrawer() {
     if (!open || treasury) return;
     void getPublicConfig().then((c) => setTreasury(c.treasuryAddress));
   }, [open, treasury]);
+
+  useEffect(() => {
+    let mounted = true;
+    void getFx({ data: undefined }).then((rates) => {
+      if (mounted) setFx(rates);
+    });
+    return () => { mounted = false; };
+  }, [getFx]);
 
   const handleCheckout = () => {
     const url = getCheckoutUrl();
@@ -216,6 +232,11 @@ export function CartDrawer() {
                 <div className="flex items-baseline justify-between rounded-lg border border-border bg-surface px-3 py-2 text-xs">
                   <span className="text-muted-foreground">
                     Pay on Arc in <span className="font-bold text-foreground">{tokenCfg.symbol}</span>
+                    {fx && (
+                      <span className="ml-1.5 text-[10px] opacity-70">
+                        1 USD ≈ {getTokenUsdRate(payToken, fx).toPrecision(4)} {tokenCfg.symbol}
+                      </span>
+                    )}
                   </span>
                   <span className="font-mono text-[11px] text-glow">
                     {formatAmount(arcAtomic, payToken)}
@@ -261,6 +282,7 @@ export function CartDrawer() {
                 {arcState.phase === "idle" && (
                   <p className="text-[11px] leading-snug text-muted-foreground">
                     {settlementNote(payToken)} Demo scale ×{DEMO_SCALE} so testnet balances go far.
+                    {fx?.stale ? " FX fallback active." : fx ? ` FX: ${fx.source}.` : ""}
                   </p>
                 )}
 

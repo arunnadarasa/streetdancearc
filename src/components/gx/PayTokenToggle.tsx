@@ -6,8 +6,12 @@ import {
   TOKENS,
   TOKEN_KEYS,
   fromAtomic,
+  getTokenUsdRate,
   type TokenKey,
+  type FxRates,
 } from "@/lib/tokens";
+import { useServerFn } from "@tanstack/react-start";
+import { fetchFxRates } from "@/lib/fx.functions";
 
 // balanceOf(address) selector
 const BALANCE_OF = "0x70a08231";
@@ -57,6 +61,8 @@ export function PayTokenToggle() {
   const { user, authenticated } = useWallet();
   const address = user?.wallet?.address;
   const [balances, setBalances] = useState<Partial<Record<TokenKey, string | null>>>({});
+  const [fx, setFx] = useState<FxRates | null>(null);
+  const getFx = useServerFn(fetchFxRates);
 
   const refresh = useCallback(async () => {
     if (!address) {
@@ -73,6 +79,14 @@ export function PayTokenToggle() {
     void refresh();
   }, [refresh, token]);
 
+  useEffect(() => {
+    let mounted = true;
+    void getFx({ data: undefined }).then((rates) => {
+      if (mounted) setFx(rates);
+    });
+    return () => { mounted = false; };
+  }, [getFx]);
+
   const active = TOKENS[token];
   const activeBalance = balances[token];
   const empty = authenticated && activeBalance !== undefined && Number(activeBalance ?? 0) === 0;
@@ -82,6 +96,7 @@ export function PayTokenToggle() {
       {TOKEN_KEYS.map((k) => {
         const on = k === token;
         const bal = balances[k];
+        const rate = getTokenUsdRate(k, fx);
         return (
           <button
             key={k}
@@ -89,8 +104,8 @@ export function PayTokenToggle() {
             onClick={() => setToken(k)}
             title={
               bal === undefined || bal === null
-                ? `${TOKENS[k].label} — settle in ${TOKENS[k].symbol}`
-                : `${TOKENS[k].label} — balance ${short(bal)} ${TOKENS[k].symbol}`
+                ? `${TOKENS[k].label} — 1 USD ≈ ${rate.toPrecision(4)} ${TOKENS[k].symbol}`
+                : `${TOKENS[k].label} — balance ${short(bal)} ${TOKENS[k].symbol} · 1 USD ≈ ${rate.toPrecision(4)} ${TOKENS[k].symbol}`
             }
             aria-pressed={on}
             className={`rounded-full px-2 py-1 text-[10px] font-bold tracking-wide transition sm:px-2.5 sm:text-[11px] ${
