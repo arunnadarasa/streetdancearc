@@ -151,8 +151,12 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
           </nav>
           <span className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-linear-to-l from-background to-transparent" />
         </div>
+        <span className="shrink-0 sm:hidden">
+          <PayTokenToggle />
+        </span>
         {extra ? <div className="shrink-0">{extra}</div> : null}
       </div>
+
 
 
     </header>
