@@ -64,7 +64,7 @@ export function A2hHome() {
             </dl>
 
             <div className="mt-4">
-              <JsonBlock label="AP2 payout mandate" value={STANDING_MANDATE} tone="green" />
+              <JsonBlock label="AP2 payout mandate" value={mandate} tone="green" />
             </div>
 
             <p className="mt-3 text-[11px] text-muted-foreground">
