@@ -9,7 +9,8 @@ export const arcTestnet = defineChain({
   nativeCurrency: { name: "USD Coin", symbol: "USDC", decimals: 6 },
   rpcUrls: {
     default: {
-      http: [import.meta.env.VITE_ARC_RPC_URL ?? "https://rpc.testnet.arc.network"],
+      // Same-origin proxy: keeps the upstream provider key (Alchemy) server-side.
+      http: ["/api/public/arc-rpc"],
     },
   },
   blockExplorers: {

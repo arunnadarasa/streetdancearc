@@ -18,6 +18,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
 import { Route as ApiPublicPurchaseRouteImport } from './routes/api/public/purchase'
 import { Route as ApiPublicCatalogRouteImport } from './routes/api/public/catalog'
+import { Route as ApiPublicArcRpcRouteImport } from './routes/api/public/arc-rpc'
 import { Route as ApiPublicAgentCardRouteImport } from './routes/api/public/agent-card'
 import { Route as ApiPublicUcpSelfTestRouteImport } from './routes/api/public/ucp/self-test'
 import { Route as ApiPublicUcpDiscoveryRouteImport } from './routes/api/public/ucp/discovery'
@@ -69,6 +70,11 @@ const ApiPublicCatalogRoute = ApiPublicCatalogRouteImport.update({
   path: '/api/public/catalog',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicArcRpcRoute = ApiPublicArcRpcRouteImport.update({
+  id: '/api/public/arc-rpc',
+  path: '/api/public/arc-rpc',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicAgentCardRoute = ApiPublicAgentCardRouteImport.update({
   id: '/api/public/agent-card',
   path: '/api/public/agent-card',
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/shop': typeof ShopRoute
   '/product/$handle': typeof ProductHandleRoute
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
+  '/api/public/arc-rpc': typeof ApiPublicArcRpcRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/purchase': typeof ApiPublicPurchaseRoute
   '/api/public/a2a/message': typeof ApiPublicA2aMessageRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/shop': typeof ShopRoute
   '/product/$handle': typeof ProductHandleRoute
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
+  '/api/public/arc-rpc': typeof ApiPublicArcRpcRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/purchase': typeof ApiPublicPurchaseRoute
   '/api/public/a2a/message': typeof ApiPublicA2aMessageRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/shop': typeof ShopRoute
   '/product/$handle': typeof ProductHandleRoute
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
+  '/api/public/arc-rpc': typeof ApiPublicArcRpcRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/purchase': typeof ApiPublicPurchaseRoute
   '/api/public/a2a/message': typeof ApiPublicA2aMessageRoute
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/product/$handle'
     | '/api/public/agent-card'
+    | '/api/public/arc-rpc'
     | '/api/public/catalog'
     | '/api/public/purchase'
     | '/api/public/a2a/message'
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/product/$handle'
     | '/api/public/agent-card'
+    | '/api/public/arc-rpc'
     | '/api/public/catalog'
     | '/api/public/purchase'
     | '/api/public/a2a/message'
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/product/$handle'
     | '/api/public/agent-card'
+    | '/api/public/arc-rpc'
     | '/api/public/catalog'
     | '/api/public/purchase'
     | '/api/public/a2a/message'
@@ -204,6 +216,7 @@ export interface RootRouteChildren {
   ShopRoute: typeof ShopRoute
   ProductHandleRoute: typeof ProductHandleRoute
   ApiPublicAgentCardRoute: typeof ApiPublicAgentCardRoute
+  ApiPublicArcRpcRoute: typeof ApiPublicArcRpcRoute
   ApiPublicCatalogRoute: typeof ApiPublicCatalogRoute
   ApiPublicPurchaseRoute: typeof ApiPublicPurchaseRoute
   ApiPublicA2aMessageRoute: typeof ApiPublicA2aMessageRoute
@@ -277,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCatalogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/arc-rpc': {
+      id: '/api/public/arc-rpc'
+      path: '/api/public/arc-rpc'
+      fullPath: '/api/public/arc-rpc'
+      preLoaderRoute: typeof ApiPublicArcRpcRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/agent-card': {
       id: '/api/public/agent-card'
       path: '/api/public/agent-card'
@@ -324,6 +344,7 @@ const rootRouteChildren: RootRouteChildren = {
   ShopRoute: ShopRoute,
   ProductHandleRoute: ProductHandleRoute,
   ApiPublicAgentCardRoute: ApiPublicAgentCardRoute,
+  ApiPublicArcRpcRoute: ApiPublicArcRpcRoute,
   ApiPublicCatalogRoute: ApiPublicCatalogRoute,
   ApiPublicPurchaseRoute: ApiPublicPurchaseRoute,
   ApiPublicA2aMessageRoute: ApiPublicA2aMessageRoute,
@@ -334,13 +355,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
