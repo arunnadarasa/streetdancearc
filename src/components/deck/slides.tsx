@@ -36,8 +36,8 @@ function Slide({
   bg?: string;
 }) {
   return (
-    <div className={`relative h-full w-full ${bg} text-foreground`}>
-      <div className="flex h-full w-full flex-col p-5 pb-10 sm:p-10 sm:pb-14 md:p-14 md:pb-16">
+    <div className={`relative min-h-full w-full ${bg} text-foreground`}>
+      <div className="flex min-h-full w-full flex-col p-5 pb-6 sm:p-10 sm:pb-14 md:p-14 md:pb-16">
         {children}
       </div>
       <Chrome n={n} />
