@@ -53,13 +53,14 @@ function SlideTitle() {
         <Kicker>Encode × Arc · Stablecoin Hackathon · Aug 2026</Kicker>
         <div>
           <h2 className="text-4xl font-black leading-[0.9] tracking-tight sm:text-6xl md:text-7xl">
-            Dance Move
+            Street
             <br />
-            <span style={{ color: GREEN }}>Tokens.</span>
+            <span style={{ color: GREEN }}>Rail.</span>
           </h2>
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:mt-5 sm:text-lg">
-            Onchain rights + streetwear, settled in stablecoins on Circle's Arc.
+            Streetwear + onchain move rights, settled in stablecoins on Circle's Arc.
           </p>
+
         </div>
         <div className="flex flex-wrap gap-1.5 text-[10px] font-bold sm:gap-2 sm:text-xs">
           {["H2H · H2A · A2A", "USDC gas", "EURC + cirBTC", "Privy · Google login", "Verified on Arcscan"].map(
