@@ -40,6 +40,9 @@ export interface AgentOrder {
 
 export function useAgentRun(policy: SpendPolicy) {
   const { authenticated, login, wallets } = useWallet();
+  const [payToken] = usePayToken();
+  const tokenCfg = TOKENS[payToken];
+
   const [steps, setSteps] = useState<RunStep[]>([]);
   const [busy, setBusy] = useState(false);
   const [interrupt, setInterrupt] = useState<{ order: AgentOrder; outcome: PolicyOutcome } | null>(
