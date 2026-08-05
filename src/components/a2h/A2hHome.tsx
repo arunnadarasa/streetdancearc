@@ -2,7 +2,7 @@ import { Inbox, ShieldCheck } from "lucide-react";
 import { JsonBlock } from "@/components/gx/JsonBlock";
 import { InboxCard } from "./InboxCard";
 import { A2H_FEED, RIGHTS_REGISTRY, mandateFor, redenominate } from "./a2h-feed";
-import { ARC_EXPLORER, TOKENS } from "@/lib/tokens";
+import { ARC_EXPLORER, TOKENS, getTokenUsdRate } from "@/lib/tokens";
 import { usePayToken } from "@/lib/pay-token";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchFxRates } from "@/lib/fx.functions";
