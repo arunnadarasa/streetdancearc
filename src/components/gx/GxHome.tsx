@@ -29,17 +29,18 @@ export function GxHome() {
     <div className="space-y-6">
       <section className="rounded-3xl border border-primary/30 bg-linear-to-br from-primary/15 via-surface to-black p-6 sm:p-8">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-glow">
-          Generative Experience · agent-to-agent
+          Agent-to-agent · x402 settlement
         </p>
         <h2 className="mt-2 text-3xl font-black leading-tight text-foreground sm:text-4xl">
           No pages.<br />Just offers, mandates and receipts.
         </h2>
         <p className="mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
-          H2H mode renders pixels for a person. GX mode renders the same commerce as machine
-          surface: an A2A-discoverable agent card, UCP checkout profile, AP2 spend mandates, and an
-          AIsa-powered buyer/seller negotiation that settles in real USDC on Circle's Arc Testnet —
+          In A2A mode no human touches checkout. A buyer agent discovers this store through its A2A
+          0.3 agent card and UCP profile, negotiates against the seller agent, signs an AP2 mandate,
+          gets a 402 payment challenge back, and settles in real USDC on Circle&apos;s Arc Testnet —
           testnet amounts are scaled to {DEMO_SCALE} × the listed price.
         </p>
+
         <Link
           to="/agent-negotiation"
           className="mt-5 inline-flex items-center gap-2 rounded-full bg-glow px-5 py-2.5 text-sm font-black text-glow-foreground transition hover:bg-glow/85"
@@ -75,6 +76,35 @@ export function GxHome() {
           ))}
         </ul>
       </section>
+
+      <section className="space-y-3 rounded-2xl border border-glow/30 bg-glow/5 p-5">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-glow">x402 flow</p>
+          <h3 className="mt-1 text-lg font-black text-foreground">
+            402 challenge → settle → verified receipt
+          </h3>
+        </div>
+        <ol className="space-y-2">
+          {[
+            { k: "1", t: "POST /api/public/purchase", d: "Seller answers 402 with a payment challenge: amount, token, Arc address." },
+            { k: "2", t: "AP2 mandate", d: "Buyer agent checks the challenge against its signed spend mandate." },
+            { k: "3", t: "Settle on Arc", d: "USDC transfer on Arc Testnet (chain 5042002) — USDC is also the gas token." },
+            { k: "4", t: "Receipt", d: "Retry with the payment proof; seller verifies on-chain and returns the order + tx hash." },
+          ].map((s) => (
+            <li key={s.k} className="flex min-w-0 gap-3 rounded-xl border border-border bg-background/50 p-3">
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-glow text-[11px] font-black text-glow-foreground">
+                {s.k}
+              </span>
+              <div className="min-w-0">
+                <p className="break-words font-mono text-xs font-bold text-foreground">{s.t}</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{s.d}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+
 
       {err && (
         <p className="rounded-2xl border border-red-500/40 bg-red-500/5 p-4 text-xs text-red-300">
