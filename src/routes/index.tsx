@@ -74,7 +74,7 @@ function Index() {
 
         {mode !== "h2h" ? (
           <Section tone="base" lines>
-            <GxHome />
+            {mode === "h2a" ? <H2aHome /> : <GxHome />}
           </Section>
         ) : (
           <>
