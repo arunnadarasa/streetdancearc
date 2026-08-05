@@ -29,7 +29,7 @@ const PaymentSchema = z.object({
 });
 
 async function rpc(method: string, params: unknown[]) {
-  const res = await fetch(RPC, {
+  const res = await fetch(process.env["ARC_RPC_URL"] || PUBLIC_RPC, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
