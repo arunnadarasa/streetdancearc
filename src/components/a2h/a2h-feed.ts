@@ -14,6 +14,9 @@ export interface A2hMessage {
   body: string;
   amount?: { value: string; token: TokenKey };
   receiptUrl?: string;
+  registryUrl?: string;
+  /** Present on approval cards — the USD value the human is being asked to release. */
+  approval?: { usd: number; moveCid: string };
   envelope: Record<string, unknown>;
 }
 
@@ -31,20 +34,31 @@ export const STANDING_MANDATE = {
   expires_at: "2026-08-12T00:00:00Z",
 } as const;
 
-const tx = (hash: string) => `${ARC_EXPLORER}/tx/${hash}`;
+export const tx = (hash: string) => `${ARC_EXPLORER}/tx/${hash}`;
 
-/** Seeded, deterministic — the inbox reads the same for every judge. */
-export const A2H_FEED: A2hMessage[] = [
-  {
-    id: "msg_a2h_001",
+export interface ChainPayout {
+  txHash: string;
+  moveCid: string;
+  to: string;
+  token: TokenKey;
+  value: string;
+  atSeconds: number;
+  receiptUrl: string;
+}
+
+/** Turn a Logged event read off Arc into an inbox card. */
+export function payoutToMessage(p: ChainPayout): A2hMessage {
+  return {
+    id: `chain_${p.txHash}`,
     kind: "payout",
     agent: "Rights Agent",
-    at: "2026-08-05T07:12:04Z",
-    title: "Paid you 2.40 USDC for krump-2024-w32",
+    at: new Date(p.atSeconds * 1000).toISOString(),
+    title: `Paid you ${p.value} ${p.token} for ${p.moveCid}`,
     body:
-      "1,204 licensed plays settled since your last payout. Inside your per-payout cap, so I sent it without asking.",
-    amount: { value: "2.40", token: "USDC" },
-    receiptUrl: tx("0x9a3f1c7e5b2d84af06c19e73d5b8a4102f6c8d31e07b45a9c2f81d6e3b04752a"),
+      "Licensed plays settled since your last payout. Inside your per-payout cap, so I sent it without asking — the treasury signed, you did not.",
+    amount: { value: p.value, token: p.token },
+    receiptUrl: p.receiptUrl,
+    registryUrl: `${ARC_EXPLORER}/address/${RIGHTS_REGISTRY}`,
     envelope: {
       jsonrpc: "2.0",
       method: "message/send",
@@ -56,31 +70,36 @@ export const A2H_FEED: A2hMessage[] = [
               kind: "data",
               data: {
                 type: "ap2.payout-executed",
-                move_cid: "krump-2024-w32",
-                plays: 1204,
-                unit_price: "0.002",
-                total: { amount: "2.40", token: "USDC" },
+                move_cid: p.moveCid,
+                total: { amount: p.value, token: p.token, asset: caip19(p.token) },
+                recipient: p.to,
                 mandate: "ap2.payout-mandate#per_payout_cap=5.00",
                 registry: `${ARC_EXPLORER}/address/${RIGHTS_REGISTRY}`,
-                receipt: tx(
-                  "0x9a3f1c7e5b2d84af06c19e73d5b8a4102f6c8d31e07b45a9c2f81d6e3b04752a",
-                ),
+                receipt: p.receiptUrl,
+                settled_at: new Date(p.atSeconds * 1000).toISOString(),
               },
             },
           ],
         },
       },
     },
-  },
-  {
-    id: "msg_a2h_002",
+  };
+}
+
+/** Above-cap request: real money moves only after the human approves. */
+export function approvalMessage(usd: number, token: TokenKey, fx?: FxRates | null): A2hMessage {
+  const places = TOKENS[token].decimals === 8 ? 8 : 2;
+  const value = (usd * getTokenUsdRate(token, fx)).toFixed(places);
+  const moveCid = "toprock-cypher-01";
+  return {
+    id: "req_a2h_approval",
     kind: "approval",
     agent: "Rights Agent",
-    at: "2026-08-05T06:48:19Z",
-    title: "Approve 12.80 EURC payout? Above your cap",
-    body:
-      "A Paris studio licensed 'toprock-cypher-01' for a campaign. The payout is 12.80 EURC — over your per-payout ceiling, so it's paused until you say yes.",
-    amount: { value: "12.80", token: "EURC" },
+    at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+    title: `Approve ${value} ${token} payout? Above your cap`,
+    body: `A Paris studio licensed '${moveCid}' for a campaign. The payout is ${value} ${token} — over your per-payout ceiling, so nothing leaves the treasury until you say yes.`,
+    amount: { value, token },
+    approval: { usd, moveCid },
     envelope: {
       jsonrpc: "2.0",
       method: "message/send",
@@ -93,10 +112,10 @@ export const A2H_FEED: A2hMessage[] = [
               data: {
                 type: "ap2.approval-required",
                 reason: "amount_exceeds_per_payout_cap",
-                requested: { amount: "12.80", token: "EURC" },
-                cap: { amount: "5.00", token: "USDC" },
+                requested: { amount: value, token, asset: caip19(token) },
+                cap: { amount: "5.00", token: "USD" },
                 licensee: "did:web:studio-marais.fr",
-                move_cid: "toprock-cypher-01",
+                move_cid: moveCid,
                 task_state: "input-required",
               },
             },
@@ -104,97 +123,75 @@ export const A2H_FEED: A2hMessage[] = [
         },
       },
     },
-  },
-  {
-    id: "msg_a2h_003",
-    kind: "offer",
-    agent: "Drop Agent",
-    at: "2026-08-05T05:31:00Z",
-    title: "cirBTC moved — your snapback drops 8% for 6h",
-    body:
-      "Treasury is over its cirBTC target, so I'm discounting the Cypher Snapback for holders who settle in cirBTC. Expires in 6 hours.",
-    amount: { value: "0.00041", token: "cirBTC" },
-    envelope: {
-      jsonrpc: "2.0",
-      method: "message/send",
-      params: {
-        message: {
-          role: "agent",
-          parts: [
-            {
-              kind: "data",
-              data: {
-                type: "ucp.offer-pushed",
-                sku: "cypher-snapback",
-                discount_bps: 800,
-                settle_token: "cirBTC",
-                price: { amount: "0.00041", token: "cirBTC" },
-                expires_in_s: 21600,
-              },
-            },
-          ],
-        },
-      },
-    },
-  },
-  {
-    id: "msg_a2h_004",
-    kind: "mandate",
-    agent: "Rights Agent",
-    at: "2026-08-04T21:02:47Z",
-    title: "Your payout authorization expires in 3 days",
-    body:
-      "Renew the standing mandate to keep royalties flowing without a signature each time. Nothing stops if you ignore this — payouts just queue for approval instead.",
-    envelope: {
-      jsonrpc: "2.0",
-      method: "message/send",
-      params: {
-        message: {
-          role: "agent",
-          parts: [
-            {
-              kind: "data",
-              data: {
-                type: "ap2.mandate-expiring",
-                mandate: "ap2.payout-mandate",
-                expires_at: STANDING_MANDATE.expires_at,
-                fallback: "queue_for_manual_approval",
-              },
-            },
-          ],
-        },
-      },
-    },
-  },
-];
+  };
+}
 
-/**
- * Re-denominate the inbox into the currently selected settlement token.
- *
- * The seeded feed is written in whatever token the agent originally used;
- * switching the global toggle re-quotes every payout through the same live
- * FX feed the merchant uses, so A2H honours the currency choice like the
- * other three modes.
- */
-export function redenominate(feed: A2hMessage[], token: TokenKey, fx?: FxRates | null): A2hMessage[] {
-  return feed.map((msg) => {
-    if (!msg.amount || msg.amount.token === token) return msg;
-    const usd = Number(msg.amount.value) / getTokenUsdRate(msg.amount.token, fx);
-    const places = TOKENS[token].decimals === 8 ? 8 : 2;
-    const value = (usd * getTokenUsdRate(token, fx)).toFixed(places);
-    return {
-      ...msg,
-      title: msg.title.replace(
-        `${msg.amount.value} ${msg.amount.token}`,
-        `${value} ${token}`,
-      ),
-      body: msg.body.replace(
-        `${msg.amount.value} ${msg.amount.token}`,
-        `${value} ${token}`,
-      ),
-      amount: { value, token },
-    };
-  });
+/** Non-financial notices the agent pushes; no chain write involved. */
+export function noticeMessages(token: TokenKey, fx?: FxRates | null): A2hMessage[] {
+  const places = TOKENS[token].decimals === 8 ? 8 : 2;
+  const offer = (0.00052 / getTokenUsdRate("cirBTC", fx) * getTokenUsdRate(token, fx)).toFixed(places);
+  return [
+    {
+      id: "msg_a2h_offer",
+      kind: "offer",
+      agent: "Drop Agent",
+      at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+      title: `Treasury rebalance — your snapback drops 8% for 6h`,
+      body: `Treasury is over its target, so I'm discounting the Cypher Snapback for holders who settle in ${token}. Expires in 6 hours.`,
+      amount: { value: offer, token },
+      envelope: {
+        jsonrpc: "2.0",
+        method: "message/send",
+        params: {
+          message: {
+            role: "agent",
+            parts: [
+              {
+                kind: "data",
+                data: {
+                  type: "ucp.offer-pushed",
+                  sku: "cypher-snapback",
+                  discount_bps: 800,
+                  settle_token: token,
+                  price: { amount: offer, token, asset: caip19(token) },
+                  expires_in_s: 21600,
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+    {
+      id: "msg_a2h_mandate",
+      kind: "mandate",
+      agent: "Rights Agent",
+      at: new Date(Date.now() - 11 * 60 * 60 * 1000).toISOString(),
+      title: "Your payout authorization expires in 3 days",
+      body:
+        "Renew the standing mandate to keep royalties flowing without a signature each time. Nothing stops if you ignore this — payouts just queue for approval instead.",
+      envelope: {
+        jsonrpc: "2.0",
+        method: "message/send",
+        params: {
+          message: {
+            role: "agent",
+            parts: [
+              {
+                kind: "data",
+                data: {
+                  type: "ap2.mandate-expiring",
+                  mandate: "ap2.payout-mandate",
+                  expires_at: STANDING_MANDATE.expires_at,
+                  fallback: "queue_for_manual_approval",
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+  ];
 }
 
 /** The standing mandate, expressed in the active settlement token. */
