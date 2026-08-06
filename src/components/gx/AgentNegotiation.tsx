@@ -49,9 +49,11 @@ export function AgentNegotiation() {
   const [receipt, setReceipt] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fx, setFx] = useState<FxRates | null>(null);
+  const [nanoNote, setNanoNote] = useState<string | null>(null);
 
   const negotiate = useServerFn(runNegotiation);
   const getFx = useServerFn(fetchFxRates);
+  const nanopay = useServerFn(payWithNanopayments);
 
   useEffect(() => {
     fetch(SHOPIFY_STOREFRONT_URL, {
