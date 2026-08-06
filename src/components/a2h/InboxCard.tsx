@@ -239,6 +239,28 @@ export function InboxCard({
               </>
             )}
 
+            {msg.kind === "mandate" && !acted && !renewed && (
+              <>
+                <button
+                  onClick={() => void runRenew()}
+                  disabled={busy || !address}
+                  className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-primary to-glow px-4 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
+                >
+                  {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  {busy ? "Signing mandate…" : address ? "Renew mandate" : "Connect wallet first"}
+                </button>
+                <button
+                  onClick={() => setActed("deferred")}
+                  disabled={busy}
+                  className="rounded-full border border-border px-4 py-1.5 text-[11px] font-bold text-muted-foreground hover:text-foreground"
+                >
+                  Not now
+                </button>
+              </>
+            )}
+
+
+
             {acted && (
               <span className="rounded-full border border-border bg-background/60 px-3 py-1.5 text-[11px] font-bold text-muted-foreground">
                 Recorded on the thread: {acted}
