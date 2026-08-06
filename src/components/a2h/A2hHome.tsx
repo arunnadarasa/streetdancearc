@@ -14,7 +14,7 @@ import { ARC_EXPLORER, TOKENS, getTokenUsdRate } from "@/lib/tokens";
 import { usePayToken } from "@/lib/pay-token";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchFxRates } from "@/lib/fx.functions";
-import { listPayouts } from "@/lib/a2h.functions";
+import { listPayouts, pushPayout } from "@/lib/a2h.functions";
 import { useWallet } from "@/lib/wallet-context";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FxRates } from "@/lib/tokens";
@@ -199,11 +199,7 @@ function SweepTrigger({
   token: keyof typeof TOKENS;
   onSettled: () => void | Promise<void>;
 }) {
-  const push = useServerFn(
-    // lazy import avoided: functions module is client-safe
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    usePushPayoutFn(),
-  );
+  const push = useServerFn(pushPayout);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -245,10 +241,3 @@ function SweepTrigger({
     </div>
   );
 }
-
-// Kept as a hook-shaped helper so the import stays static and tree-shakeable.
-function usePushPayoutFn() {
-  return pushPayoutRef;
-}
-
-import { pushPayout as pushPayoutRef } from "@/lib/a2h.functions";
