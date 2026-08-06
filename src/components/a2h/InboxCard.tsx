@@ -69,7 +69,7 @@ export function InboxCard({
   >(null);
   const approve = useServerFn(approvePayout);
   const renew = useServerFn(renewMandate);
-  const { token: payToken } = usePayToken();
+  const [payToken] = usePayToken();
   const k = KIND[msg.kind];
   const Icon = k.icon;
 
