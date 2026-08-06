@@ -5,9 +5,18 @@ export function SiteFooter() {
         <div className="max-w-md">
           <p className="display text-2xl text-foreground">StreetRail</p>
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-            Built during the Creative AI &amp; Quantum Hackathon organised by StreetKode Fam
-            during Indian Krump Festival 14. Running on Circle&apos;s Arc Testnet.
+            Built for the Encode Club{" "}
+            <a
+              href="https://www.encodeclub.com/programmable-money-hackathon"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              Programmable Money Hackathon
+            </a>{" "}
+            — Build on Arc. Agentic Economy track. Running on Circle&apos;s Arc Testnet.
           </p>
+
         </div>
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold text-muted-foreground">
           <a href="/shop" className="hover:text-foreground">Shop</a>
