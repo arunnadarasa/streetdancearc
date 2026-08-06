@@ -38,7 +38,7 @@ export function Section({
           className="grid-lines pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(70%_60%_at_50%_35%,black,transparent)]"
         />
       )}
-      <div className={`rail relative py-14 sm:py-20 ${innerClassName}`}>{children}</div>
+      <div className={`rail relative py-14 sm:py-20 lg:py-16 xl:py-20 ${innerClassName}`}>{children}</div>
     </section>
   );
 }
