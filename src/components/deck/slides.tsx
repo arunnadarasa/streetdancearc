@@ -584,7 +584,7 @@ function SlideClose() {
   return (
     <Slide n={14} bg="bg-background">
       <div className="flex h-full flex-col justify-between">
-        <Kicker>Built for Encode × Arc</Kicker>
+        <Kicker>Built for Encode Club · Programmable Money Hackathon</Kicker>
         <h2 className="text-4xl font-black leading-[0.9] tracking-tight sm:text-6xl md:text-7xl">
           Give the culture
           <br />
