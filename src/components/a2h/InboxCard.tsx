@@ -4,10 +4,13 @@ import {
   BadgeCheck,
   ChevronDown,
   Clock,
+  Loader2,
   ShieldQuestion,
   Tag,
 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { JsonBlock } from "@/components/gx/JsonBlock";
+import { approvePayout } from "@/lib/a2h.functions";
 import type { A2hMessage } from "./a2h-feed";
 
 const KIND: Record<
@@ -16,7 +19,7 @@ const KIND: Record<
 > = {
   payout: {
     icon: ArrowDownToLine,
-    label: "Payout pushed",
+    label: "Payout settled on Arc",
     ring: "border-primary/40",
     tint: "text-glow",
   },
@@ -36,22 +39,66 @@ const KIND: Record<
 };
 
 function ago(iso: string) {
-  const mins = Math.max(
-    1,
-    Math.round((Date.parse("2026-08-05T08:00:00Z") - Date.parse(iso)) / 60000),
-  );
+  const mins = Math.max(1, Math.round((Date.now() - Date.parse(iso)) / 60000));
   if (mins < 60) return `${mins}m ago`;
   const h = Math.round(mins / 60);
   return h < 24 ? `${h}h ago` : `${Math.round(h / 24)}d ago`;
 }
 
-export function InboxCard({ msg }: { msg: A2hMessage }) {
+export function InboxCard({
+  msg,
+  address,
+  onSettled,
+}: {
+  msg: A2hMessage;
+  address?: string;
+  onSettled?: () => void | Promise<void>;
+}) {
   const [open, setOpen] = useState(false);
-  const [acted, setActed] = useState<"approved" | "declined" | "claimed" | "dismissed" | null>(
-    null,
-  );
+  const [acted, setActed] = useState<"declined" | "claimed" | "dismissed" | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<
+    | { ok: true; receiptUrl: string; value: string; token: string; mandate: unknown }
+    | { ok: false; detail: string }
+    | null
+  >(null);
+  const approve = useServerFn(approvePayout);
   const k = KIND[msg.kind];
   const Icon = k.icon;
+
+  async function runApproval() {
+    if (!msg.approval || !address) return;
+    setBusy(true);
+    setResult(null);
+    try {
+      const res = await approve({
+        data: {
+          address,
+          token: msg.amount?.token ?? "USDC",
+          moveCid: msg.approval.moveCid,
+          usd: msg.approval.usd,
+        },
+      });
+      if (res.ok) {
+        setResult({
+          ok: true,
+          receiptUrl: res.receiptUrl,
+          value: res.value,
+          token: res.token,
+          mandate: res.mandate,
+        });
+        await onSettled?.();
+      } else {
+        setResult({ ok: false, detail: res.detail });
+      }
+    } catch (e) {
+      setResult({ ok: false, detail: e instanceof Error ? e.message : "payout_failed" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const receipt = result?.ok ? result.receiptUrl : msg.receiptUrl;
 
   return (
     <article className={`min-w-0 rounded-2xl border bg-card/70 p-4 sm:p-5 ${k.ring}`}>
@@ -62,7 +109,7 @@ export function InboxCard({ msg }: { msg: A2hMessage }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className={`text-[10px] font-black uppercase tracking-[0.18em] ${k.tint}`}>
-              {k.label}
+              {result?.ok ? "Payout settled on Arc" : k.label}
             </span>
             <span className="text-[10px] text-muted-foreground">
               {msg.agent} &middot; {ago(msg.at)}
@@ -79,10 +126,16 @@ export function InboxCard({ msg }: { msg: A2hMessage }) {
             </p>
           )}
 
+          {result && !result.ok && (
+            <p className="mt-3 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-[11px] text-destructive-foreground">
+              Payout failed: {result.detail}
+            </p>
+          )}
+
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            {msg.receiptUrl && (
+            {receipt && (
               <a
-                href={msg.receiptUrl}
+                href={receipt}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-foreground hover:bg-primary/20"
@@ -92,16 +145,30 @@ export function InboxCard({ msg }: { msg: A2hMessage }) {
               </a>
             )}
 
-            {msg.kind === "approval" && !acted && (
+            {msg.registryUrl && (
+              <a
+                href={msg.registryUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] font-bold text-muted-foreground hover:text-foreground"
+              >
+                Rights registry
+              </a>
+            )}
+
+            {msg.kind === "approval" && !acted && !result?.ok && (
               <>
                 <button
-                  onClick={() => setActed("approved")}
-                  className="rounded-full bg-linear-to-r from-primary to-glow px-4 py-1.5 text-[11px] font-bold text-primary-foreground"
+                  onClick={() => void runApproval()}
+                  disabled={busy || !address}
+                  className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-primary to-glow px-4 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
                 >
-                  Approve payout
+                  {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  {busy ? "Sending on Arc…" : address ? "Approve payout" : "Connect wallet first"}
                 </button>
                 <button
                   onClick={() => setActed("declined")}
+                  disabled={busy}
                   className="rounded-full border border-border px-4 py-1.5 text-[11px] font-bold text-muted-foreground hover:text-foreground"
                 >
                   Decline
@@ -143,12 +210,19 @@ export function InboxCard({ msg }: { msg: A2hMessage }) {
           </div>
 
           {open && (
-            <div className="mt-3">
+            <div className="mt-3 space-y-3">
               <JsonBlock
                 label="A2A 0.3 · message/send (agent → human)"
                 value={msg.envelope}
                 tone={msg.kind === "approval" ? "amber" : "green"}
               />
+              {result?.ok && (
+                <JsonBlock
+                  label="AP2 payout mandate · Ed25519 signed"
+                  value={result.mandate}
+                  tone="green"
+                />
+              )}
             </div>
           )}
         </div>
