@@ -11,15 +11,31 @@ import {
   type ChainPayout,
 } from "./a2h-feed";
 import { ARC_EXPLORER, TOKENS, getTokenUsdRate } from "@/lib/tokens";
+import { formatMinor } from "@/lib/fx";
 import { usePayToken } from "@/lib/pay-token";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchFxRates } from "@/lib/fx.functions";
-import { listPayouts, pushPayout } from "@/lib/a2h.functions";
+import { accruePayout, listAccruals, listPayouts, settleBatch } from "@/lib/a2h.functions";
 import { useWallet } from "@/lib/wallet-context";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FxRates } from "@/lib/tokens";
 
 const SWEEP_PLAYS = 1000;
+const SWEEP_MOVE = "krump-2024-w32";
+
+interface BatchState {
+  key: string;
+  batchId: string;
+  moveCid: string;
+  token: string;
+  plays: number;
+  microUsd: number;
+  usd: number;
+  count: number;
+  thresholdUsd: number;
+  ready: boolean;
+  progress: number;
+}
 
 export function A2hHome() {
   const [payToken] = usePayToken();
