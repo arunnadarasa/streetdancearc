@@ -19,6 +19,7 @@ export const Route = createFileRoute("/deck")({
 function DeckPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <Header />
       <div className="aurora-bg">
         <div className="rail flex flex-col gap-6 py-8 sm:py-12">
           <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
@@ -26,14 +27,9 @@ function DeckPage() {
               <p className="eyebrow">Encode × Arc · Programmable Money Hackathon</p>
               <h1 className="display mt-3 text-[clamp(1.75rem,7vw,2.25rem)] sm:text-5xl">Judges Deck</h1>
             </div>
-            <div className="grid grid-cols-3 items-center gap-2 sm:flex sm:flex-wrap">
-              <Link
-                to="/"
-                className="min-h-11 rounded-full border border-border bg-surface/60 px-3 py-2.5 text-center text-xs font-bold backdrop-blur hover:bg-secondary sm:px-4"
-              >
-                ← Back
-              </Link>
+            <div className="grid grid-cols-2 items-center gap-2 sm:flex sm:flex-wrap">
               <a
+
                 href="/judges-deck.pdf"
                 target="_blank"
                 rel="noreferrer"
