@@ -50,7 +50,16 @@ function SlideTitle() {
   return (
     <Slide n={1} bg="bg-background">
       <div className="flex h-full flex-col justify-between">
-        <Kicker>Encode Club · Programmable Money Hackathon · Build on Arc</Kicker>
+        <Kicker>
+          <a
+            href="https://www.encodeclub.com/programmes/arc-hackathon"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            Encode Club · Programmable Money Hackathon · Build on Arc
+          </a>
+        </Kicker>
         <div>
           <h2 className="text-4xl font-black leading-[0.9] tracking-tight sm:text-6xl md:text-7xl">
             Street

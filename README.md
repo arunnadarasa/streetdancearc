@@ -2,7 +2,7 @@
 
 Streetwear commerce on **Circle's Arc Testnet** (chain id `5042002`) — a shop that humans can browse and agents can buy from, settled in stablecoins on the same rail.
 
-Built for the Encode Club **Programmable Money Hackathon — Build on Arc** (Agentic Economy track, final submissions 9 August 2026).
+Built for the Encode Club [**Programmable Money Hackathon**](https://www.encodeclub.com/programmes/arc-hackathon) — Build on Arc (Agentic Economy track, final submissions 9 August 2026).
 
 Live demo: https://streetrail.lovable.app  
 Source: https://github.com/arunnadarasa/streetdancearc
