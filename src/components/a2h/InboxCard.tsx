@@ -159,6 +159,25 @@ export function InboxCard({
             </p>
           )}
 
+          {renewError && (
+            <p className="mt-3 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-[11px] text-destructive-foreground">
+              {renewError}
+            </p>
+          )}
+
+          {renewed && (
+            <p className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-[11px] font-bold text-foreground">
+              <BadgeCheck className="h-3.5 w-3.5 text-glow" />
+              Renewed — valid through{" "}
+              {new Date(renewed.expiresAt).toLocaleDateString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })}
+            </p>
+          )}
+
+
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {receipt && (
               <a
