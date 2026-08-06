@@ -83,8 +83,7 @@ export const Route = createFileRoute("/api/public/ap2/mandate")({
         const cart = signed(buildCartMandate(item, parsed.data.quantity, payTo, "streetrail-storefront"));
         const total = cart.totals[0]?.value ?? "0";
         const paymentMandate = parsed.data.payer
-          ? signed(buildPaymentMandate(
-            cart, parsed.data.payer as `0x${string}`)
+          ? signed(buildPaymentMandate(cart, parsed.data.payer as `0x${string}`))
           : undefined;
 
         return Response.json(

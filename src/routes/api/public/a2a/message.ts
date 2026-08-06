@@ -161,7 +161,7 @@ export const Route = createFileRoute("/api/public/a2a/message")({
           const x402 = findDataPart<{ txHash: string; payer: string }>(msg.parts, MIME.X402_PAYLOAD);
           if (x402?.txHash) {
             const cart = findDataPart<ReturnType<typeof buildCartMandate>>(msg.parts, MIME.AP2_CART);
-            const paymentMandate = buildPaymentMandate(
+            const paymentMandate = signed(buildPaymentMandate(
               cart ?? {
                 ap2Version: AP2_VERSION,
                 type: "CartMandate",
@@ -177,7 +177,7 @@ export const Route = createFileRoute("/api/public/a2a/message")({
               },
               (x402.payer ?? "0x0000000000000000000000000000000000000000") as `0x${string}`,
               x402.txHash as `0x${string}`,
-            );
+            ));
             const receipt = buildA2ATask({
               id: taskId,
               contextId,
