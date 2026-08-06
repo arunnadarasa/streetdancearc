@@ -194,6 +194,15 @@ export function noticeMessages(token: TokenKey, fx?: FxRates | null): A2hMessage
   ];
 }
 
+/** Session-scoped mandate expiry, updated when the human renews from the inbox. */
+let sessionMandateExpiry: string | null = null;
+export function setMandateExpiry(iso: string) {
+  sessionMandateExpiry = iso;
+}
+export function getMandateExpiry() {
+  return sessionMandateExpiry ?? STANDING_MANDATE.expires_at;
+}
+
 /** The standing mandate, expressed in the active settlement token. */
 export function mandateFor(token: TokenKey, fx?: FxRates | null) {
   const cap = (usd: string) =>
@@ -204,5 +213,6 @@ export function mandateFor(token: TokenKey, fx?: FxRates | null) {
     settle_asset: caip19(token),
     per_payout_cap: cap(STANDING_MANDATE.per_payout_cap),
     daily_cap: cap(STANDING_MANDATE.daily_cap),
+    expires_at: getMandateExpiry(),
   };
 }

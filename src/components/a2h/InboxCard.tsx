@@ -12,6 +12,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { JsonBlock } from "@/components/gx/JsonBlock";
 import { approvePayout, renewMandate } from "@/lib/a2h.functions";
 import { usePayToken } from "@/lib/pay-token";
+import { setMandateExpiry } from "@/components/a2h/a2h-feed";
 import type { A2hMessage } from "./a2h-feed";
 
 const KIND: Record<
@@ -79,6 +80,7 @@ export function InboxCard({
     setRenewError(null);
     try {
       const res = await renew({ data: { address, token: payToken, days: 90 } });
+      setMandateExpiry(res.expiresAt);
       setRenewed({ expiresAt: res.expiresAt, mandate: res.mandate });
       setOpen(true);
     } catch (e) {
