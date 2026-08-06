@@ -70,7 +70,7 @@ function ShopPage() {
 
           <>
             <section className="aurora-bg relative">
-              <div className="rail relative flex min-h-[40vh] flex-col justify-center py-12 sm:min-h-[52vh] sm:py-24">
+              <div className="rail relative flex min-h-[40vh] flex-col justify-center py-12 sm:min-h-[52vh] sm:py-24 lg:min-h-[34vh] lg:py-16">
                 <Reveal>
                   <p className="eyebrow">Fresh drop · StreetRail Merch</p>
                 </Reveal>
