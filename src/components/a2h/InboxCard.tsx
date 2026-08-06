@@ -10,7 +10,8 @@ import {
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { JsonBlock } from "@/components/gx/JsonBlock";
-import { approvePayout } from "@/lib/a2h.functions";
+import { approvePayout, renewMandate } from "@/lib/a2h.functions";
+import { usePayToken } from "@/context/PayTokenContext";
 import type { A2hMessage } from "./a2h-feed";
 
 const KIND: Record<
