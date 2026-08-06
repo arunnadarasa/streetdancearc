@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ARC_CAIP2, USDC_ARC } from "@/lib/agent-card";
 import { UCP_VERSION, type DiscoveryProfile } from "@/lib/ucp";
+import { publicJwk } from "@/lib/mandate-sign.server";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -37,16 +38,7 @@ export const Route = createFileRoute("/api/public/ucp/discovery")({
               },
             ],
           },
-          signing_keys: [
-            {
-              kid: "streetkode-demo-key-1",
-              kty: "OKP",
-              crv: "Ed25519",
-              use: "sig",
-              alg: "EdDSA",
-              x: "demo-public-key-stub-for-hackathon-demo-only",
-            },
-          ],
+          signing_keys: [publicJwk()],
           ucp: {
             version: UCP_VERSION,
             capabilities: [
