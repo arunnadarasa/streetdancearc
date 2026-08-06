@@ -66,9 +66,10 @@ export function A2hHome() {
       const res = await getPayouts({ data: address ? { address } : {} });
       setChain(res.payouts as ChainPayout[]);
       setChainError(res.error);
-    } catch (e) {
-      setChainError(e instanceof Error ? e.message : "registry_read_failed");
+    } catch {
+      setChainError("Registry history could not be read from the RPC provider right now.");
     } finally {
+
       setLoading(false);
     }
   }, [getPayouts, address]);
@@ -185,16 +186,11 @@ export function A2hHome() {
         </p>
 
         {chainError && (
-          <details className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-200">
-            <summary className="cursor-pointer list-none font-semibold">
-              Registry history is temporarily limited — payouts still settle on Arc.
-              <span className="ml-1 font-normal underline opacity-70">details</span>
-            </summary>
-            <p className="mt-2 break-all font-mono text-[10px] leading-relaxed opacity-80">
-              {chainError}
-            </p>
-          </details>
+          <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-200">
+            {chainError} Payouts still settle on Arc — new settlements appear here immediately.
+          </p>
         )}
+
 
 
         <SweepTrigger address={address} token={payToken} onSettled={refresh} />

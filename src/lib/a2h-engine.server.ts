@@ -64,10 +64,11 @@ export async function runListPayouts(address?: string) {
     payouts = history.payouts;
     degraded = history.degraded;
     error = history.degraded ? history.detail : null;
-  } catch (e) {
+  } catch {
     degraded = true;
-    error = e instanceof Error ? e.message : "registry_read_failed";
+    error = "Registry history could not be read from the RPC provider right now.";
   }
+
   const dayAgo = Date.now() / 1000 - 86_400;
   const spentTodayUsd = payouts
     .filter((p) => p.atSeconds > dayAgo)
