@@ -78,3 +78,15 @@ export const approvePayout = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }) => runApprovePayout(data));
+
+export const renewMandate = createServerFn({ method: "POST" })
+  .inputValidator((input: { address: string; token: TokenKey; days?: number }) =>
+    z
+      .object({
+        address: AddressSchema,
+        token: TokenEnum,
+        days: z.number().int().min(1).max(365).default(90),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => runRenewMandate(data));
