@@ -330,7 +330,13 @@
   @media (width >= 640px) {
     padding-inline: 1.5rem;
   }
+
+  @media (width >= 1280px) {
+    max-width: 80rem;
+    padding-inline: 2rem;
+  }
 }
+
 
 @layer base {
   * {
