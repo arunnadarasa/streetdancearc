@@ -134,7 +134,8 @@ export interface PayoutHistory {
  * recipient. Wide-range read first; if the provider caps the block range, fall
  * back to a chunked scan of a recent window. Never throws — degrades instead.
  */
-export async function readPayouts(to?: string, lookback = 200_000n): Promise<PayoutHistory> {
+// 90k stays inside the public Arc RPC's 100k max block range for eth_getLogs.
+export async function readPayouts(to?: string, lookback = 90_000n): Promise<PayoutHistory> {
   const wanted = to?.toLowerCase();
   const pub = logsClient();
 
