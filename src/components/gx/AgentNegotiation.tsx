@@ -18,6 +18,8 @@ import {
 } from "@/lib/shopify";
 import { categoryFor } from "@/routes/api/public/catalog";
 import { fetchFxRates } from "@/lib/fx.functions";
+import { payWithNanopayments } from "@/lib/circle-rails.functions";
+import { CircleRailsPanel } from "./CircleRailsPanel";
 
 function explorerUrl(value: unknown): string | null {
   try {
