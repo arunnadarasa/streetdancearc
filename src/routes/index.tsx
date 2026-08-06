@@ -81,54 +81,64 @@ function Index() {
           <>
             {/* HERO */}
             <section className="aurora-bg relative">
-              <div className="rail relative flex min-h-[60vh] flex-col justify-center py-12 sm:min-h-[78vh] sm:py-28">
-                <Reveal>
-                  <p className="eyebrow">Streetwear &middot; Street dance &middot; Stablecoins</p>
-                </Reveal>
-                <Reveal delay={90}>
-                  <h1 className="display mt-4 text-[clamp(2.25rem,9vw,3.25rem)] leading-[0.92] sm:mt-5 sm:text-7xl sm:leading-[0.88] lg:text-[5.5rem]">
-                    <span className="block text-foreground">Wear the</span>
-                    <span className="block text-gradient">culture.</span>
-                    <span className="block text-foreground">Own the move.</span>
-                  </h1>
-                </Reveal>
-                <Reveal delay={180}>
-                  <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted-foreground sm:mt-7 sm:text-lg">
-                    Street dance streetwear built for cyphers and battles — checkout in USDC,
-                    EURC or cirBTC on Circle&apos;s Arc. Every drop is backed by a marketplace
-                    for the moves behind it.
-                  </p>
-                </Reveal>
-                <Reveal delay={260}>
-                  <div className="mt-7 flex flex-col items-stretch gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:items-center">
-                    <Link
-                      to="/shop"
-                      className="lift rounded-full bg-linear-to-r from-primary to-glow px-7 py-3.5 text-center text-sm font-bold text-primary-foreground shadow-glow"
-                    >
-                      Shop the drop
-                    </Link>
-                    <Link
-                      to="/moves"
-                      className="lift rounded-full border border-border bg-surface/60 px-7 py-3.5 text-center text-sm font-bold text-foreground backdrop-blur"
-                    >
-                      Marketplace for moves →
-                    </Link>
-                  </div>
-                </Reveal>
-
-                <Reveal delay={340}>
-                  <dl className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border/60 sm:mt-14 lg:grid-cols-4">
-                    {STATS.map((s) => (
-                      <div key={s.k} className="bg-surface-2/90 px-3.5 py-4 backdrop-blur sm:px-6 sm:py-6">
-                        <dt className="display text-lg text-foreground sm:text-2xl">{s.k}</dt>
-                        <dd className="mt-1 text-[11px] leading-snug text-muted-foreground sm:text-xs">
-                          {s.v}
-                        </dd>
+              <div className="rail relative flex min-h-[60vh] flex-col justify-center py-12 sm:min-h-[78vh] sm:py-28 lg:min-h-[calc(100svh-6rem)] lg:py-20">
+                <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-14">
+                  <div>
+                    <Reveal>
+                      <p className="eyebrow">Streetwear &middot; Street dance &middot; Stablecoins</p>
+                    </Reveal>
+                    <Reveal delay={90}>
+                      <h1 className="display mt-4 text-[clamp(2.25rem,9vw,3.25rem)] leading-[0.92] sm:mt-5 sm:text-7xl sm:leading-[0.88] lg:text-[4.75rem] xl:text-[5.5rem]">
+                        <span className="block text-foreground">Wear the</span>
+                        <span className="block text-gradient">culture.</span>
+                        <span className="block text-foreground">Own the move.</span>
+                      </h1>
+                    </Reveal>
+                    <Reveal delay={180}>
+                      <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted-foreground sm:mt-7 sm:text-lg">
+                        Street dance streetwear built for cyphers and battles — checkout in USDC,
+                        EURC or cirBTC on Circle&apos;s Arc. Every drop is backed by a marketplace
+                        for the moves behind it.
+                      </p>
+                    </Reveal>
+                    <Reveal delay={260}>
+                      <div className="mt-7 flex flex-col items-stretch gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:items-center">
+                        <Link
+                          to="/shop"
+                          className="lift rounded-full bg-linear-to-r from-primary to-glow px-7 py-3.5 text-center text-sm font-bold text-primary-foreground shadow-glow"
+                        >
+                          Shop the drop
+                        </Link>
+                        <Link
+                          to="/moves"
+                          className="lift rounded-full border border-border bg-surface/60 px-7 py-3.5 text-center text-sm font-bold text-foreground backdrop-blur"
+                        >
+                          Marketplace for moves →
+                        </Link>
                       </div>
-                    ))}
-                  </dl>
-                </Reveal>
+                    </Reveal>
+                  </div>
+
+                  <Reveal delay={340}>
+                    <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border/60 lg:grid-cols-2">
+                      {STATS.map((s) => (
+                        <div
+                          key={s.k}
+                          className="bg-surface-2/90 px-3.5 py-4 backdrop-blur sm:px-6 sm:py-6 lg:px-7 lg:py-8"
+                        >
+                          <dt className="display text-lg text-foreground sm:text-2xl lg:text-3xl">
+                            {s.k}
+                          </dt>
+                          <dd className="mt-1 text-[11px] leading-snug text-muted-foreground sm:text-xs lg:text-sm">
+                            {s.v}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </Reveal>
+                </div>
               </div>
+
             </section>
 
             {/* FEATURED MERCH */}
