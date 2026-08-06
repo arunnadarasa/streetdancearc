@@ -291,6 +291,13 @@ export function InboxCard({
                   tone="green"
                 />
               )}
+              {renewed && (
+                <JsonBlock
+                  label="AP2 payout mandate · renewed, Ed25519 signed"
+                  value={renewed.mandate}
+                  tone="green"
+                />
+              )}
             </div>
           )}
         </div>
