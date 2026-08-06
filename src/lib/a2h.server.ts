@@ -20,6 +20,12 @@ export const DAILY_CAP_USD = 25;
 /** Testnet payout size, so a funded treasury survives a day of judging. */
 export const PAYOUT_UNIT_USD = 0.001;
 
+/**
+ * Nanopayments accrue off-chain until the open batch is worth this much, then
+ * one transfer + one registry log settles the lot.
+ */
+export const BATCH_THRESHOLD_USD = 0.5;
+
 const LOGGED = parseAbiItem(
   "event Logged(address indexed author, address indexed token, uint256 amount, string cid, uint256 at)",
 );

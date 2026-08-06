@@ -65,3 +65,37 @@ export function convertFromFiat(
 export function convertFromUsd(usd: number, token: TokenKey, fx?: FxRates | null): number {
   return usd * getTokenUsdRate(token, fx);
 }
+
+// ---------------------------------------------------------------------------
+// Minor-unit helpers.
+//
+// Nanopayments are far below one cent, so accrual is tracked in micro-USD
+// (1e-6 USD) integers and only rendered as cents/dollars at the edge. Rounding
+// to 2dp too early turns every per-play royalty into "0.00".
+// ---------------------------------------------------------------------------
+
+/** USD -> integer micro-USD (1e-6 USD). */
+export function usdToMicro(usd: number): number {
+  return Math.round(usd * 1_000_000);
+}
+
+/** Integer micro-USD -> USD. */
+export function microToUsd(micro: number): number {
+  return micro / 1_000_000;
+}
+
+/** USD -> integer minor units (cents). */
+export function toMinor(usd: number): number {
+  return Math.round(usd * 100);
+}
+
+/**
+ * Render micro-USD honestly: sub-dollar amounts stay in cents (with decimals
+ * when they are sub-cent), everything else reads as dollars.
+ */
+export function formatMinor(micro: number): string {
+  const cents = micro / 10_000;
+  if (Math.abs(cents) < 1) return `${cents.toFixed(2)}¢`;
+  if (Math.abs(cents) < 100) return `${cents.toFixed(cents < 10 ? 2 : 1)}¢`;
+  return `$${(cents / 100).toFixed(2)}`;
+}

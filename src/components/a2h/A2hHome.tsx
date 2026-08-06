@@ -11,15 +11,31 @@ import {
   type ChainPayout,
 } from "./a2h-feed";
 import { ARC_EXPLORER, TOKENS, getTokenUsdRate } from "@/lib/tokens";
+import { formatMinor } from "@/lib/fx";
 import { usePayToken } from "@/lib/pay-token";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchFxRates } from "@/lib/fx.functions";
-import { listPayouts, pushPayout } from "@/lib/a2h.functions";
+import { accruePayout, listAccruals, listPayouts, settleBatch } from "@/lib/a2h.functions";
 import { useWallet } from "@/lib/wallet-context";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FxRates } from "@/lib/tokens";
 
 const SWEEP_PLAYS = 1000;
+const SWEEP_MOVE = "krump-2024-w32";
+
+interface BatchState {
+  key: string;
+  batchId: string;
+  moveCid: string;
+  token: string;
+  plays: number;
+  microUsd: number;
+  usd: number;
+  count: number;
+  thresholdUsd: number;
+  ready: boolean;
+  progress: number;
+}
 
 export function A2hHome() {
   const [payToken] = usePayToken();
@@ -194,8 +210,8 @@ export function A2hHome() {
 }
 
 /**
- * A real background agent would run on a cron. For a live demo the judge needs
- * a way to make the agent act now — this fires the same server-side payout path.
+ * Nanopayments accrue off-chain; one Arc transaction settles the batch.
+ * A real agent runs this on a cron — the button lets a judge make it act now.
  */
 function SweepTrigger({
   address,
@@ -206,45 +222,124 @@ function SweepTrigger({
   token: keyof typeof TOKENS;
   onSettled: () => void | Promise<void>;
 }) {
-  const push = useServerFn(pushPayout);
-  const [busy, setBusy] = useState(false);
+  const accrue = useServerFn(accruePayout);
+  const settle = useServerFn(settleBatch);
+  const getAccruals = useServerFn(listAccruals);
+  const [batch, setBatch] = useState<BatchState | null>(null);
+  const [busy, setBusy] = useState<"accrue" | "settle" | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
-  async function run() {
+  const load = useCallback(async () => {
     if (!address) return;
-    setBusy(true);
+    const res = await getAccruals({ data: { address } });
+    setBatch(res.batches.find((b) => b.token === token && b.moveCid === SWEEP_MOVE) ?? null);
+  }, [getAccruals, address, token]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function runSweep() {
+    if (!address) return;
+    setBusy("accrue");
     setMsg(null);
     try {
-      const res = await push({ data: { address, token, moveCid: "krump-2024-w32", plays: SWEEP_PLAYS } });
+      const res = await accrue({
+        data: { address, token, moveCid: SWEEP_MOVE, plays: SWEEP_PLAYS },
+      });
+      setBatch(res.batch);
+      setMsg(
+        res.batch.ready
+          ? `Batch ready — ${res.batch.count} nanopayments worth ${formatMinor(res.batch.microUsd)}.`
+          : `Accrued ${SWEEP_PLAYS.toLocaleString()} plays off-chain. No gas spent.`,
+      );
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "accrue_failed");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function runSettle() {
+    if (!address) return;
+    setBusy("settle");
+    setMsg(null);
+    try {
+      const res = await settle({ data: { address, token, moveCid: SWEEP_MOVE } });
       if (res.ok) {
-        setMsg(`Sent ${res.value} ${res.token} · tx ${res.transferTx.slice(0, 12)}…`);
+        setBatch(null);
+        setMsg(
+          `Settled ${res.count} nanopayments in one tx · ${res.value} ${res.token} · ${res.transferTx.slice(0, 12)}…`,
+        );
         await onSettled();
       } else {
         setMsg(res.detail);
       }
     } catch (e) {
-      setMsg(e instanceof Error ? e.message : "payout_failed");
+      setMsg(e instanceof Error ? e.message : "settle_failed");
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
 
+  const pct = Math.round((batch?.progress ?? 0) * 100);
+
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card/60 px-4 py-3">
-      <Zap className="h-4 w-4 shrink-0 text-glow" />
-      <p className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted-foreground">
-        The Rights Agent normally sweeps on a schedule. Run the sweep now to make it settle{" "}
-        {SWEEP_PLAYS.toLocaleString()} licensed plays to your wallet from the treasury.
-      </p>
-      <button
-        onClick={() => void run()}
-        disabled={!address || busy}
-        className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-primary to-glow px-4 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
-      >
-        {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-        {busy ? "Settling on Arc…" : address ? "Run rights sweep" : "Connect wallet first"}
-      </button>
-      {msg && <p className="w-full text-[11px] text-muted-foreground">{msg}</p>}
+    <div className="space-y-3 rounded-xl border border-border bg-card/60 px-4 py-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <Zap className="h-4 w-4 shrink-0 text-glow" />
+        <p className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted-foreground">
+          Each licensed play is worth a fraction of a cent, so the agent accrues nanopayments
+          off-chain and settles the whole batch in one Arc transaction. Run a sweep to add{" "}
+          {SWEEP_PLAYS.toLocaleString()} plays.
+        </p>
+        <button
+          onClick={() => void runSweep()}
+          disabled={!address || busy !== null}
+          className="inline-flex items-center gap-2 rounded-full border border-glow/40 bg-glow/10 px-4 py-1.5 text-[11px] font-bold text-glow disabled:opacity-50"
+        >
+          {busy === "accrue" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+          {address ? "Run rights sweep" : "Connect wallet first"}
+        </button>
+      </div>
+
+      {batch && (
+        <div className="rounded-lg border border-border bg-background/70 px-3 py-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              Accruing · {batch.moveCid}
+            </p>
+            <p className="font-mono text-[11px] text-foreground">
+              {batch.plays.toLocaleString()} plays · {formatMinor(batch.microUsd)} owed ·{" "}
+              {batch.count} nanopayments
+            </p>
+          </div>
+
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-border">
+            <div
+              className="h-full rounded-full bg-linear-to-r from-primary to-glow transition-all"
+              style={{ width: `${Math.min(100, pct)}%` }}
+            />
+          </div>
+
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[10px] text-muted-foreground">
+              {pct}% of the ${batch.thresholdUsd.toFixed(2)} settlement threshold — settles
+              automatically at 100%, or force it now.
+            </p>
+            <button
+              onClick={() => void runSettle()}
+              disabled={busy !== null}
+              className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-primary to-glow px-4 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
+            >
+              {busy === "settle" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              {busy === "settle" ? "Settling on Arc…" : "Settle now"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {msg && <p className="text-[11px] text-muted-foreground">{msg}</p>}
     </div>
   );
 }
