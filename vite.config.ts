@@ -5,6 +5,11 @@
 //     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { fileURLToPath } from "node:url";
+
+const rpcWebsocketsStub = fileURLToPath(
+  new URL("./src/lib/stubs/rpc-websockets.ts", import.meta.url),
+);
 
 export default defineConfig({
   tanstackStart: {
@@ -12,4 +17,15 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    resolve: {
+      alias: [
+        // @solana/web3.js (dragged in by Circle App Kits) requires `rpc-websockets`,
+        // which has no workerd export condition. Arc settlement never uses it.
+        { find: /^rpc-websockets$/, replacement: rpcWebsocketsStub },
+        { find: /^rpc-websockets\/.*/, replacement: rpcWebsocketsStub },
+      ],
+    },
+  },
 });
+
