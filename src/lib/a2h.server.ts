@@ -101,16 +101,27 @@ function mapLogs(logs: RegistryLog[], wanted?: string): OnChainPayout[] {
   return out;
 }
 
+function errText(e: unknown) {
+  return (e instanceof Error ? e.message : String(e)).toLowerCase();
+}
+
 function isRangeError(e: unknown) {
-  const msg = (e instanceof Error ? e.message : String(e)).toLowerCase();
+  const msg = errText(e);
   return (
     msg.includes("block range") ||
+    msg.includes("range too large") ||
     msg.includes("range should work") ||
-    msg.includes("limit") ||
     msg.includes("too many") ||
     msg.includes("exceed")
   );
 }
+
+function isRateLimited(e: unknown) {
+  const msg = errText(e);
+  return msg.includes("rate limit") || msg.includes("429") || msg.includes("too many requests");
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Payouts settled by this worker instance, so a fresh sweep always shows up. */
 const sessionPayouts: OnChainPayout[] = [];
@@ -131,11 +142,15 @@ export interface PayoutHistory {
 
 /**
  * Read the registry's Logged events, newest first, optionally filtered by
- * recipient. Wide-range read first; if the provider caps the block range, fall
- * back to a chunked scan of a recent window. Never throws — degrades instead.
+ * recipient.
+ *
+ * The public Arc RPC accepts ~20k-block eth_getLogs windows and rate-limits
+ * bursts; Alchemy's free tier caps the range at 10 blocks. So we page backwards
+ * in windows, shrinking on range errors and backing off on rate limits, under
+ * an overall time budget. Never throws — degrades to whatever it managed to
+ * read plus this instance's own settlements.
  */
-// 90k stays inside the public Arc RPC's 100k max block range for eth_getLogs.
-export async function readPayouts(to?: string, lookback = 90_000n): Promise<PayoutHistory> {
+export async function readPayouts(to?: string, lookback = 100_000n): Promise<PayoutHistory> {
   const wanted = to?.toLowerCase();
   const pub = logsClient();
 
@@ -150,61 +165,51 @@ export async function readPayouts(to?: string, lookback = 90_000n): Promise<Payo
     };
   }
 
-  const fromBlock = head > lookback ? head - lookback : 0n;
-  try {
-    const logs = (await pub.getLogs({
-      address: REGISTRY,
-      event: LOGGED,
-      fromBlock,
-      toBlock: head,
-    })) as RegistryLog[];
-    return { payouts: mergeSession(mapLogs(logs, wanted), wanted), degraded: false, detail: null };
-  } catch (e) {
-    if (!isRangeError(e)) {
-      return {
-        payouts: mergeSession([], wanted),
-        degraded: true,
-        detail: e instanceof Error ? e.message : "registry_read_failed",
-      };
-    }
-  }
-
-  // Chunked fallback: recent window only, provider-safe chunk size, time budget.
-  const CHUNK = 10n;
-  const WINDOW = 1_000n;
-  const deadline = Date.now() + 8_000;
-  const start = head > WINDOW ? head - WINDOW : 0n;
+  const floor = head > lookback ? head - lookback : 0n;
+  const deadline = Date.now() + 9_000;
   const collected: RegistryLog[] = [];
+  let window = 20_000n;
+  let cursor = head;
   let lastError: string | null = null;
+  let covered = 0n;
 
-  for (let end = head; end >= start; end -= CHUNK) {
-    if (Date.now() > deadline) {
-      lastError = "partial_scan_timeout";
-      break;
-    }
-    const chunkFrom = end > CHUNK ? end - CHUNK + 1n : 0n;
+  while (cursor > floor && Date.now() < deadline) {
+    const from = cursor - window + 1n > floor ? cursor - window + 1n : floor;
     try {
       const logs = (await pub.getLogs({
         address: REGISTRY,
         event: LOGGED,
-        fromBlock: chunkFrom < start ? start : chunkFrom,
-        toBlock: end,
+        fromBlock: from,
+        toBlock: cursor,
       })) as RegistryLog[];
       collected.push(...logs);
-    } catch (err) {
-      lastError = err instanceof Error ? err.message : "chunk_read_failed";
+      covered += cursor - from + 1n;
+      cursor = from - 1n;
+    } catch (e) {
+      lastError = e instanceof Error ? e.message : "registry_read_failed";
+      if (isRangeError(e) && window > 10n) {
+        window = window / 4n > 10n ? window / 4n : 10n;
+        continue;
+      }
+      if (isRateLimited(e)) {
+        await sleep(600);
+        continue;
+      }
+      break;
     }
-    if (chunkFrom === 0n) break;
   }
 
+  const complete = cursor <= floor && covered > 0n;
   return {
     payouts: mergeSession(mapLogs(collected, wanted), wanted),
-    degraded: true,
-    detail:
-      lastError ??
-      "The RPC provider limits log queries to a small block range, so only recent history is shown.",
+    degraded: !complete,
+    detail: complete
+      ? null
+      : (lastError ??
+        "The RPC provider limits log queries, so only recent registry history is shown."),
   };
 }
+
 
 
 export interface PayoutResult {
