@@ -169,12 +169,27 @@ async function settle(input: SettleInput) {
     return {
       ok: false as const,
       reason: message.split(":")[0] ?? "payout_failed",
-      detail: message,
+      detail: humanizePayoutError(message),
       value,
       token: input.token,
     };
   }
 }
+
+/** Turn raw Circle / RPC failure strings into one readable line. */
+function humanizePayoutError(message: string): string {
+  if (message.includes("circle_tx_timeout")) {
+    return "The Arc transaction is still pending at Circle — check the treasury in a moment.";
+  }
+  if (message.includes("insufficient") || message.includes("INSUFFICIENT")) {
+    return "The treasury wallet is out of USDC gas. Top it up at faucet.circle.com and retry.";
+  }
+  if (message.startsWith("circle_")) {
+    return "Circle rejected the payout request. Nothing left the treasury — retry in a moment.";
+  }
+  return message.split(":").slice(0, 2).join(": ").slice(0, 160);
+}
+
 
 /** Record plays as a nanopayment. No chain write — this is the cheap path. */
 export function runAccruePayout(data: {
