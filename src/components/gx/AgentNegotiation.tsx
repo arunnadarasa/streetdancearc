@@ -169,6 +169,17 @@ export function AgentNegotiation() {
       const requirement =
         quote.accepts.find((a: { symbol?: string }) => a.symbol === payToken) ?? quote.accepts[0];
 
+      // Preferred path: Circle Nanopayments (Gateway batching). If the resource
+      // or the agent's Gateway balance is not ready, fall through to a direct
+      // Arc transfer so the demo never dead-ends.
+      setNanoNote("Trying Circle Nanopayments (Gateway batching)…");
+      const nano = await nanopay({ data: { url: "/api/public/purchase", body } }).catch(() => null);
+      setNanoNote(
+        nano && !nano.simulated
+          ? `Batched via Circle Nanopayments · transfer ${nano.transferId ?? "pending"}`
+          : `Circle Nanopayments unavailable (${nano?.reason ?? "no response"}) — settling directly on Arc.`,
+      );
+
       const embedded = wallets.find((w) => w.walletClientType === "privy") ?? wallets[0];
       if (!embedded?.address) throw new Error("No embedded wallet available.");
       const settled = await settleOnArc(
