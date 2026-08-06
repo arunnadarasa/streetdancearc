@@ -273,7 +273,7 @@ function SweepTrigger({
         );
         await onSettled();
       } else {
-        setMsg(res.detail ?? res.reason);
+        setMsg(res.detail);
       }
     } catch (e) {
       setMsg(e instanceof Error ? e.message : "settle_failed");
