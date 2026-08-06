@@ -78,7 +78,7 @@ async function post(path: string, body: Record<string, unknown>): Promise<Circle
       idempotencyKey: crypto.randomUUID(),
       entitySecretCiphertext: await entitySecretCiphertext(),
       walletId: env("CIRCLE_TREASURY_WALLET_ID"),
-      fee: { type: "level", config: { feeLevel: "MEDIUM" } },
+      feeLevel: "MEDIUM",
       ...body,
     }),
   });
