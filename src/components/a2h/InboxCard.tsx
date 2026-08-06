@@ -136,7 +136,7 @@ export function InboxCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className={`text-[10px] font-black uppercase tracking-[0.18em] ${k.tint}`}>
-              {result?.ok ? "Payout settled on Arc" : k.label}
+              {result?.ok ? "Payout settled on Arc" : renewed ? "Mandate renewed" : k.label}
             </span>
             <span className="text-[10px] text-muted-foreground">
               {msg.agent} &middot; {ago(msg.at)}
