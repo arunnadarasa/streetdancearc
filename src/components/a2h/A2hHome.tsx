@@ -224,6 +224,16 @@ function SweepTrigger({
   const [batch, setBatch] = useState<BatchState | null>(null);
   const [busy, setBusy] = useState<"accrue" | "settle" | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const [raw, setRaw] = useState<string | null>(null);
+  const [showRaw, setShowRaw] = useState(false);
+
+  function fail(e: unknown, fallback: string) {
+    const text = e instanceof Error ? e.message : fallback;
+    setRaw(text);
+    setShowRaw(false);
+    setMsg(shortFailure(text, fallback));
+  }
+
 
   const load = useCallback(async () => {
     if (!address) return;
@@ -239,6 +249,7 @@ function SweepTrigger({
     if (!address) return;
     setBusy("accrue");
     setMsg(null);
+    setRaw(null);
     try {
       const res = await accrue({
         data: { address, token, moveCid: SWEEP_MOVE, plays: SWEEP_PLAYS },
@@ -250,7 +261,7 @@ function SweepTrigger({
           : `Accrued ${SWEEP_PLAYS.toLocaleString()} plays off-chain. No gas spent.`,
       );
     } catch (e) {
-      setMsg(e instanceof Error ? e.message : "accrue_failed");
+      fail(e, "accrue_failed");
     } finally {
       setBusy(null);
     }
@@ -260,6 +271,7 @@ function SweepTrigger({
     if (!address) return;
     setBusy("settle");
     setMsg(null);
+    setRaw(null);
     try {
       const res = await settle({ data: { address, token, moveCid: SWEEP_MOVE } });
       if (res.ok) {
@@ -269,10 +281,12 @@ function SweepTrigger({
         );
         await onSettled();
       } else {
-        setMsg(res.detail);
+        setRaw(res.detail);
+        setShowRaw(false);
+        setMsg(shortFailure(res.detail, "settle_failed"));
       }
     } catch (e) {
-      setMsg(e instanceof Error ? e.message : "settle_failed");
+      fail(e, "settle_failed");
     } finally {
       setBusy(null);
     }
@@ -335,7 +349,48 @@ function SweepTrigger({
         </div>
       )}
 
-      {msg && <p className="text-[11px] text-muted-foreground">{msg}</p>}
+      {msg && (
+        <div className="space-y-1">
+          <p className="text-[11px] leading-relaxed text-muted-foreground">
+            {msg}
+            {raw && raw !== msg && (
+              <button
+                onClick={() => setShowRaw((v) => !v)}
+                className="ml-2 underline underline-offset-2 hover:text-foreground"
+              >
+                {showRaw ? "Hide details" : "Show details"}
+              </button>
+            )}
+          </p>
+          {showRaw && raw && (
+            <pre className="max-h-32 overflow-auto rounded-lg border border-border bg-background/70 p-2 font-mono text-[10px] leading-relaxed text-muted-foreground">
+              {raw}
+            </pre>
+          )}
+        </div>
+      )}
     </div>
   );
+}
+
+/** Collapse any provider/RPC failure text into one readable line. */
+function shortFailure(text: string, fallback: string): string {
+  const t = text.trim();
+  if (!t) return "That step failed. Nothing left the treasury — try again.";
+  if (/circle_/.test(t) || /API parameter invalid/i.test(t)) {
+    return "Circle rejected the request, so nothing left the treasury. Try the sweep again in a moment.";
+  }
+  if (/rate.?limit|429/i.test(t)) {
+    return "The Arc RPC is rate-limiting right now — wait a few seconds and retry.";
+  }
+  if (/insufficient/i.test(t)) {
+    return "The treasury is out of USDC gas. Top it up at faucet.circle.com and retry.";
+  }
+  if (/timeout/i.test(t)) {
+    return "The Arc transaction is still pending at Circle — check the treasury in a moment.";
+  }
+  if (t.length <= 140 && !t.includes("{")) return t;
+  return fallback === "accrue_failed"
+    ? "Could not record those plays. Try the sweep again."
+    : "Settlement did not go through. Nothing left the treasury — try again.";
 }
