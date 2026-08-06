@@ -342,6 +342,16 @@ export function AgentNegotiation() {
             </div>
           )}
 
+          {nanoNote && (
+            <p className="rounded-xl border border-glow/30 bg-glow/5 px-4 py-3 text-[11px] leading-relaxed text-glow">
+              {nanoNote}
+            </p>
+          )}
+
+          <CircleRailsPanel />
+
+
+
           {receipt ? (
             <section className="space-y-3 rounded-2xl border border-green-500/30 bg-green-500/5 p-5">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-green-400">On-chain receipt</p>
