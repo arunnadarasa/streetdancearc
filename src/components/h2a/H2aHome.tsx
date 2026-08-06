@@ -163,6 +163,9 @@ export function H2aHome() {
       )}
 
       <AgentRunPanel order={order} cta="Delegate this purchase to the agent" />
+
+      <CircleRailsPanel />
+
     </div>
   );
 }
