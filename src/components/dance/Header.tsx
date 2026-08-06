@@ -1,8 +1,9 @@
 import { useWallet } from "@/lib/wallet-context";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ModeToggle } from "@/components/gx/ModeToggle";
 import { PayTokenToggle } from "@/components/gx/PayTokenToggle";
+import { BalancePanel } from "@/components/wallet/BalancePanel";
 
 import logoMark from "@/assets/streetrail-logo.png";
 
@@ -21,7 +22,25 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
 
   const addr = user?.wallet?.address;
   const [scrolled, setScrolled] = useState(false);
+  const [walletOpen, setWalletOpen] = useState(false);
+  const walletRef = useRef<HTMLDivElement | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  useEffect(() => {
+    if (!walletOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (walletRef.current && !walletRef.current.contains(e.target as Node)) setWalletOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setWalletOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [walletOpen]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -110,20 +129,29 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
             </span>
           ) : (
             ready && (
-              <button
-                onClick={authenticated ? logout : login}
-                className="lift shrink-0 rounded-full bg-linear-to-r from-primary to-glow px-3 py-1.5 text-[11px] font-bold text-primary-foreground shadow-glow-sm sm:px-4 sm:py-2 sm:text-xs"
-              >
-                {authenticated
-                  ? addr
-                    ? `${addr.slice(0, 4)}…${addr.slice(-4)}`
-                    : "Sign out"
-                  : (
-                    <>
-                      Sign in<span className="hidden sm:inline"> with Google</span>
-                    </>
-                  )}
-              </button>
+              <div ref={walletRef} className="relative shrink-0">
+                <button
+                  onClick={() => (authenticated ? setWalletOpen((v) => !v) : void login())}
+                  aria-expanded={authenticated ? walletOpen : undefined}
+                  aria-haspopup={authenticated ? "dialog" : undefined}
+                  className="lift shrink-0 rounded-full bg-linear-to-r from-primary to-glow px-3 py-1.5 text-[11px] font-bold text-primary-foreground shadow-glow-sm sm:px-4 sm:py-2 sm:text-xs"
+                >
+                  {authenticated
+                    ? addr
+                      ? `${addr.slice(0, 4)}…${addr.slice(-4)}`
+                      : "Wallet"
+                    : (
+                      <>
+                        Sign in<span className="hidden sm:inline"> with Google</span>
+                      </>
+                    )}
+                </button>
+                {authenticated && walletOpen && (
+                  <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50">
+                    <BalancePanel onClose={() => setWalletOpen(false)} />
+                  </div>
+                )}
+              </div>
             )
           )}
 
