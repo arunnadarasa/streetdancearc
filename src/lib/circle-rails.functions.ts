@@ -37,7 +37,22 @@ export const payWithNanopayments = createServerFn({ method: "POST" })
     const url = data.url.startsWith("http") ? data.url : `${origin}${data.url}`;
     const supports = await nanopaySupports(url);
     if (!supports.supported) {
-      return { simulated: true, batched: false, reason: supports.reason ?? "resource_not_batching_capable" };
+      return {
+        simulated: true,
+        batched: false,
+        reason: supports.reason ?? "resource_not_batching_capable",
+        amount: null as string | null,
+        transferId: null as string | null,
+        agentAddress: null as string | null,
+      };
     }
-    return nanopay(url, data.body);
+    const res = await nanopay(url, data.body);
+    return {
+      simulated: res.simulated,
+      batched: res.batched,
+      reason: res.reason ?? null,
+      amount: res.amount ?? null,
+      transferId: res.transferId ?? null,
+      agentAddress: res.agentAddress ?? null,
+    };
   });
