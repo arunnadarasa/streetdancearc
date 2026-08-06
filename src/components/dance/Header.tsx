@@ -81,7 +81,7 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
               <Link
                 key={n.to}
                 to={n.to}
-                className={`rounded-full px-3.5 py-2 text-xs font-semibold tracking-wide transition ${
+                className={`whitespace-nowrap rounded-full px-2.5 py-2 text-xs font-semibold tracking-wide transition lg:px-3.5 ${
                   active
                     ? "bg-secondary text-foreground"
                     : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
