@@ -49,3 +49,8 @@ export function publicJwk() {
     x: b64url(ed25519.getPublicKey(seed())),
   };
 }
+
+/** Replace a mandate's placeholder signature with a real Ed25519 one. */
+export function signed<T extends { signature: string }>(mandate: T): T {
+  return { ...mandate, signature: signMandate(mandate) };
+}

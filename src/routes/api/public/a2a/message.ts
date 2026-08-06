@@ -13,6 +13,7 @@ import {
 } from "@/lib/a2a";
 import { ARC_CAIP2, DEMO_SCALE, USDC_ARC, type AgentCard } from "@/lib/agent-card";
 import { buildCartMandate, buildPaymentMandate, type CatalogItem } from "@/lib/ap2";
+import { signed } from "@/lib/mandate-sign.server";
 import { convertFromFiat } from "@/lib/tokens";
 import { getFxRates } from "@/lib/fx.server";
 import {
@@ -217,7 +218,7 @@ export const Route = createFileRoute("/api/public/a2a/message")({
             return Response.json(rpcOk(parsed.id, empty), { headers: CORS });
           }
 
-          const cart = buildCartMandate(item, 1, payTo as `0x${string}`, "streetrail-storefront");
+          const cart = signed(buildCartMandate(item, 1, payTo as `0x${string}`, "streetrail-storefront"));
           const total = cart.totals[0]?.value ?? "0";
           const requirement = {
             x402Version: 2,

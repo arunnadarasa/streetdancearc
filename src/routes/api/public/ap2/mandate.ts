@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { ARC_CAIP2, DEMO_SCALE, USDC_ARC } from "@/lib/agent-card";
 import { buildCartMandate, buildPaymentMandate, buildSpendConstraints, type CatalogItem } from "@/lib/ap2";
+import { signed } from "@/lib/mandate-sign.server";
 import { categoryFor } from "../catalog";
 import { convertFromFiat } from "@/lib/tokens";
 import { getFxRates } from "@/lib/fx.server";
@@ -79,10 +80,11 @@ export const Route = createFileRoute("/api/public/ap2/mandate")({
           return Response.json({ error: "unknown_sku", sku: parsed.data.sku }, { status: 404, headers: CORS });
         }
 
-        const cart = buildCartMandate(item, parsed.data.quantity, payTo, "streetrail-storefront");
+        const cart = signed(buildCartMandate(item, parsed.data.quantity, payTo, "streetrail-storefront"));
         const total = cart.totals[0]?.value ?? "0";
         const paymentMandate = parsed.data.payer
-          ? buildPaymentMandate(cart, parsed.data.payer as `0x${string}`)
+          ? signed(buildPaymentMandate(
+            cart, parsed.data.payer as `0x${string}`)
           : undefined;
 
         return Response.json(
