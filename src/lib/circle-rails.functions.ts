@@ -12,7 +12,7 @@ export const getCircleRails = createServerFn({ method: "GET" }).handler(async ()
   const fx = await getFxRates().catch(() => null);
   const fxUsd = [
     { token: "USDC", usd: 1 },
-    { token: "EURC", usd: Number(fx?.eurUsd ?? 1.08) },
+    { token: "EURC", usd: Number(fx?.usdPerEur ?? 1.09) },
   ];
 
   const [nanopay, discovery, balance, rates] = await Promise.all([
