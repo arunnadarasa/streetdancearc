@@ -142,3 +142,43 @@ Configuration lives in project secrets, not a committed `.env`. Names only:
 - AP2 agent payments protocol: https://ap2-protocol.org
 - A2A protocol: https://a2a-protocol.org
 - AIsa docs: https://aisa.one/docs/llms-full.txt
+
+---
+
+## Lessons learned
+
+A short, polished post-mortem covering both the hackathon sprint and the product architecture.
+
+### What worked
+
+- **One contract, one rail, four modes.** Keeping H2H, H2A, A2A and A2H payments on the same Arc testnet contract made the demo coherent and gave judges a single explorer link to verify every flow.
+- **Circle SCP + pinned solc.** Compiling, deploying and verifying `DanceMoveTokens.sol` through one script path, with `solc 0.8.24` pinned to the version Arcscan expects, saved hours of verifier mismatch.
+- **Public RPC proxy.** Routing all client JSON-RPC through `/api/public/arc-rpc` let us use an Alchemy endpoint without leaking keys in the browser bundle or mobile preview.
+- **Live FX feed.** Caching Frankfurter/CoinGecko rates server-side for five minutes made stablecoin prices feel real while staying inside free-tier limits.
+- **Real A2H payouts.** Moving the A2H inbox from mocked data to on-chain `MoveLogged` events plus Circle treasury transfers turned the agent-to-human mode from theatre into a verifiable flow.
+- **Ed25519 mandates.** Signing AP2 mandates with canonical JSON and `@noble/curves` gave the protocol layer non-repudiation without pulling in heavy crypto libraries.
+
+### What broke
+
+- **Privy app ID propagation.** Mobile previews intermittently lost `PRIVY_APP_ID`, so we added a build-time fallback and a soft-failure wallet chip instead of crashing the whole page.
+- **Circle entity secret registration.** Generating a fresh 32-byte secret and registering its ciphertext is a one-way, write-only step. A mismatch between the generated secret and the registered ciphertext blocks all SCP calls and the error looks like an auth failure.
+- **Zod negotiation schemas.** The first `SellerQuoteSchema` required fields that AIsa sometimes omitted, causing empty negotiation transcripts until we normalized optional fields.
+- **Multi-decimal arithmetic.** Mixing USDC/EURC (6 decimals) with cirBTC (8 decimals) produced off-by-100 quote bugs; we centralized `toAtomic`/`fromAtomic` helpers per token.
+- **Seeded A2H data.** The inbox initially showed fake payouts with fake transaction hashes; users rightly called it simulated, so we replaced it with live event logs.
+
+### Best practices
+
+- **Keep secrets server-side.** `CIRCLE_API_KEY`, `CIRCLE_ENTITY_SECRET`, `ARC_RPC_URL`, and `AISA_API_KEY` never ship to the browser. The only client-side credential is `PRIVY_APP_ID`, which is publishable.
+- **Use deterministic canonical JSON before signing anything.** It prevents key-order and whitespace attacks in AP2/UCP mandates.
+- **Proxy, do not embed.** Any RPC or AI key should go through a same-origin server route or server function.
+- **Treat testnet like mainnet.** Decimals, gas limits, and receipts deserve the same rigor even when the tokens have no financial value.
+- **Keep the contract small.** `DanceMoveTokens.sol` stays under 100 lines, which makes verification, auditing, and explaining it to judges easier.
+
+### What we would do differently next time
+
+- **Start schema-first for A2A messages.** We iterated the agent-card/AP2/UCP payloads while building the UI; a shared Zod/JSON Schema contract from day one would have prevented several integration rewrites.
+- **Separate the move-registry fee from merch payments earlier.** The registry currently charges a fee to log a CID; for a production merch-first product we would make provenance logging optional or sponsor it from the treasury.
+- **Add a testnet faucet and monitoring page.** Judges and new users should be able to see their balance and get gas USDC without leaving the app.
+- **Build agent e2e tests.** We validated A2A flows manually; a headless agent-client test suite would catch mandate and signature regressions.
+- **Package the chain config.** Token addresses, decimals, and ABIs should live in a generated config package rather than being scattered across `src/lib/tokens.ts` and the deployment scripts.
+- **Add a dedicated A2H notification channel.** Today the inbox polls on-chain logs; a push channel such as webhooks, email, or XMTP would make agent-to-human payouts feel immediate.
