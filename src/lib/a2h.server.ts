@@ -18,7 +18,7 @@ export const PER_PAYOUT_CAP_USD = 5;
 export const DAILY_CAP_USD = 25;
 
 /** Testnet payout size, so a funded treasury survives a day of judging. */
-export const PAYOUT_UNIT_USD = 0.002;
+export const PAYOUT_UNIT_USD = 0.001;
 
 const LOGGED = parseAbiItem(
   "event Logged(address indexed author, address indexed token, uint256 amount, string cid, uint256 at)",

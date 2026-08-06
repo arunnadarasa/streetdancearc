@@ -19,7 +19,7 @@ import { useWallet } from "@/lib/wallet-context";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FxRates } from "@/lib/tokens";
 
-const SWEEP_PLAYS = 1204;
+const SWEEP_PLAYS = 1000;
 
 export function A2hHome() {
   const [payToken] = usePayToken();
@@ -67,7 +67,7 @@ export function A2hHome() {
     const settled = chain.map(payoutToMessage);
     return [
       ...settled,
-      approvalMessage(12.8, payToken, fx),
+      approvalMessage(7.5, payToken, fx),
       ...noticeMessages(payToken, fx),
     ];
   }, [chain, payToken, fx]);
