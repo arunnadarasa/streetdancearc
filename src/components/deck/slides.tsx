@@ -484,12 +484,12 @@ function SlideDefi() {
 function SlideCriteria() {
   const rows: [string, string][] = [
     ["Meaningful use of Arc / USDC", "Contract deployed + verified, USDC as gas token"],
-    ["Programmable money flows", "Autonomous agent settlement + nanopayment royalty streams"],
-    ["Interoperable commerce", "H2H, H2A, and A2A on A2A 0.3 + AP2 + UCP + x402"],
-    ["Uses App Kits", "Unified Balance + Send in the streetwear checkout"],
-    ["Agent with decision logic", "Rights Agent picks token, fee, and files log() unattended"],
+    ["Programmable money flows", "Autonomous agent settlement + Gateway-batched nanopayments"],
+    ["Interoperable commerce", "H2H, H2A, A2A and A2H on A2A 0.3 + AP2 + UCP + x402"],
+    ["Uses App Kits", "Unified Balance for spendable USDC, Swap Kit rates behind the token toggle"],
+    ["Agent with decision logic", "Live FX + AP2 spend policy pick the token, cap, and payout"],
     ["Autonomous spending in USDC", "Treasury wallet signs via Circle SCP — no manual approval"],
-    ["Uses Agent Stack", "Circle agent-stack-starter-kits scaffolds the Rights Agent"],
+    ["Uses Agent Stack", "Buyer agent resolves services through Circle's x402 Marketplace Discovery"],
   ];
   return (
     <Slide n={12}>
