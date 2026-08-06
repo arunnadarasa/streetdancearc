@@ -56,16 +56,42 @@ export function InboxCard({
   onSettled?: () => void | Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
-  const [acted, setActed] = useState<"declined" | "claimed" | "dismissed" | null>(null);
+  const [acted, setActed] = useState<"declined" | "claimed" | "dismissed" | "deferred" | null>(
+    null,
+  );
   const [busy, setBusy] = useState(false);
+  const [renewed, setRenewed] = useState<{ expiresAt: string; mandate: unknown } | null>(null);
+  const [renewError, setRenewError] = useState<string | null>(null);
   const [result, setResult] = useState<
     | { ok: true; receiptUrl: string; value: string; token: string; mandate: unknown }
     | { ok: false; detail: string }
     | null
   >(null);
   const approve = useServerFn(approvePayout);
+  const renew = useServerFn(renewMandate);
+  const { token: payToken } = usePayToken();
   const k = KIND[msg.kind];
   const Icon = k.icon;
+
+  async function runRenew() {
+    if (!address) return;
+    setBusy(true);
+    setRenewError(null);
+    try {
+      const res = await renew({ data: { address, token: payToken, days: 90 } });
+      setRenewed({ expiresAt: res.expiresAt, mandate: res.mandate });
+      setOpen(true);
+    } catch (e) {
+      setRenewError(
+        e instanceof Error && e.message.includes("missing_secret")
+          ? "Mandate signing key is not configured on this deployment."
+          : "Could not renew the mandate right now — try again.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
 
   async function runApproval() {
     if (!msg.approval || !address) return;
