@@ -10,7 +10,9 @@ import {
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { JsonBlock } from "@/components/gx/JsonBlock";
-import { approvePayout } from "@/lib/a2h.functions";
+import { approvePayout, renewMandate } from "@/lib/a2h.functions";
+import { usePayToken } from "@/lib/pay-token";
+import { setMandateExpiry } from "@/components/a2h/a2h-feed";
 import type { A2hMessage } from "./a2h-feed";
 
 const KIND: Record<
@@ -55,16 +57,43 @@ export function InboxCard({
   onSettled?: () => void | Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
-  const [acted, setActed] = useState<"declined" | "claimed" | "dismissed" | null>(null);
+  const [acted, setActed] = useState<"declined" | "claimed" | "dismissed" | "deferred" | null>(
+    null,
+  );
   const [busy, setBusy] = useState(false);
+  const [renewed, setRenewed] = useState<{ expiresAt: string; mandate: unknown } | null>(null);
+  const [renewError, setRenewError] = useState<string | null>(null);
   const [result, setResult] = useState<
     | { ok: true; receiptUrl: string; value: string; token: string; mandate: unknown }
     | { ok: false; detail: string }
     | null
   >(null);
   const approve = useServerFn(approvePayout);
+  const renew = useServerFn(renewMandate);
+  const [payToken] = usePayToken();
   const k = KIND[msg.kind];
   const Icon = k.icon;
+
+  async function runRenew() {
+    if (!address) return;
+    setBusy(true);
+    setRenewError(null);
+    try {
+      const res = await renew({ data: { address, token: payToken, days: 90 } });
+      setMandateExpiry(res.expiresAt);
+      setRenewed({ expiresAt: res.expiresAt, mandate: res.mandate });
+      setOpen(true);
+    } catch (e) {
+      setRenewError(
+        e instanceof Error && e.message.includes("missing_secret")
+          ? "Mandate signing key is not configured on this deployment."
+          : "Could not renew the mandate right now — try again.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
 
   async function runApproval() {
     if (!msg.approval || !address) return;
@@ -109,7 +138,7 @@ export function InboxCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className={`text-[10px] font-black uppercase tracking-[0.18em] ${k.tint}`}>
-              {result?.ok ? "Payout settled on Arc" : k.label}
+              {result?.ok ? "Payout settled on Arc" : renewed ? "Mandate renewed" : k.label}
             </span>
             <span className="text-[10px] text-muted-foreground">
               {msg.agent} &middot; {ago(msg.at)}
@@ -131,6 +160,25 @@ export function InboxCard({
               Payout failed: {result.detail}
             </p>
           )}
+
+          {renewError && (
+            <p className="mt-3 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-[11px] text-destructive-foreground">
+              {renewError}
+            </p>
+          )}
+
+          {renewed && (
+            <p className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-[11px] font-bold text-foreground">
+              <BadgeCheck className="h-3.5 w-3.5 text-glow" />
+              Renewed — valid through{" "}
+              {new Date(renewed.expiresAt).toLocaleDateString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })}
+            </p>
+          )}
+
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {receipt && (
@@ -193,6 +241,28 @@ export function InboxCard({
               </>
             )}
 
+            {msg.kind === "mandate" && !acted && !renewed && (
+              <>
+                <button
+                  onClick={() => void runRenew()}
+                  disabled={busy || !address}
+                  className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-primary to-glow px-4 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
+                >
+                  {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  {busy ? "Signing mandate…" : address ? "Renew mandate" : "Connect wallet first"}
+                </button>
+                <button
+                  onClick={() => setActed("deferred")}
+                  disabled={busy}
+                  className="rounded-full border border-border px-4 py-1.5 text-[11px] font-bold text-muted-foreground hover:text-foreground"
+                >
+                  Not now
+                </button>
+              </>
+            )}
+
+
+
             {acted && (
               <span className="rounded-full border border-border bg-background/60 px-3 py-1.5 text-[11px] font-bold text-muted-foreground">
                 Recorded on the thread: {acted}
@@ -220,6 +290,13 @@ export function InboxCard({
                 <JsonBlock
                   label="AP2 payout mandate · Ed25519 signed"
                   value={result.mandate}
+                  tone="green"
+                />
+              )}
+              {renewed && (
+                <JsonBlock
+                  label="AP2 payout mandate · renewed, Ed25519 signed"
+                  value={renewed.mandate}
                   tone="green"
                 />
               )}

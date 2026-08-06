@@ -273,3 +273,36 @@ export async function runApprovePayout(data: {
 }) {
   return settle({ ...data, approved: true });
 }
+
+/**
+ * Renew the standing AP2 payout mandate.
+ * Off-chain authorization only — no Circle call, no chain write.
+ */
+export async function runRenewMandate(data: {
+  address: string;
+  token: TokenKey;
+  days: number;
+}) {
+  const fx = await getFxRates();
+  const rate = getTokenUsdRate(data.token, fx);
+  const p = places(data.token);
+  const expiresAt = new Date(Date.now() + data.days * 86_400_000).toISOString();
+  const mandate = {
+    type: "ap2.payout-mandate",
+    version: "0.1",
+    subject: `did:pkh:eip155:5042002:${data.address}`,
+    agent: "did:web:streetrail.lovable.app#rights-agent",
+    settle_token: data.token,
+    chain: ARC_CAIP2,
+    per_payout_cap: (PER_PAYOUT_CAP_USD * rate).toFixed(p),
+    daily_cap: (DAILY_CAP_USD * rate).toFixed(p),
+    notify: ["payout", "approval", "offer", "mandate"],
+    renewed_at: new Date().toISOString(),
+    expires_at: expiresAt,
+  };
+  return {
+    ok: true as const,
+    expiresAt,
+    mandate: { ...mandate, signature: signMandate(mandate) },
+  };
+}
