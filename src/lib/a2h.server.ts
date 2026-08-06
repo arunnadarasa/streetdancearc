@@ -146,41 +146,61 @@ export interface PayoutHistory {
   detail: string | null;
 }
 
+/** Short, human reason. Raw JSON-RPC text never reaches the UI. */
+function humanReason(e: unknown): string {
+  if (isRateLimited(e)) return "The public Arc RPC is rate-limiting history reads right now.";
+  if (isRangeError(e)) return "The RPC provider limits how far back log queries can reach.";
+  return "Registry history could not be read from the RPC provider.";
+}
+
+/** Last good log set, so repeat loads don't re-trigger rate limits. */
+let logCache: { at: number; logs: RegistryLog[] } | null = null;
+const CACHE_TTL_MS = 60_000;
+
+const MIN_WINDOW = 500n;
+const MAX_CALLS = 12;
+
 /**
  * Read the registry's Logged events, newest first, optionally filtered by
  * recipient.
  *
- * The public Arc RPC accepts ~20k-block eth_getLogs windows and rate-limits
- * bursts; Alchemy's free tier caps the range at 10 blocks. So we page backwards
- * in windows, shrinking on range errors and backing off on rate limits, under
- * an overall time budget. Never throws — degrades to whatever it managed to
- * read plus this instance's own settlements.
+ * The public Arc RPC rate-limits bursts and some providers cap the range, so we
+ * page backwards over a short recent window with a hard call budget and give up
+ * early rather than grinding through 429s. Never throws.
  */
-export async function readPayouts(to?: string, lookback = 100_000n): Promise<PayoutHistory> {
+export async function readPayouts(to?: string, lookback = 5_000n): Promise<PayoutHistory> {
   const wanted = to?.toLowerCase();
+
+  if (logCache && Date.now() - logCache.at < CACHE_TTL_MS) {
+    return { payouts: mergeSession(mapLogs(logCache.logs, wanted), wanted), degraded: false, detail: null };
+  }
+
   const pub = logsClient();
 
   let head: bigint;
   try {
     head = await pub.getBlockNumber();
   } catch (e) {
+    const payouts = mergeSession([], wanted);
     return {
-      payouts: mergeSession([], wanted),
-      degraded: true,
-      detail: e instanceof Error ? e.message : "rpc_unreachable",
+      payouts,
+      degraded: payouts.length === 0,
+      detail: payouts.length === 0 ? humanReason(e) : null,
     };
   }
 
   const floor = head > lookback ? head - lookback : 0n;
-  const deadline = Date.now() + 9_000;
+  const deadline = Date.now() + 8_000;
   const collected: RegistryLog[] = [];
-  let window = 20_000n;
+  let window = 2_000n;
   let cursor = head;
-  let lastError: string | null = null;
-  let covered = 0n;
+  let lastError: unknown = null;
+  let calls = 0;
+  let read = false;
 
-  while (cursor > floor && Date.now() < deadline) {
+  while (cursor > floor && Date.now() < deadline && calls < MAX_CALLS) {
     const from = cursor - window + 1n > floor ? cursor - window + 1n : floor;
+    calls += 1;
     try {
       const logs = (await pub.getLogs({
         address: REGISTRY,
@@ -189,32 +209,33 @@ export async function readPayouts(to?: string, lookback = 100_000n): Promise<Pay
         toBlock: cursor,
       })) as RegistryLog[];
       collected.push(...logs);
-      covered += cursor - from + 1n;
+      read = true;
       cursor = from - 1n;
     } catch (e) {
-      lastError = e instanceof Error ? e.message : "registry_read_failed";
-      if (isRangeError(e) && window > 10n) {
-        window = window / 4n > 10n ? window / 4n : 10n;
+      lastError = e;
+      if (isRangeError(e) && window / 4n >= MIN_WINDOW) {
+        window = window / 4n;
         continue;
       }
       if (isRateLimited(e)) {
-        await sleep(600);
+        await sleep(400 + Math.floor(Math.random() * 400));
         continue;
       }
       break;
     }
   }
 
-  const complete = cursor <= floor && covered > 0n;
+  if (read) logCache = { at: Date.now(), logs: collected };
+
+  const payouts = mergeSession(mapLogs(collected, wanted), wanted);
+  const degraded = !read && payouts.length === 0;
   return {
-    payouts: mergeSession(mapLogs(collected, wanted), wanted),
-    degraded: !complete,
-    detail: complete
-      ? null
-      : (lastError ??
-        "The RPC provider limits log queries, so only recent registry history is shown."),
+    payouts,
+    degraded,
+    detail: degraded ? humanReason(lastError) : null,
   };
 }
+
 
 
 
