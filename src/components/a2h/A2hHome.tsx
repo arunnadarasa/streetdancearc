@@ -224,6 +224,16 @@ function SweepTrigger({
   const [batch, setBatch] = useState<BatchState | null>(null);
   const [busy, setBusy] = useState<"accrue" | "settle" | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const [raw, setRaw] = useState<string | null>(null);
+  const [showRaw, setShowRaw] = useState(false);
+
+  function fail(e: unknown, fallback: string) {
+    const text = e instanceof Error ? e.message : fallback;
+    setRaw(text);
+    setShowRaw(false);
+    setMsg(shortFailure(text, fallback));
+  }
+
 
   const load = useCallback(async () => {
     if (!address) return;
