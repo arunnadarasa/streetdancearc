@@ -73,8 +73,9 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center justify-center gap-0.5 md:flex lg:gap-1">
           {NAV.map((n) => {
+
             const active = pathname.startsWith(n.to);
             return (
               <Link
