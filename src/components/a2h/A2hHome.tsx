@@ -169,10 +169,17 @@ export function A2hHome() {
         </p>
 
         {chainError && (
-          <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-200">
-            Couldn't read the registry: {chainError}
-          </p>
+          <details className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-200">
+            <summary className="cursor-pointer list-none font-semibold">
+              Registry history is temporarily limited — payouts still settle on Arc.
+              <span className="ml-1 font-normal underline opacity-70">details</span>
+            </summary>
+            <p className="mt-2 break-all font-mono text-[10px] leading-relaxed opacity-80">
+              {chainError}
+            </p>
+          </details>
         )}
+
 
         <SweepTrigger address={address} token={payToken} onSettled={refresh} />
 
