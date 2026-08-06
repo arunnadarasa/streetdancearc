@@ -56,7 +56,9 @@ export async function swapRates(fxUsdRates: { token: string; usd: number }[]): P
   try {
     const kit = await import("@circle-fin/swap-kit");
     const context = kit.createSwapKitContext();
-    const supportedChains = kit.getSupportedChains(context).map((c) => String(c.name ?? c.id ?? "chain"));
+    const supportedChains = kit
+      .getSupportedChains(context)
+      .map((c) => String((c as { name?: string }).name ?? "chain"));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const res = (await kit.getTokenRates(context, { tokens: ["USDC", "EURC"] } as any)) as unknown as {
       rates?: { token?: string; rate?: number | string }[];
