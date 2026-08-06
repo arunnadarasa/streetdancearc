@@ -7,7 +7,7 @@ export function SiteFooter() {
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
             Built for the Encode Club{" "}
             <a
-              href="https://www.encodeclub.com/programmable-money-hackathon"
+              href="https://www.encodeclub.com/programmes/arc-hackathon"
               target="_blank"
               rel="noopener noreferrer"
               className="underline underline-offset-2 hover:text-foreground"
