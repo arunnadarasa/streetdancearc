@@ -39,10 +39,11 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
       }`}
     >
       <div
-        className={`rail grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 transition-all duration-300 sm:gap-3 ${
+        className={`rail grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 transition-all duration-300 sm:gap-3 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-4 ${
           scrolled ? "py-2" : "py-2.5 sm:py-4"
         }`}
       >
+
         <Link to="/" className="group flex min-w-0 items-center gap-2 sm:gap-3">
           <span
             className={`grid shrink-0 place-items-center rounded-xl bg-linear-to-br from-primary to-glow p-1.5 shadow-glow-sm transition-all duration-300 ${
