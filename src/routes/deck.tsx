@@ -1,6 +1,8 @@
 import { SiteFooter } from "@/components/layout/SiteFooter";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { Header } from "@/components/dance/Header";
 import { Deck } from "@/components/deck/Deck";
+
 
 export const Route = createFileRoute("/deck")({
   head: () => ({
