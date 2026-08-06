@@ -39,10 +39,11 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
       }`}
     >
       <div
-        className={`rail grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 transition-all duration-300 sm:gap-3 ${
+        className={`rail grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 transition-all duration-300 sm:gap-3 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-4 ${
           scrolled ? "py-2" : "py-2.5 sm:py-4"
         }`}
       >
+
         <Link to="/" className="group flex min-w-0 items-center gap-2 sm:gap-3">
           <span
             className={`grid shrink-0 place-items-center rounded-xl bg-linear-to-br from-primary to-glow p-1.5 shadow-glow-sm transition-all duration-300 ${
@@ -72,14 +73,15 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center justify-center gap-0.5 md:flex lg:gap-1">
           {NAV.map((n) => {
+
             const active = pathname.startsWith(n.to);
             return (
               <Link
                 key={n.to}
                 to={n.to}
-                className={`rounded-full px-3.5 py-2 text-xs font-semibold tracking-wide transition ${
+                className={`whitespace-nowrap rounded-full px-2.5 py-2 text-xs font-semibold tracking-wide transition lg:px-3.5 ${
                   active
                     ? "bg-secondary text-foreground"
                     : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"

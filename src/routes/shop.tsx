@@ -70,7 +70,7 @@ function ShopPage() {
 
           <>
             <section className="aurora-bg relative">
-              <div className="rail relative flex min-h-[40vh] flex-col justify-center py-12 sm:min-h-[52vh] sm:py-24">
+              <div className="rail relative flex min-h-[40vh] flex-col justify-center py-12 sm:min-h-[52vh] sm:py-24 lg:min-h-[34vh] lg:py-16">
                 <Reveal>
                   <p className="eyebrow">Fresh drop · StreetRail Merch</p>
                 </Reveal>
@@ -111,6 +111,7 @@ function ShopPage() {
                     />
                   </Reveal>
                   <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
+
                     {products.map((p, i) => (
                       <Reveal key={p.node.id} delay={Math.min(i, 7) * 70}>
                         <ProductCard product={p} />

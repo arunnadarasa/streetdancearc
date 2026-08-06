@@ -197,83 +197,115 @@ export function AgentNegotiation() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-primary/30 bg-linear-to-br from-primary/15 via-surface to-black p-6 sm:p-8">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-glow">AIsa · A2A · AP2 · UCP</p>
-        <h2 className="mt-2 text-3xl font-black leading-tight text-foreground sm:text-4xl">
-          Let agents negotiate.
-        </h2>
-        <p className="mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
-          A buyer agent and a seller agent negotiate a streetwear deal in natural language. The seller
-          emits an AP2 cart mandate and an x402 payment requirement. The buyer agent settles on Arc
-          Testnet — all visible, all on-chain.
-        </p>
+      <section className="rounded-3xl border border-primary/30 bg-linear-to-br from-primary/15 via-surface to-black p-6 sm:p-8 lg:p-10">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] lg:items-center lg:gap-12">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-glow">AIsa · A2A · AP2 · UCP</p>
+            <h2 className="mt-2 text-3xl font-black leading-tight text-foreground sm:text-4xl lg:text-5xl">
+              Let agents negotiate.
+            </h2>
+            <p className="mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
+              A buyer agent and a seller agent negotiate a streetwear deal in natural language. The seller
+              emits an AP2 cart mandate and an x402 payment requirement. The buyer agent settles on Arc
+              Testnet — all visible, all on-chain.
+            </p>
+          </div>
+          <ul className="hidden gap-2 lg:grid">
+            {[
+              ["A2A 0.3", "message/send task loop"],
+              ["AP2", "signed cart mandate"],
+              ["x402", "402 challenge + settle"],
+              ["Arc", "on-chain receipt"],
+            ].map(([k, v]) => (
+              <li
+                key={k}
+                className="flex items-baseline justify-between gap-3 rounded-xl border border-border/70 bg-background/40 px-4 py-2.5 backdrop-blur"
+              >
+                <span className="text-xs font-black tracking-wide text-foreground">{k}</span>
+                <span className="text-[11px] text-muted-foreground">{v}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
 
-      <section className="space-y-4 rounded-2xl border border-border bg-card/70 p-5">
-        <div>
-          <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-            Buyer goal
-          </label>
-          <div className="mt-2 flex gap-2">
-            <input
-              value={goal}
-              onChange={(e) => setGoal(e.target.value)}
-              disabled={running}
-              className="flex-1 rounded-xl border border-border bg-background/60 px-4 py-3 text-sm text-foreground outline-none focus:border-primary"
-              placeholder="What should the buyer agent look for?"
-            />
-            <button
-              onClick={onRun}
-              disabled={running || loadingCatalog || catalog.length === 0}
-              className="lift flex shrink-0 items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-black text-primary-foreground disabled:opacity-50"
-            >
-              {running ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} />}
-              <span className="hidden sm:inline">{running ? "Negotiating…" : "Run agents"}</span>
-            </button>
-          </div>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] lg:items-start">
+        <div className="space-y-6">
+          <section className="space-y-4 rounded-2xl border border-border bg-card/70 p-5">
+            <div>
+              <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                Buyer goal
+              </label>
+              <div className="mt-2 flex gap-2">
+                <input
+                  value={goal}
+                  onChange={(e) => setGoal(e.target.value)}
+                  disabled={running}
+                  className="flex-1 rounded-xl border border-border bg-background/60 px-4 py-3 text-sm text-foreground outline-none focus:border-primary"
+                  placeholder="What should the buyer agent look for?"
+                />
+                <button
+                  onClick={onRun}
+                  disabled={running || loadingCatalog || catalog.length === 0}
+                  className="lift flex shrink-0 items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-black text-primary-foreground disabled:opacity-50"
+                >
+                  {running ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} />}
+                  <span className="hidden sm:inline">{running ? "Negotiating…" : "Run agents"}</span>
+                </button>
+              </div>
+            </div>
+
+            {loadingCatalog && (
+              <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="animate-spin" size={14} /> Loading catalog…
+              </p>
+            )}
+
+            {fx && (
+              <p className="text-[11px] text-muted-foreground">
+                FX: {fx.source} · 1 GBP ≈ {fx.usdPerGbp.toFixed(4)} USD · 1 EUR ≈ {fx.usdPerEur.toFixed(4)} USD
+                {fx.stale && " (fallback)"}
+              </p>
+            )}
+
+            {error && (
+              <p className="rounded-xl border border-red-500/40 bg-red-500/5 p-3 text-xs text-red-300">
+                {error}
+              </p>
+            )}
+          </section>
+
+          {transcript.length > 0 && (
+            <section className="space-y-4 rounded-2xl border border-border bg-card/70 p-5">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-glow">Negotiation transcript</p>
+                <button
+                  onClick={onRun}
+                  disabled={running}
+                  className="flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-bold text-muted-foreground hover:bg-secondary"
+                >
+                  <RotateCcw size={12} /> Rerun
+                </button>
+              </div>
+              <div className="space-y-4">
+                {transcript.map((turn, i) => (
+                  <AgentChatBubble key={i} turn={turn} />
+                ))}
+              </div>
+
+              {!finalQuote && (
+                <p className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-300">
+                  The agents did not reach a deal. Try a different goal or budget.
+                </p>
+              )}
+            </section>
+          )}
         </div>
 
-        {loadingCatalog && (
-          <p className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Loader2 className="animate-spin" size={14} /> Loading catalog…
-          </p>
-        )}
-
-        {fx && (
-          <p className="text-[11px] text-muted-foreground">
-            FX: {fx.source} · 1 GBP ≈ {fx.usdPerGbp.toFixed(4)} USD · 1 EUR ≈ {fx.usdPerEur.toFixed(4)} USD
-            {fx.stale && " (fallback)"}
-          </p>
-        )}
-
-        {error && (
-          <p className="rounded-xl border border-red-500/40 bg-red-500/5 p-3 text-xs text-red-300">
-            {error}
-          </p>
-        )}
-      </section>
-
-      {transcript.length > 0 && (
-        <section className="space-y-4 rounded-2xl border border-border bg-card/70 p-5">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-glow">Negotiation transcript</p>
-            <button
-              onClick={onRun}
-              disabled={running}
-              className="flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-bold text-muted-foreground hover:bg-secondary"
-            >
-              <RotateCcw size={12} /> Rerun
-            </button>
-          </div>
-          <div className="space-y-4">
-            {transcript.map((turn, i) => (
-              <AgentChatBubble key={i} turn={turn} />
-            ))}
-          </div>
-
+        <div className="space-y-4 lg:sticky lg:top-28">
           {finalQuote && (
             <div className="rounded-2xl border border-primary/30 bg-primary/10 p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-stretch">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-widest text-glow">Final deal</p>
                   <p className="text-sm font-bold text-foreground">
@@ -295,31 +327,35 @@ export function AgentNegotiation() {
             </div>
           )}
 
-          {!finalQuote && (
-            <p className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-300">
-              The agents did not reach a deal. Try a different goal or budget.
-            </p>
+          {receipt ? (
+            <section className="space-y-3 rounded-2xl border border-green-500/30 bg-green-500/5 p-5">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-green-400">On-chain receipt</p>
+              {explorerUrl(receipt) && (
+                <a
+                  href={explorerUrl(receipt)!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="lift inline-flex items-center gap-2 rounded-full bg-glow px-5 py-2.5 text-xs font-black text-glow-foreground"
+                >
+                  View transaction on Arcscan →
+                </a>
+              )}
+              <JsonBlock label="fulfilment object" value={receipt} tone="green" />
+            </section>
+          ) : (
+            <section className="hidden rounded-2xl border border-dashed border-border bg-card/40 p-5 lg:block">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                On-chain receipt
+              </p>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground/80">
+                Run the agents, then settle the deal — the Arc transaction receipt appears here and stays
+                pinned while you scroll the transcript.
+              </p>
+            </section>
           )}
-        </section>
-      )}
-
-      {receipt && (
-        <section className="space-y-3 rounded-2xl border border-green-500/30 bg-green-500/5 p-5">
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-green-400">On-chain receipt</p>
-          {explorerUrl(receipt) && (
-            <a
-              href={explorerUrl(receipt)!}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="lift inline-flex items-center gap-2 rounded-full bg-glow px-5 py-2.5 text-xs font-black text-glow-foreground"
-            >
-              View transaction on Arcscan →
-            </a>
-          )}
-          <JsonBlock label="fulfilment object" value={receipt} tone="green" />
-        </section>
-
-      )}
+        </div>
+      </div>
     </div>
   );
 }
+
