@@ -77,18 +77,14 @@ export interface OnChainPayout {
   blockNumber: string;
 }
 
-/** Read the registry's Logged events, newest first, optionally filtered by recipient. */
-export async function readPayouts(to?: string, lookback = 200_000n): Promise<OnChainPayout[]> {
-  const pub = client();
-  const head = await pub.getBlockNumber();
-  const fromBlock = head > lookback ? head - lookback : 0n;
-  const logs = await pub.getLogs({ address: REGISTRY, event: LOGGED, fromBlock, toBlock: head });
+type RegistryLog = Awaited<ReturnType<ReturnType<typeof logsClient>["getLogs"]>>[number] & {
+  args: { cid?: unknown; token?: unknown; amount?: unknown; at?: unknown };
+};
 
-  const wanted = to?.toLowerCase();
+function mapLogs(logs: RegistryLog[], wanted?: string): OnChainPayout[] {
   const out: OnChainPayout[] = [];
   for (const log of logs) {
-    const cid = String(log.args.cid ?? "");
-    const decoded = decodeCid(cid);
+    const decoded = decodeCid(String(log.args.cid ?? ""));
     if (!decoded) continue;
     if (wanted && decoded.to !== wanted) continue;
     const token = tokenKeyForAddress(String(log.args.token ?? ""));
@@ -97,13 +93,118 @@ export async function readPayouts(to?: string, lookback = 200_000n): Promise<OnC
       moveCid: decoded.moveCid,
       to: decoded.to,
       token,
-      value: fromAtomic(BigInt(log.args.amount ?? 0n), token),
-      atSeconds: Number(log.args.at ?? 0n),
+      value: fromAtomic(BigInt((log.args.amount as bigint | undefined) ?? 0n), token),
+      atSeconds: Number((log.args.at as bigint | undefined) ?? 0n),
       blockNumber: (log.blockNumber ?? 0n).toString(),
     });
   }
-  return out.sort((a, b) => b.atSeconds - a.atSeconds);
+  return out;
 }
+
+function isRangeError(e: unknown) {
+  const msg = (e instanceof Error ? e.message : String(e)).toLowerCase();
+  return (
+    msg.includes("block range") ||
+    msg.includes("range should work") ||
+    msg.includes("limit") ||
+    msg.includes("too many") ||
+    msg.includes("exceed")
+  );
+}
+
+/** Payouts settled by this worker instance, so a fresh sweep always shows up. */
+const sessionPayouts: OnChainPayout[] = [];
+
+function mergeSession(list: OnChainPayout[], wanted?: string): OnChainPayout[] {
+  const seen = new Set(list.map((p) => p.txHash.toLowerCase()));
+  const extra = sessionPayouts.filter(
+    (p) => !seen.has(p.txHash.toLowerCase()) && (!wanted || p.to === wanted),
+  );
+  return [...list, ...extra].sort((a, b) => b.atSeconds - a.atSeconds);
+}
+
+export interface PayoutHistory {
+  payouts: OnChainPayout[];
+  degraded: boolean;
+  detail: string | null;
+}
+
+/**
+ * Read the registry's Logged events, newest first, optionally filtered by
+ * recipient. Wide-range read first; if the provider caps the block range, fall
+ * back to a chunked scan of a recent window. Never throws — degrades instead.
+ */
+export async function readPayouts(to?: string, lookback = 200_000n): Promise<PayoutHistory> {
+  const wanted = to?.toLowerCase();
+  const pub = logsClient();
+
+  let head: bigint;
+  try {
+    head = await pub.getBlockNumber();
+  } catch (e) {
+    return {
+      payouts: mergeSession([], wanted),
+      degraded: true,
+      detail: e instanceof Error ? e.message : "rpc_unreachable",
+    };
+  }
+
+  const fromBlock = head > lookback ? head - lookback : 0n;
+  try {
+    const logs = (await pub.getLogs({
+      address: REGISTRY,
+      event: LOGGED,
+      fromBlock,
+      toBlock: head,
+    })) as RegistryLog[];
+    return { payouts: mergeSession(mapLogs(logs, wanted), wanted), degraded: false, detail: null };
+  } catch (e) {
+    if (!isRangeError(e)) {
+      return {
+        payouts: mergeSession([], wanted),
+        degraded: true,
+        detail: e instanceof Error ? e.message : "registry_read_failed",
+      };
+    }
+  }
+
+  // Chunked fallback: recent window only, provider-safe chunk size, time budget.
+  const CHUNK = 10n;
+  const WINDOW = 1_000n;
+  const deadline = Date.now() + 8_000;
+  const start = head > WINDOW ? head - WINDOW : 0n;
+  const collected: RegistryLog[] = [];
+  let lastError: string | null = null;
+
+  for (let end = head; end >= start; end -= CHUNK) {
+    if (Date.now() > deadline) {
+      lastError = "partial_scan_timeout";
+      break;
+    }
+    const chunkFrom = end > CHUNK ? end - CHUNK + 1n : 0n;
+    try {
+      const logs = (await pub.getLogs({
+        address: REGISTRY,
+        event: LOGGED,
+        fromBlock: chunkFrom < start ? start : chunkFrom,
+        toBlock: end,
+      })) as RegistryLog[];
+      collected.push(...logs);
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : "chunk_read_failed";
+    }
+    if (chunkFrom === 0n) break;
+  }
+
+  return {
+    payouts: mergeSession(mapLogs(collected, wanted), wanted),
+    degraded: true,
+    detail:
+      lastError ??
+      "The RPC provider limits log queries to a small block range, so only recent history is shown.",
+  };
+}
+
 
 export interface PayoutResult {
   transferTx: string;
