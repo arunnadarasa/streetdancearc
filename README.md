@@ -60,6 +60,21 @@ A second header toggle picks the settlement token — **USDC**, **EURC** or **ci
 
 ---
 
+## Circle products used
+
+| Product | Where it runs | Notes |
+| --- | --- | --- |
+| **Circle Wallets** | `scripts/bootstrap-circle.mjs`, `src/lib/circle.server.ts` | Developer-controlled treasury EOA on Arc Testnet — the Rights Agent's own wallet, signed with an entity secret. |
+| **Circle Contracts (SCP)** | `scripts/deploy-arc.mjs` | `DanceMoveTokens` deployed from the Circle wallet with USDC gas, no EOA private key, then verified on Arcscan. |
+| **Nanopayments** | `src/lib/nanopay.server.ts` | Gateway batching (`@circle-fin/x402-batching`) signs the EIP-3009 authorization for the A2A x402 loop; falls back to a direct Arc transfer when the agent balance is unfunded. |
+| **App Kits** | `src/lib/appkit.server.ts` | Unified Balance Kit reports spendable USDC across chains; Swap Kit quotes back the USDC / EURC / cirBTC toggle. |
+| **Gas Station** | Wallet-set policy | Sponsors agent gas on Arc. **Paymaster is intentionally unused** — USDC is already Arc's native gas token, so a USDC paymaster abstracts nothing. |
+| **Agent Stack** | `src/lib/discovery.server.ts` | The buyer agent resolves payable services through Circle's public x402 Marketplace Discovery API before negotiating. |
+
+Live status for all six is rendered in-app by `CircleRailsPanel` on the A2A and H2A screens, including the honest "unavailable, falling back" states.
+
+---
+
 ## On-chain
 
 - **Contract:** `contracts/DanceMoveTokens.sol` — `log(address token, uint256 amount, string cid)` emits `MoveLogged` after pulling the fee via `transferFrom`.
