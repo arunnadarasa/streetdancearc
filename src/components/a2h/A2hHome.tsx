@@ -66,9 +66,10 @@ export function A2hHome() {
       const res = await getPayouts({ data: address ? { address } : {} });
       setChain(res.payouts as ChainPayout[]);
       setChainError(res.error);
-    } catch (e) {
-      setChainError(e instanceof Error ? e.message : "registry_read_failed");
+    } catch {
+      setChainError("Registry history could not be read from the RPC provider right now.");
     } finally {
+
       setLoading(false);
     }
   }, [getPayouts, address]);
