@@ -30,9 +30,24 @@ function rpcUrl() {
   return process.env["ARC_RPC_URL"] || "https://rpc.testnet.arc.network";
 }
 
+/**
+ * Log reads use their own endpoint. The Alchemy Arc endpoint (ARC_RPC_URL on
+ * the free tier) caps eth_getLogs at a 10-block range, which makes registry
+ * history unreadable. The public Arc RPC has no such cap, so it is the default
+ * here; override with ARC_LOGS_RPC_URL for a paid archive endpoint.
+ */
+function logsRpcUrl() {
+  return process.env["ARC_LOGS_RPC_URL"] || "https://rpc.testnet.arc.network";
+}
+
 function client() {
   return createPublicClient({ chain: arcTestnet, transport: http(rpcUrl()) });
 }
+
+function logsClient() {
+  return createPublicClient({ chain: arcTestnet, transport: http(logsRpcUrl()) });
+}
+
 
 export function encodeCid(moveCid: string, to: string) {
   return `${CID_PREFIX}:${moveCid}:${to.toLowerCase()}`;
