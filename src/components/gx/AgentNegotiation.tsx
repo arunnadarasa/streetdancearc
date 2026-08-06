@@ -18,6 +18,8 @@ import {
 } from "@/lib/shopify";
 import { categoryFor } from "@/routes/api/public/catalog";
 import { fetchFxRates } from "@/lib/fx.functions";
+import { payWithNanopayments } from "@/lib/circle-rails.functions";
+import { CircleRailsPanel } from "./CircleRailsPanel";
 
 function explorerUrl(value: unknown): string | null {
   try {
@@ -47,9 +49,11 @@ export function AgentNegotiation() {
   const [receipt, setReceipt] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fx, setFx] = useState<FxRates | null>(null);
+  const [nanoNote, setNanoNote] = useState<string | null>(null);
 
   const negotiate = useServerFn(runNegotiation);
   const getFx = useServerFn(fetchFxRates);
+  const nanopay = useServerFn(payWithNanopayments);
 
   useEffect(() => {
     fetch(SHOPIFY_STOREFRONT_URL, {
@@ -164,6 +168,17 @@ export function AgentNegotiation() {
       // The merchant quotes all three stablecoins; take the selected one.
       const requirement =
         quote.accepts.find((a: { symbol?: string }) => a.symbol === payToken) ?? quote.accepts[0];
+
+      // Preferred path: Circle Nanopayments (Gateway batching). If the resource
+      // or the agent's Gateway balance is not ready, fall through to a direct
+      // Arc transfer so the demo never dead-ends.
+      setNanoNote("Trying Circle Nanopayments (Gateway batching)…");
+      const nano = await nanopay({ data: { url: "/api/public/purchase", body } }).catch(() => null);
+      setNanoNote(
+        nano && !nano.simulated
+          ? `Batched via Circle Nanopayments · transfer ${nano.transferId ?? "pending"}`
+          : `Circle Nanopayments unavailable (${nano?.reason ?? "no response"}) — settling directly on Arc.`,
+      );
 
       const embedded = wallets.find((w) => w.walletClientType === "privy") ?? wallets[0];
       if (!embedded?.address) throw new Error("No embedded wallet available.");
@@ -326,6 +341,16 @@ export function AgentNegotiation() {
               </div>
             </div>
           )}
+
+          {nanoNote && (
+            <p className="rounded-xl border border-glow/30 bg-glow/5 px-4 py-3 text-[11px] leading-relaxed text-glow">
+              {nanoNote}
+            </p>
+          )}
+
+          <CircleRailsPanel />
+
+
 
           {receipt ? (
             <section className="space-y-3 rounded-2xl border border-green-500/30 bg-green-500/5 p-5">

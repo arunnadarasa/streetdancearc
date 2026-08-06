@@ -4,7 +4,7 @@ import { launchMarkets, sizing } from "@/data/markets";
 const GREEN = "#4f46e5";
 const CHERRY = "#E63946";
 
-function Chrome({ n, total = 14 }: { n: number; total?: number }) {
+function Chrome({ n, total = 15 }: { n: number; total?: number }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden items-center justify-between px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground sm:flex sm:px-6 sm:py-3 sm:text-xs">
       <span>StreetRail · Arc Testnet</span>
@@ -415,10 +415,47 @@ function SlideProtocolStack() {
   );
 }
 
+// 9b — Circle product stack
+function SlideCircleStack() {
+  const rows: [string, string][] = [
+    ["Circle Wallets", "Developer-controlled treasury EOA on Arc Testnet — the Rights Agent's own wallet"],
+    ["Circle Contracts (SCP)", "DanceMoveTokens deployed and verified on Arcscan, USDC-gas deploy, no EOA key"],
+    ["Nanopayments", "Gateway batching (@circle-fin/x402-batching) signs EIP-3009 for the A2A x402 loop"],
+    ["App Kits", "Unified Balance for spendable USDC, Swap Kit rates behind the USDC/EURC/cirBTC toggle"],
+    ["Gas Station", "Sponsors agent gas on Arc. Paymaster is intentionally unused — USDC is already the gas token"],
+    ["Agent Stack", "Buyer agent discovers payable services via Circle's x402 Marketplace Discovery API"],
+  ];
+  return (
+    <Slide n={10}>
+      <Kicker>Built on Circle, end to end</Kicker>
+      <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
+        Six Circle products, <span style={{ color: GREEN }}>one rail.</span>
+      </h3>
+      <div className="mt-3 grid flex-1 content-start gap-1.5 overflow-y-auto pr-1 sm:mt-5 sm:gap-2">
+        {rows.map(([k, v]) => (
+          <div
+            key={k}
+            className="grid grid-cols-[minmax(0,0.7fr)_minmax(0,1.5fr)] items-center gap-3 rounded-lg border border-border p-2 sm:p-3"
+          >
+            <div className="text-xs font-black sm:text-base" style={{ color: GREEN }}>
+              {k}
+            </div>
+            <div className="text-[11px] text-muted-foreground sm:text-sm">{v}</div>
+          </div>
+        ))}
+      </div>
+      <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
+        Every rail degrades safely: if Gateway batching or a kit is unavailable on testnet, the
+        agent settles with a direct Arc transfer and says so in the receipt.
+      </p>
+    </Slide>
+  );
+}
+
 // 9
 function SlideDefi() {
   return (
-    <Slide n={10}>
+    <Slide n={11}>
       <Kicker>Track 2 · DeFi</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
         Programmable money <span style={{ color: GREEN }}>for the culture.</span>
@@ -447,15 +484,15 @@ function SlideDefi() {
 function SlideCriteria() {
   const rows: [string, string][] = [
     ["Meaningful use of Arc / USDC", "Contract deployed + verified, USDC as gas token"],
-    ["Programmable money flows", "Autonomous agent settlement + nanopayment royalty streams"],
-    ["Interoperable commerce", "H2H, H2A, and A2A on A2A 0.3 + AP2 + UCP + x402"],
-    ["Uses App Kits", "Unified Balance + Send in the streetwear checkout"],
-    ["Agent with decision logic", "Rights Agent picks token, fee, and files log() unattended"],
+    ["Programmable money flows", "Autonomous agent settlement + Gateway-batched nanopayments"],
+    ["Interoperable commerce", "H2H, H2A, A2A and A2H on A2A 0.3 + AP2 + UCP + x402"],
+    ["Uses App Kits", "Unified Balance for spendable USDC, Swap Kit rates behind the token toggle"],
+    ["Agent with decision logic", "Live FX + AP2 spend policy pick the token, cap, and payout"],
     ["Autonomous spending in USDC", "Treasury wallet signs via Circle SCP — no manual approval"],
-    ["Uses Agent Stack", "Circle agent-stack-starter-kits scaffolds the Rights Agent"],
+    ["Uses Agent Stack", "Buyer agent resolves services through Circle's x402 Marketplace Discovery"],
   ];
   return (
-    <Slide n={11}>
+    <Slide n={12}>
       <Kicker>How we map to the criteria</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Every judging bullet has a feature behind it.
@@ -498,7 +535,7 @@ function SlideRoadmap() {
     "Demo Day rehearsal + judge Q&A pack",
   ];
   return (
-    <Slide n={12}>
+    <Slide n={13}>
       <Kicker>Traction & Roadmap</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Working today. Shipping through <span style={{ color: GREEN }}>Demo Day.</span>
@@ -534,7 +571,7 @@ function SlideRoadmap() {
 // 12
 function SlideMarkets() {
   return (
-    <Slide n={13}>
+    <Slide n={14}>
       <Kicker>Market opportunity</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-[0.95] tracking-tight sm:text-4xl md:text-5xl">
         Street dance travels
@@ -582,7 +619,7 @@ function SlideMarkets() {
 // 13
 function SlideClose() {
   return (
-    <Slide n={14} bg="bg-background">
+    <Slide n={15} bg="bg-background">
       <div className="flex h-full flex-col justify-between">
         <Kicker>Built for Encode Club · Programmable Money Hackathon</Kicker>
         <h2 className="text-4xl font-black leading-[0.9] tracking-tight sm:text-6xl md:text-7xl">
@@ -610,6 +647,7 @@ export const slides: Array<{ id: string; render: () => ReactNode }> = [
   { id: "live", render: () => <SlideLive /> },
   { id: "agent", render: () => <SlideAgent /> },
   { id: "protocols", render: () => <SlideProtocolStack /> },
+  { id: "circle", render: () => <SlideCircleStack /> },
   { id: "defi", render: () => <SlideDefi /> },
   { id: "criteria", render: () => <SlideCriteria /> },
   { id: "roadmap", render: () => <SlideRoadmap /> },
