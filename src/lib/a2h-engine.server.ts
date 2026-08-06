@@ -29,9 +29,14 @@ export async function runListPayouts(address?: string) {
   const fx = await getFxRates();
   let payouts: OnChainPayout[] = [];
   let error: string | null = null;
+  let degraded = false;
   try {
-    payouts = await readPayouts(address);
+    const history = await readPayouts(address);
+    payouts = history.payouts;
+    degraded = history.degraded;
+    error = history.degraded ? history.detail : null;
   } catch (e) {
+    degraded = true;
     error = e instanceof Error ? e.message : "registry_read_failed";
   }
   const dayAgo = Date.now() / 1000 - 86_400;
@@ -46,9 +51,11 @@ export async function runListPayouts(address?: string) {
     spentTodayUsd,
     caps: { perPayoutUsd: PER_PAYOUT_CAP_USD, dailyUsd: DAILY_CAP_USD },
     fx,
+    degraded,
     error,
   };
 }
+
 
 interface SettleInput {
   address: string;
