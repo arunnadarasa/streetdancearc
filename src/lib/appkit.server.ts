@@ -1,11 +1,10 @@
-// Circle App Kits — Unified Balance + Swap rates, server-only.
+// Worker-safe Circle rail status adapters.
 //
-// Unified Balance answers "how much USDC can the agent actually spend right
-// now" across chains. Swap Kit backs the USDC / EURC / cirBTC toggle with
-// Circle's own token rates instead of only our FX feed.
-//
-// Both degrade to `available: false` with a reason rather than throwing —
-// Arc Testnet coverage varies and the judge demo must not dead-ends.
+// Circle's App Kit packages currently pull Solana's Anchor SDK into the server
+// bundle. Anchor executes CommonJS-only `exports.*` code during Worker startup,
+// taking down every SSR route. StreetRail settles on Arc, so these optional
+// cross-chain SDK features report a graceful fallback instead of importing the
+// incompatible packages.
 
 export interface UnifiedBalanceResult {
   available: boolean;
@@ -23,60 +22,25 @@ export interface SwapRatesResult {
   reason?: string;
 }
 
-const TREASURY = () => process.env["CIRCLE_TREASURY_ADDRESS"] ?? null;
-
 export async function unifiedBalance(address?: string): Promise<UnifiedBalanceResult> {
-  const addr = address ?? TREASURY();
-  const base: UnifiedBalanceResult = { available: false, address: addr, totalUsdc: null, chains: [] };
-  if (!addr) return { ...base, reason: "no_treasury_address" };
-  try {
-    const kit = await import("@circle-fin/unified-balance-kit");
-    const context = kit.createUnifiedBalanceKitContext();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const res = (await kit.getBalances(context, { address: addr, token: "USDC" } as any)) as unknown as {
-      total?: string | number;
-      balances?: { chain?: string; amount?: string | number }[];
-    };
-    const chains = (res.balances ?? []).map((b) => ({
-      chain: String(b.chain ?? "unknown"),
-      amount: String(b.amount ?? "0"),
-    }));
-    return {
-      available: true,
-      address: addr,
-      totalUsdc: res.total != null ? String(res.total) : chains.reduce((a, c) => a + Number(c.amount), 0).toString(),
-      chains,
-    };
-  } catch (e) {
-    return { ...base, reason: e instanceof Error ? e.message : String(e) };
-  }
+  const addr = address ?? process.env["CIRCLE_TREASURY_ADDRESS"] ?? null;
+  return {
+    available: false,
+    address: addr,
+    totalUsdc: null,
+    chains: [],
+    reason: addr ? "cross_chain_sdk_unavailable_on_worker" : "no_treasury_address",
+  };
 }
 
 export async function swapRates(fxUsdRates: { token: string; usd: number }[]): Promise<SwapRatesResult> {
-  try {
-    const kit = await import("@circle-fin/swap-kit");
-    const context = kit.createSwapKitContext();
-    const supportedChains = kit
-      .getSupportedChains(context)
-      .map((c) => String((c as { name?: string }).name ?? "chain"));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const res = (await kit.getTokenRates(context, { tokens: ["USDC", "EURC"] } as any)) as unknown as {
-      rates?: { token?: string; rate?: number | string }[];
-    };
-    const rates = (res.rates ?? [])
-      .map((r) => ({ token: String(r.token ?? ""), usd: Number(r.rate ?? 0) }))
-      .filter((r) => r.token && r.usd > 0);
-    if (!rates.length) throw new Error("swap_kit_no_rates");
-    return { available: true, source: "circle-swap-kit", rates, supportedChains };
-  } catch (e) {
-    return {
-      available: false,
-      source: "fx-fallback",
-      rates: fxUsdRates,
-      supportedChains: ["arcTestnet"],
-      reason: e instanceof Error ? e.message : String(e),
-    };
-  }
+  return {
+    available: false,
+    source: "fx-fallback",
+    rates: fxUsdRates,
+    supportedChains: ["arcTestnet"],
+    reason: "cross_chain_sdk_unavailable_on_worker",
+  };
 }
 
 /**

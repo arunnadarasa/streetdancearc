@@ -1,13 +1,13 @@
-// Circle Nanopayments (Gateway batching) — server-only.
+// Circle Nanopayments status adapter — server-only and Worker-safe.
 //
 // The buyer agent holds its own EOA so it can sign EIP-3009 authorisations
 // against Circle's Gateway Wallet. That key is DERIVED deterministically from
 // MANDATE_SIGNING_SEED, so no extra secret has to be managed by hand.
 //
-// Every path here is demo-safe: if the Gateway API, the agent balance or the
-// x402 endpoint is not batching-capable, we return a structured
-// `{ simulated: true, reason }` result and the caller falls back to the
-// existing direct Arc transfer.
+// Circle's batching SDK currently pulls Solana Anchor into the Worker bundle,
+// which crashes SSR during module initialization. Until the SDK publishes a
+// Worker-safe entry, every path returns the existing structured fallback and
+// the caller continues through direct Arc settlement.
 
 import { privateKeyToAccount } from "viem/accounts";
 
@@ -52,11 +52,6 @@ export async function agentAddress(): Promise<string> {
   return privateKeyToAccount(await agentPrivateKey()).address;
 }
 
-async function client() {
-  const { GatewayClient } = await import("@circle-fin/x402-batching/client");
-  return new GatewayClient({ chain: CHAIN, privateKey: await agentPrivateKey() });
-}
-
 /** Wallet + Gateway USDC balances for the buyer agent. */
 export async function nanopayStatus(): Promise<NanopayStatus> {
   const base: NanopayStatus = {
@@ -68,15 +63,7 @@ export async function nanopayStatus(): Promise<NanopayStatus> {
   };
   try {
     base.agentAddress = await agentAddress();
-    const gateway = await client();
-    const balances = (await gateway.getBalances()) as unknown as {
-      wallet?: { formatted?: string };
-      gateway?: { formatted?: string; available?: string };
-    };
-    base.walletUsdc = balances.wallet?.formatted ?? null;
-    base.gatewayUsdc = balances.gateway?.formatted ?? balances.gateway?.available ?? null;
-    base.available = Number(base.gatewayUsdc ?? 0) > 0;
-    if (!base.available) base.reason = "gateway_balance_zero";
+    base.reason = "batching_sdk_unavailable_on_worker";
     return base;
   } catch (e) {
     base.reason = e instanceof Error ? e.message : String(e);
@@ -86,13 +73,8 @@ export async function nanopayStatus(): Promise<NanopayStatus> {
 
 /** Does this x402 resource advertise a Circle batching option? */
 export async function nanopaySupports(url: string): Promise<{ supported: boolean; reason?: string }> {
-  try {
-    const gateway = await client();
-    const res = (await gateway.supports(url)) as unknown as { supported?: boolean };
-    return { supported: Boolean(res?.supported) };
-  } catch (e) {
-    return { supported: false, reason: e instanceof Error ? e.message : String(e) };
-  }
+  void url;
+  return { supported: false, reason: "batching_sdk_unavailable_on_worker" };
 }
 
 /**
@@ -100,39 +82,24 @@ export async function nanopaySupports(url: string): Promise<{ supported: boolean
  * Falls back to `{ simulated: true }` so the demo never dead-ends.
  */
 export async function nanopay(url: string, body?: unknown): Promise<NanopayResult> {
+  void url;
+  void body;
   const addr = await agentAddress().catch(() => null);
-  try {
-    const gateway = await client();
-    const res = (await gateway.pay(url, body ? { method: "POST", body } : undefined)) as unknown as {
-      amount?: string;
-      transferId?: string;
-      data?: unknown;
-    };
-    return {
-      simulated: false,
-      batched: true,
-      amount: res.amount,
-      transferId: res.transferId,
-      data: res.data,
-      agentAddress: addr,
-    };
-  } catch (e) {
-    return {
-      simulated: true,
-      batched: false,
-      agentAddress: addr,
-      reason: e instanceof Error ? e.message : String(e),
-    };
-  }
+  return {
+    simulated: true,
+    batched: false,
+    agentAddress: addr,
+    reason: "batching_sdk_unavailable_on_worker",
+  };
 }
 
 /** Deposit USDC from the agent EOA into its Gateway balance (one-off funding step). */
 export async function nanopayDeposit(amount: string): Promise<NanopayResult> {
-  try {
-    const gateway = await client();
-    const res = (await gateway.deposit(amount)) as unknown as { depositTxHash?: string };
-    return { simulated: false, batched: true, amount, data: res, agentAddress: await agentAddress() };
-  } catch (e) {
-    return { simulated: true, batched: false, reason: e instanceof Error ? e.message : String(e) };
-  }
+  return {
+    simulated: true,
+    batched: false,
+    amount,
+    agentAddress: await agentAddress().catch(() => null),
+    reason: "batching_sdk_unavailable_on_worker",
+  };
 }
