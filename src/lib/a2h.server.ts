@@ -242,7 +242,21 @@ export async function sendPayout(params: {
     abiParameters: [cfg.address, atomic.toString(), encodeCid(params.moveCid, params.to)],
   });
 
+  // Remember it locally so the inbox shows the settlement even when the RPC
+  // provider caps log history reads.
+  sessionPayouts.unshift({
+    txHash: registry.txHash ?? transfer.txHash ?? "",
+    moveCid: params.moveCid,
+    to: params.to.toLowerCase(),
+    token: params.token,
+    value: params.amount,
+    atSeconds: Math.floor(Date.now() / 1000),
+    blockNumber: "0",
+  });
+  if (sessionPayouts.length > 50) sessionPayouts.length = 50;
+
   return {
+
     transferTx: transfer.txHash ?? "",
     registryTx: registry.txHash ?? "",
     token: params.token,
