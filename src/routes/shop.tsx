@@ -111,6 +111,7 @@ function ShopPage() {
                     />
                   </Reveal>
                   <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
+
                     {products.map((p, i) => (
                       <Reveal key={p.node.id} delay={Math.min(i, 7) * 70}>
                         <ProductCard product={p} />
