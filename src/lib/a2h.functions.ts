@@ -7,6 +7,7 @@ import { TOKEN_KEYS, type TokenKey } from "@/lib/tokens";
 import {
   runPushPayout,
   runApprovePayout,
+  runRenewMandate,
   runListPayouts,
   runAccruePayout,
   runSettleBatch,
