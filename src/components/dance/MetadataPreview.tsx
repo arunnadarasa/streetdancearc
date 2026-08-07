@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import { Check, FileJson, RefreshCw, Upload, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, FileJson, RefreshCw } from "lucide-react";
+import { ClipPreview } from "./ClipPreview";
+
 import { useServerFn } from "@tanstack/react-start";
 import {
   DISCIPLINES,
@@ -22,8 +24,6 @@ interface Props {
   onReset: () => void;
 }
 
-const ACCEPT = "video/mp4,video/quicktime,video/webm,image/jpeg,image/png,image/webp,image/gif";
-
 export function MetadataPreview({
   token,
   amount,
@@ -40,9 +40,6 @@ export function MetadataPreview({
   const [media, setMedia] = useState<MoveMedia | null>(null);
   const [preview, setPreview] = useState<{ json: string; cid: string; pinned: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
   const pinJson = useServerFn(pinMoveMetadata);
 
   const meta = buildMoveMetadata({ move, discipline, rightsHolder, license, token, amount, media });
@@ -56,34 +53,6 @@ export function MetadataPreview({
     }
   }, [json, preview, onReset]);
 
-  async function onFile(file: File) {
-    setUploadError(null);
-    if (file.size > maxUploadBytes) {
-      setUploadError(`Clip is too large (max ${Math.round(maxUploadBytes / 1024 / 1024)} MB).`);
-      return;
-    }
-    setUploading(true);
-    try {
-      const form = new FormData();
-      form.append("file", file, file.name);
-      form.append("name", file.name);
-      const res = await fetch("/api/public/pin", { method: "POST", body: form });
-      const body = (await res.json()) as Partial<MoveMedia> & { error?: string };
-      if (!res.ok || !body.cid) throw new Error(body.error ?? "Upload failed.");
-      setMedia({
-        cid: body.cid,
-        uri: body.uri ?? `ipfs://${body.cid}`,
-        gateway: body.gateway ?? "",
-        mimeType: body.mimeType ?? file.type,
-        size: body.size ?? file.size,
-      });
-    } catch (e) {
-      setUploadError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
-  }
 
   async function onPreview() {
     setBusy(true);
@@ -162,58 +131,19 @@ export function MetadataPreview({
       </div>
 
       {pinningEnabled && (
-        <div className="rounded-lg border border-border/60 bg-surface p-3">
+        <div className="space-y-2">
           <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
             Move clip (optional evidence)
           </p>
-          {media ? (
-            <div className="mt-2 flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="truncate text-xs text-foreground">
-                  {media.mimeType.startsWith("video/") ? "Clip" : "Image"} pinned ·{" "}
-                  {(media.size / 1024 / 1024).toFixed(2)} MB
-                </p>
-                <a
-                  href={media.gateway}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block break-all text-[11px] text-glow hover:underline"
-                >
-                  {media.uri}
-                </a>
-              </div>
-              <button
-                type="button"
-                onClick={() => setMedia(null)}
-                aria-label="Remove clip"
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:text-foreground"
-              >
-                <X className="h-4 w-4" aria-hidden />
-              </button>
-            </div>
-          ) : (
-            <>
-              <input
-                ref={fileRef}
-                type="file"
-                accept={ACCEPT}
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) void onFile(f);
-                }}
-                className="mt-2 block w-full text-xs text-muted-foreground file:mr-3 file:h-9 file:cursor-pointer file:rounded-full file:border file:border-border file:bg-background/60 file:px-4 file:text-xs file:font-bold file:text-foreground"
-              />
-              <p className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
-                <Upload className="h-3 w-3" aria-hidden />
-                {uploading
-                  ? "Pinning to IPFS…"
-                  : `MP4, MOV, WebM or an image · max ${Math.round(maxUploadBytes / 1024 / 1024)} MB`}
-              </p>
-            </>
-          )}
-          {uploadError && <p className="mt-1 text-[11px] text-red-400">{uploadError}</p>}
+          <ClipPreview
+            media={media}
+            maxUploadBytes={maxUploadBytes}
+            onPinned={setMedia}
+            onClear={() => setMedia(null)}
+          />
         </div>
       )}
+
 
       {preview ? (
         <div className="space-y-3">
@@ -249,7 +179,7 @@ export function MetadataPreview({
         <button
           type="button"
           onClick={() => void onPreview()}
-          disabled={busy || uploading}
+          disabled={busy}
           className="h-10 w-full rounded-full border border-border bg-surface px-4 text-sm font-bold text-foreground transition hover:border-primary disabled:opacity-50"
         >
           {busy ? (pinningEnabled ? "Pinning metadata…" : "Hashing…") : "Preview metadata & CID"}

@@ -126,16 +126,29 @@ function base32(bytes: Uint8Array): string {
  * `add --raw-leaves --cid-version 1` would produce for this exact JSON body.
  */
 export async function computeCid(json: string): Promise<string> {
-  const body = new TextEncoder().encode(json);
-  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", body));
-  const bytes = new Uint8Array(4 + digest.length);
-  bytes[0] = 0x01; // CIDv1
-  bytes[1] = 0x55; // raw
-  bytes[2] = 0x12; // sha2-256
-  bytes[3] = 0x20; // 32 bytes
-  bytes.set(digest, 4);
-  return `b${base32(bytes)}`;
+  return computeBytesCid(new TextEncoder().encode(json));
 }
+
+/**
+ * Content hash for arbitrary bytes (a move clip), as a CIDv1/raw/sha2-256.
+ * For files under the 256 KiB IPFS block size this is byte-identical to the
+ * pinned CID; above it, IPFS chunks the file, so treat this as a local
+ * integrity hash and compare it with the CID Pinata returns.
+ */
+export async function computeBytesCid(bytes: Uint8Array): Promise<string> {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes as BufferSource));
+  const out = new Uint8Array(4 + digest.length);
+  out[0] = 0x01; // CIDv1
+  out[1] = 0x55; // raw
+  out[2] = 0x12; // sha2-256
+  out[3] = 0x20; // 32 bytes
+  out.set(digest, 4);
+  return `b${base32(out)}`;
+}
+
+/** Single-block threshold: below it our local CID matches the pinned CID. */
+export const IPFS_BLOCK_BYTES = 256 * 1024;
+
 
 export function serializeMetadata(meta: MoveMetadata): string {
   return JSON.stringify(meta, null, 2);
