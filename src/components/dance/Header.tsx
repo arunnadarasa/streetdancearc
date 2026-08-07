@@ -81,7 +81,7 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
             />
           </span>
           <span className="min-w-0">
-            <span className="display block truncate text-[13px] leading-tight text-foreground sm:text-lg">
+            <span className="display block text-[15px] leading-tight text-foreground sm:text-lg">
               StreetRail
             </span>
             <span
@@ -94,6 +94,7 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
 
           </span>
         </Link>
+
 
         <nav className="hidden items-center justify-center gap-0.5 md:flex lg:gap-1">
           {NAV.map((n) => {
@@ -120,17 +121,20 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
           <span className="hidden sm:inline-flex">
             <PayTokenToggle />
           </span>
-          <ModeToggle />
+          <span className="hidden md:inline-flex">
+            <ModeToggle />
+          </span>
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <button
                 type="button"
                 aria-label="Open menu"
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-background/60 text-foreground transition hover:bg-secondary md:hidden"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-background/60 text-foreground transition hover:bg-secondary md:hidden"
               >
                 <Menu className="h-5 w-5" />
               </button>
             </SheetTrigger>
+
             <SheetContent side="right" className="w-[min(20rem,calc(100vw-2rem))] border-border bg-card p-0">
               <SheetHeader className="border-b border-border p-4 text-left">
                 <SheetTitle className="display text-left text-sm">StreetRail</SheetTitle>
@@ -155,16 +159,23 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
                   );
                 })}
               </nav>
-              <div className="space-y-4 border-t border-border p-4">
+              <div className="space-y-5 border-t border-border p-4">
+                {extra ? (
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">Cart</span>
+                    <span onClick={() => setMobileOpen(false)} className="inline-flex">{extra}</span>
+                  </div>
+                ) : null}
                 <div className="flex flex-col gap-2">
                   <span className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">Mode</span>
-                  <ModeToggle />
+                  <ModeToggle full />
                 </div>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 border-t border-border pt-4">
                   <span className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">Currency</span>
                   <PayTokenToggle />
                 </div>
               </div>
+
             </SheetContent>
           </Sheet>
 
@@ -183,7 +194,8 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
                   onClick={() => (authenticated ? setWalletOpen((v) => !v) : void login())}
                   aria-expanded={authenticated ? walletOpen : undefined}
                   aria-haspopup={authenticated ? "dialog" : undefined}
-                  className="lift shrink-0 rounded-full bg-linear-to-r from-primary to-glow px-3 py-1.5 text-[11px] font-bold text-primary-foreground shadow-glow-sm sm:px-4 sm:py-2 sm:text-xs"
+                  className="lift flex h-11 shrink-0 items-center rounded-full bg-linear-to-r from-primary to-glow px-3 text-[11px] font-bold text-primary-foreground shadow-glow-sm sm:h-auto sm:px-4 sm:py-2 sm:text-xs"
+
                 >
                   {authenticated
                     ? addr
@@ -206,6 +218,11 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
 
         </div>
       </div>
+
+      <div className={`rail pb-2 md:hidden ${scrolled ? "pt-0" : "pt-0.5"}`}>
+        <ModeToggle full />
+      </div>
     </header>
+
   );
 }
