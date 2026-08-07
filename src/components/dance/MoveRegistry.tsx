@@ -1,5 +1,6 @@
 import { TreasuryCard } from "@/components/dance/TreasuryCard";
 import { MintForm } from "@/components/dance/MintForm";
+import { ReceiptHistoryPanel } from "@/components/dance/ReceiptHistoryPanel";
 import { SectionHead } from "@/components/layout/Section";
 import { Reveal } from "@/components/layout/Reveal";
 
