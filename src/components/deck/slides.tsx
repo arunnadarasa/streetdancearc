@@ -4,7 +4,7 @@ import { launchMarkets, sizing } from "@/data/markets";
 const GREEN = "#4f46e5";
 const CHERRY = "#E63946";
 
-function Chrome({ n, total = 15 }: { n: number; total?: number }) {
+function Chrome({ n, total = 16 }: { n: number; total?: number }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden items-center justify-between px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground sm:flex sm:px-6 sm:py-3 sm:text-xs">
       <span>StreetRail · Arc Testnet</span>
@@ -303,7 +303,8 @@ function SlideA2h() {
       <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
         In StreetRail the Rights Agent pays the choreographer in USDC the moment a move earns,
         pauses when the payout breaks the AP2 mandate, and drops an Arcscan receipt in a payout
-        inbox. Same standards stack, run outbound.
+        inbox. Every mandate carries an on-chain authorization block; renewing it extends both the
+        Ed25519 mandate and the contract approval.
       </p>
     </Slide>
   );
@@ -333,17 +334,32 @@ function SlideLive() {
           </div>
         ))}
       </div>
-      <div className="mt-auto rounded-xl border border-border bg-background p-3 sm:p-5">
-        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
-          DanceMoveTokens.sol
-        </div>
-        <div className="mt-1 break-all font-mono text-[11px] sm:text-sm">
-          0x4d13b45f823f8944522890c20d8695b6005465f0
-        </div>
-        <div className="mt-1 text-[11px] text-muted-foreground sm:text-sm">
-          Verified on Arcscan · USDC · EURC · cirBTC supported
-        </div>
+      <div className="mt-auto grid gap-2 sm:grid-cols-2 sm:gap-4">
+        {[
+          {
+            name: "DanceMoveTokens.sol",
+            addr: "0x4d13b45f823f8944522890c20d8695b6005465f0",
+            note: "Move + purchase log · USDC · EURC · cirBTC",
+          },
+          {
+            name: "StreetRailAuthorizer.sol",
+            addr: "0x0519c703cde7cbff6829fdfdcfe8c9a4c7aac327",
+            note: "ERC-1271 authorization · owner is the treasury wallet",
+          },
+        ].map((c) => (
+          <div key={c.name} className="rounded-xl border border-border bg-background p-3 sm:p-5">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
+              {c.name}
+            </div>
+            <div className="mt-1 break-all font-mono text-[11px] sm:text-sm">{c.addr}</div>
+            <div className="mt-1 text-[11px] text-muted-foreground sm:text-sm">{c.note}</div>
+          </div>
+        ))}
       </div>
+      <p className="mt-3 text-[11px] text-muted-foreground sm:text-sm">
+        Both verified on Arcscan. Live wallet balances, agent discovery and payout receipts read
+        straight off Arc — nothing in the demo is mocked.
+      </p>
     </Slide>
   );
 }
@@ -418,7 +434,8 @@ function SlideProtocolStack() {
       <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
         Buyer and seller agents negotiate live in GX mode, then settle on-chain. In A2H the same
         stack runs outbound: the AP2 mandate is the standing authorization, x402 settles, Arc is
-        the receipt.
+        the receipt — and the mandate digest is anchored on-chain, so a counterparty can verify it
+        without ever calling StreetRail.
       </p>
     </Slide>
   );
@@ -433,6 +450,7 @@ function SlideCircleStack() {
     ["App Kits", "Unified Balance for spendable USDC, Swap Kit rates behind the USDC/EURC/cirBTC toggle"],
     ["Gas Station", "Sponsors agent gas on Arc. Paymaster is intentionally unused — USDC is already the gas token"],
     ["Agent Stack", "Buyer agent discovers payable services via Circle's x402 Marketplace Discovery API"],
+    ["ERC-1271 authorizer", "Treasury-owned contract signs for the agent — Gateway actions need no EOA delegate"],
   ];
   return (
     <Slide n={10}>
@@ -461,10 +479,64 @@ function SlideCircleStack() {
   );
 }
 
+// 9c — ERC-1271 on-chain authorization
+function SlideOnChainAuth() {
+  const modes: [string, string][] = [
+    [
+      "Approved digest",
+      "The treasury sends one transaction to approve a mandate digest. isValidSignature(digest, 0x) then returns the magic value. No delegate, no exported key.",
+    ],
+    [
+      "Delegate signer",
+      "Optional: a time-boxed EOA may sign digests on the treasury's behalf. Revocable on-chain, expires by default.",
+    ],
+  ];
+  return (
+    <Slide n={11}>
+      <Kicker>On-chain authorization</Kicker>
+      <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
+        The treasury signs for the agent — <span style={{ color: GREEN }}>no EOA delegate.</span>
+      </h3>
+      <div className="mt-3 grid gap-2 sm:mt-5 sm:grid-cols-2 sm:gap-4">
+        {modes.map(([k, v]) => (
+          <div key={k} className="rounded-xl border border-border p-3 sm:p-5">
+            <div className="text-sm font-black sm:text-lg" style={{ color: GREEN }}>
+              {k}
+            </div>
+            <p className="mt-1.5 text-[11px] text-muted-foreground sm:text-sm">{v}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2 sm:gap-4">
+        <div className="rounded-xl border border-border bg-background p-3 sm:p-4">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
+            Approved digest
+          </div>
+          <div className="mt-1 font-mono text-sm font-black sm:text-lg" style={{ color: GREEN }}>
+            0x1626ba7e
+          </div>
+        </div>
+        <div className="rounded-xl border border-border bg-background p-3 sm:p-4">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
+            Unknown digest
+          </div>
+          <div className="mt-1 font-mono text-sm font-black sm:text-lg" style={{ color: CHERRY }}>
+            0xffffffff
+          </div>
+        </div>
+      </div>
+      <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
+        StreetRailAuthorizer · 0x0519c703cde7cbff6829fdfdcfe8c9a4c7aac327 · verified on Arcscan.
+        Anyone can check a mandate at /api/public/erc1271/authorizer.
+      </p>
+    </Slide>
+  );
+}
+
 // 9
 function SlideDefi() {
   return (
-    <Slide n={11}>
+    <Slide n={12}>
       <Kicker>Track 2 · DeFi</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
         Programmable money <span style={{ color: GREEN }}>for the culture.</span>
@@ -499,9 +571,10 @@ function SlideCriteria() {
     ["Agent with decision logic", "Live FX + AP2 spend policy pick the token, cap, and payout"],
     ["Autonomous spending in USDC", "Treasury wallet signs via Circle SCP — no manual approval"],
     ["Uses Agent Stack", "Buyer agent resolves services through Circle's x402 Marketplace Discovery"],
+    ["Verifiable authorization", "ERC-1271 contract returns 0x1626ba7e for an approved mandate digest"],
   ];
   return (
-    <Slide n={12}>
+    <Slide n={13}>
       <Kicker>How we map to the criteria</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Every judging bullet has a feature behind it.
@@ -534,6 +607,8 @@ function SlideRoadmap() {
     "Privy Google login + embedded wallet",
     "7 SKUs live in Shopify (dev store)",
     "USDC / EURC / cirBTC token switcher",
+    "ERC-1271 authorizer verified on Arcscan",
+    "Circle x402 Discovery wired into negotiation",
     "Mobile-tuned end to end",
   ];
   const next = [
@@ -544,7 +619,7 @@ function SlideRoadmap() {
     "Demo Day rehearsal + judge Q&A pack",
   ];
   return (
-    <Slide n={13}>
+    <Slide n={14}>
       <Kicker>Traction & Roadmap</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Working today. Shipping through <span style={{ color: GREEN }}>Demo Day.</span>
@@ -580,7 +655,7 @@ function SlideRoadmap() {
 // 12
 function SlideMarkets() {
   return (
-    <Slide n={14}>
+    <Slide n={15}>
       <Kicker>Market opportunity</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-[0.95] tracking-tight sm:text-4xl md:text-5xl">
         Street dance travels
@@ -628,7 +703,7 @@ function SlideMarkets() {
 // 13
 function SlideClose() {
   return (
-    <Slide n={15} bg="bg-background">
+    <Slide n={16} bg="bg-background">
       <div className="flex h-full flex-col justify-between">
         <Kicker>Built for Encode Club · Programmable Money Hackathon</Kicker>
         <h2 className="text-4xl font-black leading-[0.9] tracking-tight sm:text-6xl md:text-7xl">
@@ -657,6 +732,7 @@ export const slides: Array<{ id: string; render: () => ReactNode }> = [
   { id: "agent", render: () => <SlideAgent /> },
   { id: "protocols", render: () => <SlideProtocolStack /> },
   { id: "circle", render: () => <SlideCircleStack /> },
+  { id: "onchain-auth", render: () => <SlideOnChainAuth /> },
   { id: "defi", render: () => <SlideDefi /> },
   { id: "criteria", render: () => <SlideCriteria /> },
   { id: "roadmap", render: () => <SlideRoadmap /> },
