@@ -81,7 +81,7 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
             />
           </span>
           <span className="min-w-0">
-            <span className="display block truncate text-[13px] leading-tight text-foreground sm:text-lg">
+            <span className="display block text-[15px] leading-tight text-foreground sm:text-lg">
               StreetRail
             </span>
             <span
@@ -94,6 +94,7 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
 
           </span>
         </Link>
+
 
         <nav className="hidden items-center justify-center gap-0.5 md:flex lg:gap-1">
           {NAV.map((n) => {
