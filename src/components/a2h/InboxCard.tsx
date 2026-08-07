@@ -13,6 +13,7 @@ import { JsonBlock } from "@/components/gx/JsonBlock";
 import { approvePayout, renewMandate } from "@/lib/a2h.functions";
 import { usePayToken } from "@/lib/pay-token";
 import { setMandateExpiry } from "@/components/a2h/a2h-feed";
+import { OnChainAuthRow, type OnChainAuthView } from "./OnChainAuthRow";
 import type { A2hMessage } from "./a2h-feed";
 
 const KIND: Record<
@@ -61,10 +62,21 @@ export function InboxCard({
     null,
   );
   const [busy, setBusy] = useState(false);
-  const [renewed, setRenewed] = useState<{ expiresAt: string; mandate: unknown } | null>(null);
+  const [renewed, setRenewed] = useState<{
+    expiresAt: string;
+    mandate: unknown;
+    onChainAuth?: OnChainAuthView;
+  } | null>(null);
   const [renewError, setRenewError] = useState<string | null>(null);
   const [result, setResult] = useState<
-    | { ok: true; receiptUrl: string; value: string; token: string; mandate: unknown }
+    | {
+        ok: true;
+        receiptUrl: string;
+        value: string;
+        token: string;
+        mandate: unknown;
+        onChainAuth?: OnChainAuthView;
+      }
     | { ok: false; detail: string }
     | null
   >(null);
@@ -81,7 +93,11 @@ export function InboxCard({
     try {
       const res = await renew({ data: { address, token: payToken, days: 90 } });
       setMandateExpiry(res.expiresAt);
-      setRenewed({ expiresAt: res.expiresAt, mandate: res.mandate });
+      setRenewed({
+        expiresAt: res.expiresAt,
+        mandate: res.mandate,
+        onChainAuth: res.onChainAuth as OnChainAuthView,
+      });
       setOpen(true);
     } catch (e) {
       setRenewError(
@@ -115,6 +131,7 @@ export function InboxCard({
           value: res.value,
           token: res.token,
           mandate: res.mandate,
+          onChainAuth: res.onChainAuth as OnChainAuthView,
         });
         await onSettled?.();
       } else {
@@ -179,6 +196,8 @@ export function InboxCard({
             </p>
           )}
 
+          {result?.ok && result.onChainAuth ? <OnChainAuthRow auth={result.onChainAuth} /> : null}
+          {renewed?.onChainAuth ? <OnChainAuthRow auth={renewed.onChainAuth} /> : null}
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {receipt && (
