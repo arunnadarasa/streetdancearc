@@ -100,7 +100,7 @@ export const claimOffer = createServerFn({ method: "POST" })
       token: TokenKey;
       offerId: string;
       title: string;
-      usd: number;
+      value: string;
       expiresInHours?: number;
     }) =>
       z
@@ -109,7 +109,7 @@ export const claimOffer = createServerFn({ method: "POST" })
           token: TokenEnum,
           offerId: z.string().min(1).max(80),
           title: z.string().min(1).max(160),
-          usd: z.number().min(0).max(500),
+          value: z.string().regex(/^\d+(\.\d+)?$/),
           expiresInHours: z.number().min(1).max(720).default(6),
         })
         .parse(input),

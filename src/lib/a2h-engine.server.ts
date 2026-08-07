@@ -326,7 +326,7 @@ export async function runClaimOffer(data: {
       agent: "did:web:streetrail.lovable.app#drop-agent",
       subject: { address: data.address, network: ARC_CAIP2, chainId: 5042002 },
       offer: { id: data.offerId, title: data.title },
-      amount: { value, asset: data.token, usd: data.usd.toFixed(4) },
+      amount: { value, asset: data.token, usd: usd.toFixed(4) },
       authorization: "standing_mandate",
       proof: [{ scheme: "evm-tx", role: "registry-log", txHash, network: ARC_CAIP2 }],
       issuedAt: new Date().toISOString(),
