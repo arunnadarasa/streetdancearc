@@ -121,17 +121,20 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
           <span className="hidden sm:inline-flex">
             <PayTokenToggle />
           </span>
-          <ModeToggle />
+          <span className="hidden md:inline-flex">
+            <ModeToggle />
+          </span>
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <button
                 type="button"
                 aria-label="Open menu"
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-background/60 text-foreground transition hover:bg-secondary md:hidden"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-background/60 text-foreground transition hover:bg-secondary md:hidden"
               >
                 <Menu className="h-5 w-5" />
               </button>
             </SheetTrigger>
+
             <SheetContent side="right" className="w-[min(20rem,calc(100vw-2rem))] border-border bg-card p-0">
               <SheetHeader className="border-b border-border p-4 text-left">
                 <SheetTitle className="display text-left text-sm">StreetRail</SheetTitle>
