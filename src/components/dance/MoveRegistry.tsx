@@ -26,7 +26,10 @@ export function MoveRegistry({
         </div>
       </Reveal>
       <Reveal delay={120}>
-        <MintForm />
+        <div className="space-y-6">
+          <MintForm />
+          <ReceiptHistoryPanel />
+        </div>
       </Reveal>
     </div>
   );
