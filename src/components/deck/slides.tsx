@@ -752,7 +752,7 @@ function SlideMarkets() {
 // 13
 function SlideClose() {
   return (
-    <Slide n={16} bg="bg-background">
+    <Slide n={17} bg="bg-background">
       <div className="flex h-full flex-col justify-between">
         <Kicker>Built for Encode Club · Programmable Money Hackathon</Kicker>
         <h2 className="text-4xl font-black leading-[0.9] tracking-tight sm:text-6xl md:text-7xl">
