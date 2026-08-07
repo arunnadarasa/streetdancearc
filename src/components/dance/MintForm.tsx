@@ -261,12 +261,19 @@ export function MintForm() {
       )}
 
       <button
-        disabled={busy}
+        disabled={busy || (authenticated && !cid)}
         onClick={onSubmit}
         className="h-12 w-full rounded-full bg-primary px-4 text-base font-bold text-primary-foreground transition hover:bg-primary/85 disabled:opacity-50"
       >
-        {busy ? "Working…" : authenticated ? "Approve & Log Move" : "Sign in with Google"}
+        {busy
+          ? "Working…"
+          : !authenticated
+            ? "Sign in with Google"
+            : cid
+              ? "Step 2 · Approve & Log Move"
+              : "Preview metadata first"}
       </button>
+
 
       {status && <p className="text-sm text-muted-foreground">{status}</p>}
       {txHash && (
