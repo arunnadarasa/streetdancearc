@@ -148,7 +148,7 @@ npm install
 npm run dev
 ```
 
-Configuration lives in project secrets, not a committed `.env`. Names only:
+The project uses **Lovable Cloud** for managed PostgreSQL, Auth, and Storage. Runtime configuration lives in project secrets, not a committed `.env`. Names only:
 
 | Name                             | Used for                                   |
 | -------------------------------- | ------------------------------------------ |
