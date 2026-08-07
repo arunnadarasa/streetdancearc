@@ -52,6 +52,8 @@ The **Treasury Panel** in the A2H inbox surfaces the treasury address and its li
 The `/moves` page is now a full registry console:
 
 - **Metadata preview step.** Before logging a move, dancers fill move name, discipline, rights holder and license, then preview the exact JSON and the IPFS CIDv1 it hashes to. Logging is blocked until the CID is confirmed, so the on-chain record matches the off-chain metadata.
+- **Clip evidence pinned to IPFS.** With a `PINATA_JWT` configured, the metadata step accepts an optional move clip (MP4/MOV/WebM or image, max 25 MB). The clip is pinned through `POST /api/public/pin` (size cap and MIME allowlist enforced server-side), the metadata JSON gains a `media` block plus ERC-721 display fields (`name`, `description`, `animation_url`), and the JSON itself is pinned so the CID actually resolves. Without the key the field is hidden and the locally computed CID preview still works.
+- **Move NFTs.** Logging a move also mints an ERC-721 "StreetRail Move Rights" token to the dancer's wallet, agent-side from the treasury, so the dancer pays no gas and sees no extra prompt. `MoveNftGallery` lists the tokens held by the connected wallet with clip playback, discipline, licence and an Arcscan link.
 - **Receipt history panel.** Every `log()` call is listed newest-first with kind classification (move log, A2H payout, offer claim, nanopayment batch), formatted token amount, block number, success/failure status, and a clickable Arcscan link. History is read with a chunked, rate-limit-aware log sweep and cached for 45 seconds so public RPC limits don't break the UI.
 
 ### Live totals & FX transparency
@@ -120,6 +122,14 @@ The buyer agent does not hardcode StreetRail's checkout URL. Instead it calls Ci
 - **Deploy path:** Circle Smart Contract Platform, via the scripts below.
 - **Compiler:** `solc 0.8.24`, pinned to match the Arcscan verifier.
 
+### Move Rights NFT (ERC-721)
+
+Circle's pre-audited ERC-721 SCP template (`76b83278-50e2-4006-8b63-5b1a2a814533`) deployed to Arc Testnet from the dev-controlled treasury wallet — no custom Solidity, USDC gas.
+
+- **Deployed:** [`0x84546970f5265f31ae1523a1e3bf18938670702f`](https://testnet.arcscan.app/address/0x84546970f5265f31ae1523a1e3bf18938670702f) — `StreetRail Move Rights` / `MOVE`, 5% royalty to the treasury, ERC-721 Enumerable.
+- **Mint:** `mintTo(address,string)` executed from the treasury via Circle `contractExecution`, with an `ipfs://<cid>` token URI.
+- **Deploy script:** `node scripts/deploy-nft-arc.mjs` (writes `src/data/move-nft.json`).
+
 ### Treasury authorization (ERC-1271)
 
 `contracts/StreetRailAuthorizer.sol` is a lightweight ERC-1271 authorizer for the treasury/agent wallet, so Gateway actions can be authorized without an EOA delegate.
@@ -182,6 +192,8 @@ The project uses **Lovable Cloud** for managed PostgreSQL, Auth, and Storage. Ru
 | `CIRCLE_TREASURY_WALLET_ID`      | Deployer / treasury wallet                 |
 | `CIRCLE_TREASURY_ADDRESS`        | Treasury address surfaced in the UI        |
 | `AISA_API_KEY`                   | AIsa agent reasoning and negotiation       |
+| `PINATA_JWT`                     | Optional — pins move clips and metadata to IPFS |
+| `PINATA_GATEWAY`                 | Optional dedicated Pinata gateway host     |
 | `COINGECKO_API_KEY`              | Optional CoinGecko demo/pro key for BTC/USD FX |
 | `VITE_SHOPIFY_DOMAIN`            | Shopify store domain                       |
 | `VITE_SHOPIFY_STOREFRONT_TOKEN`  | Shopify Storefront API token               |
@@ -194,6 +206,7 @@ The project uses **Lovable Cloud** for managed PostgreSQL, Auth, and Storage. Ru
 | ----------------------------- | ------------------------------------------------------------------------- |
 | `scripts/bootstrap-circle.mjs` | Generates/registers the entity secret and provisions the treasury wallet   |
 | `scripts/deploy-arc.mjs`       | Compiles with `solc 0.8.24` and deploys to Arc Testnet via Circle SCP      |
+| `scripts/deploy-nft-arc.mjs`   | Deploys Circle's ERC-721 template as the Move Rights NFT on Arc Testnet   |
 | `scripts/verify-arc.mjs`       | Submits source to the Arcscan (Blockscout) REST verify endpoint            |
 
 ---
