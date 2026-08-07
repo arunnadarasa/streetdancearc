@@ -303,8 +303,9 @@ function SlideA2h() {
       <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
         In StreetRail the Rights Agent pays the choreographer in USDC the moment a move earns,
         pauses when the payout breaks the AP2 mandate, and drops an Arcscan receipt in a payout
-        inbox. Every mandate carries an on-chain authorization block; renewing it extends both the
-        Ed25519 mandate and the contract approval.
+        inbox. It also pushes limited-time merch offers that users can claim on-chain — agent-side
+        receipt, no user gas, discount applied at checkout. Every mandate carries an on-chain
+        authorization block; renewing it extends both the Ed25519 mandate and the contract approval.
       </p>
     </Slide>
   );
