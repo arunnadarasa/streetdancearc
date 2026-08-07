@@ -27,15 +27,23 @@ async function rpc(method: string, params: unknown[]): Promise<string | null> {
 /** One balance read off Arc; never throws — returns null when the RPC is unhappy. */
 export async function readBalance(token: TokenKey, address: string): Promise<string | null> {
   const cfg = TOKENS[token];
-  const hex = cfg.native
-    ? await rpc("eth_getBalance", [address, "latest"])
-    : await rpc("eth_call", [
-        { to: cfg.address, data: BALANCE_OF + address.slice(2).toLowerCase().padStart(64, "0") },
-        "latest",
-      ]);
+  // Arc's native gas token is USDC, but some RPCs return eth_getBalance in
+  // 18-decimal atomic units. Read every token through ERC-20 balanceOf so the
+  // decimals line up with the token config.
+  const hex = await rpc("eth_call", [
+    { to: cfg.address, data: BALANCE_OF + address.slice(2).toLowerCase().padStart(64, "0") },
+    "latest",
+  ]);
   if (!hex) return null;
   try {
-    return fromAtomic(BigInt(hex), token);
+    const decimal = fromAtomic(BigInt(hex), token);
+    const n = Number(decimal);
+    // Safety net: if a provider ever returns native USDC in 18-decimal units,
+    // the value will be 10^12 too large. Re-normalize anything above 1B units.
+    if (Number.isFinite(n) && n > 1_000_000_000) {
+      return (n / 1e12).toFixed(cfg.decimals);
+    }
+    return decimal;
   } catch {
     return null;
   }
