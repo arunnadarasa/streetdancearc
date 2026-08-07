@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useWallet } from "@/lib/wallet-context";
+import { useServerFn } from "@tanstack/react-start";
 import {
   createWalletClient,
   createPublicClient,
@@ -10,9 +11,10 @@ import {
   type Address,
 } from "viem";
 import { arcTestnet } from "@/lib/arc-chain";
-import { TOKENS, type TokenKey, ARC_EXPLORER } from "@/lib/tokens";
+import { TOKENS, type TokenKey, ARC_EXPLORER, convertFromUsd, type FxRates } from "@/lib/tokens";
 import contractCfg from "@/data/contract.json";
 import { TokenSwitcher } from "./TokenSwitcher";
+import { fetchFxRates } from "@/lib/fx.functions";
 
 const ERC20_APPROVE_ABI = [
   {
