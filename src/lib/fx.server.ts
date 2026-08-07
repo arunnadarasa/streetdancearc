@@ -44,12 +44,19 @@ export async function getFxRates(): Promise<FxRates> {
   }
   try {
     const [fiat, crypto] = await Promise.all([fetchFrankfurter(), fetchCoinGecko()]);
+    const key = process.env["COINGECKO_API_KEY"];
+    const coinGeckoMode: FxRates["coinGeckoMode"] = key
+      ? key.startsWith("CG-")
+        ? "demo"
+        : "pro"
+      : "none";
     const rates: FxRates = {
       ...fiat,
       ...crypto,
       source: "frankfurter+coingecko",
       cachedAt: Date.now(),
       stale: false,
+      coinGeckoMode,
     };
     cache = { rates, at: Date.now() };
     return rates;

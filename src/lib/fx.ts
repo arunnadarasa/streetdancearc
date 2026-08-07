@@ -15,6 +15,8 @@ export interface FxRates {
   cachedAt: number;
   /** True when the live feed failed and a cached/fallback rate is being used. */
   stale: boolean;
+  /** How CoinGecko was reached: demo key, pro key, or no-key public endpoint. */
+  coinGeckoMode: "demo" | "pro" | "none";
 }
 
 export const FALLBACK_RATES: FxRates = {
@@ -24,6 +26,7 @@ export const FALLBACK_RATES: FxRates = {
   source: "fallback",
   cachedAt: 0,
   stale: false,
+  coinGeckoMode: "none",
 };
 
 /** How many token units 1 USD buys (e.g. EURC perUsd ≈ 0.92 when EUR/USD = 1.09). */
