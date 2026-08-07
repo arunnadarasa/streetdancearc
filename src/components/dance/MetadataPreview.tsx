@@ -179,7 +179,7 @@ export function MetadataPreview({
         <button
           type="button"
           onClick={() => void onPreview()}
-          disabled={busy || uploading}
+          disabled={busy}
           className="h-10 w-full rounded-full border border-border bg-surface px-4 text-sm font-bold text-foreground transition hover:border-primary disabled:opacity-50"
         >
           {busy ? (pinningEnabled ? "Pinning metadata…" : "Hashing…") : "Preview metadata & CID"}
