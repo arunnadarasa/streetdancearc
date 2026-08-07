@@ -1,3 +1,5 @@
+import { FxPriceWidget } from "@/components/fx/FxPriceWidget";
+
 export function SiteFooter() {
   return (
     <footer className="relative border-t border-border bg-surface-2">
