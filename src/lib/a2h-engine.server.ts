@@ -157,12 +157,17 @@ async function settle(input: SettleInput) {
       issuedAt: new Date().toISOString(),
     };
 
+    // ERC-1271: anchor the mandate digest on Arc so any counterparty can verify
+    // the treasury authorized this payout — no EOA delegate required.
+    const onChainAuth = await approveAuthOnChain(mandate);
+
     return {
       ok: true as const,
       ...result,
       receiptUrl: `${ARC_EXPLORER}/tx/${result.transferTx}`,
       registryUrl: `${ARC_EXPLORER}/tx/${result.registryTx}`,
-      mandate: { ...mandate, signature: signMandate(mandate) },
+      onChainAuth,
+      mandate: { ...mandate, signature: signMandate(mandate), onChainAuth },
     };
   } catch (e) {
     const message = e instanceof Error ? e.message : "payout_failed";
