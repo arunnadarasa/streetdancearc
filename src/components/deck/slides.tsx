@@ -585,7 +585,7 @@ function SlideClaimOffers() {
 // 9
 function SlideDefi() {
   return (
-    <Slide n={12}>
+    <Slide n={13}>
       <Kicker>Track 2 · DeFi</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
         Programmable money <span style={{ color: GREEN }}>for the culture.</span>
