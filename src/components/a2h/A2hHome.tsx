@@ -114,9 +114,11 @@ export function A2hHome() {
           your move earn, sends the {payToken} from the Circle treasury wallet and drops the Arc
           receipt in your inbox. When it wants to act outside its mandate, it asks — and waits.
         </p>
-      </section>
+
+      <TreasuryPanel onLowGas={setLowGas} />
 
       <section className="rounded-2xl border border-border bg-card/70 p-5">
+
         <div className="flex items-start gap-3">
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-glow" />
           <div className="min-w-0 flex-1">
