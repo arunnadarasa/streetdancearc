@@ -98,11 +98,10 @@ function ProductPage() {
       <PrivyRoot appId={privyAppId}>
         <div className="min-h-screen bg-background text-foreground">
           <Header />
-          <Section tone="base" lines>
-            <ModeSurface mode={mode} agent={<GxOffer product={product} />}>
-              <GxOffer product={product} />
-            </ModeSurface>
-          </Section>
+          <ModeSurface mode={mode} agent={<GxOffer product={product} />}>
+            <GxOffer product={product} />
+          </ModeSurface>
+
           <SiteFooter />
         </div>
       </PrivyRoot>
