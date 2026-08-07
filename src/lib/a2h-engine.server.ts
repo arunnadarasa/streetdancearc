@@ -4,7 +4,9 @@
 
 import { getFxRates } from "@/lib/fx.server";
 import { convertFromUsd, getTokenUsdRate, microToUsd, usdToMicro, FALLBACK_RATES } from "@/lib/fx";
-import { TOKENS, ARC_EXPLORER, type TokenKey } from "@/lib/tokens";
+import { TOKENS, ARC_EXPLORER, toAtomic, type TokenKey } from "@/lib/tokens";
+import { treasuryContractCall } from "@/lib/circle.server";
+
 import { signMandate } from "@/lib/mandate-sign.server";
 import { approveAuthOnChain, AUTHORIZER, authorizerUrl } from "@/lib/erc1271.server";
 import {
@@ -281,6 +283,81 @@ export async function runApprovePayout(data: {
 }) {
   return settle({ ...data, approved: true });
 }
+
+/**
+ * Claim an agent-pushed offer. Agent-side receipt only: the treasury logs the
+ * claim to the rights registry via Circle (no user wallet prompt, no user gas).
+ * Discount amounts are logged for audit and do NOT count against payout caps.
+ */
+export async function runClaimOffer(data: {
+  address: string;
+  token: TokenKey;
+  offerId: string;
+  title: string;
+  /** Discounted price in the settle token, already formatted (e.g. "56.68"). */
+  value: string;
+  expiresInHours?: number;
+}) {
+  const fx = await getFxRates().catch(() => ({ ...FALLBACK_RATES, stale: true }));
+  const value = Number(data.value).toFixed(places(data.token));
+  const usd = Number(value) / getTokenUsdRate(data.token, fx);
+  const cfg = TOKENS[data.token];
+  const atomic = toAtomic(value, data.token);
+
+  const claimCode = `SR-${data.offerId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 6).toUpperCase()}-${data.address.slice(-4).toUpperCase()}`;
+  const expiresAt = new Date(Date.now() + (data.expiresInHours ?? 6) * 3_600_000).toISOString();
+
+  try {
+    const registry = await treasuryContractCall({
+      contractAddress: REGISTRY,
+      abiFunctionSignature: "log(address,uint256,string)",
+      abiParameters: [
+        cfg.address,
+        atomic.toString(),
+        `srclaim:${data.offerId}:${data.address.toLowerCase()}`,
+      ],
+    });
+    const txHash = registry.txHash ?? "";
+
+    const claim = {
+      ap2Version: "0.1",
+      type: "OfferClaim",
+      claimId: claimCode,
+      agent: "did:web:streetrail.lovable.app#drop-agent",
+      subject: { address: data.address, network: ARC_CAIP2, chainId: 5042002 },
+      offer: { id: data.offerId, title: data.title },
+      amount: { value, asset: data.token, usd: usd.toFixed(4) },
+      authorization: "standing_mandate",
+      proof: [{ scheme: "evm-tx", role: "registry-log", txHash, network: ARC_CAIP2 }],
+      issuedAt: new Date().toISOString(),
+      expires_at: expiresAt,
+    };
+    const onChainAuth = await approveAuthOnChain(claim);
+
+    return {
+      ok: true as const,
+      claimCode,
+      txHash,
+      value,
+      token: data.token,
+      expiresAt,
+      receiptUrl: `${ARC_EXPLORER}/tx/${txHash}`,
+      onChainAuth,
+      claim: { ...claim, signature: signMandate(claim), onChainAuth },
+    };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "claim_failed";
+    return {
+      ok: false as const,
+      reason: message.split(":")[0] ?? "claim_failed",
+      detail: humanizePayoutError(message),
+      value,
+      token: data.token,
+    };
+  }
+}
+
+
 
 /**
  * Renew the standing AP2 payout mandate.

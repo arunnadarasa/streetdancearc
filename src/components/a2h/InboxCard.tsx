@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { JsonBlock } from "@/components/gx/JsonBlock";
-import { approvePayout, renewMandate } from "@/lib/a2h.functions";
+import { approvePayout, claimOffer, renewMandate } from "@/lib/a2h.functions";
 import { usePayToken } from "@/lib/pay-token";
 import { setMandateExpiry } from "@/components/a2h/a2h-feed";
 import { OnChainAuthRow, type OnChainAuthView } from "./OnChainAuthRow";
@@ -80,7 +80,17 @@ export function InboxCard({
     | { ok: false; detail: string }
     | null
   >(null);
+  const [claimed, setClaimed] = useState<{
+    claimCode: string;
+    value: string;
+    token: string;
+    receiptUrl: string;
+    claim: unknown;
+    onChainAuth?: OnChainAuthView;
+  } | null>(null);
+  const [claimError, setClaimError] = useState<string | null>(null);
   const approve = useServerFn(approvePayout);
+  const claim = useServerFn(claimOffer);
   const renew = useServerFn(renewMandate);
   const [payToken] = usePayToken();
   const k = KIND[msg.kind];
@@ -110,6 +120,41 @@ export function InboxCard({
     }
   }
 
+
+  async function runClaim() {
+    if (!address || !msg.amount) return;
+    setBusy(true);
+    setClaimError(null);
+    try {
+      const res = await claim({
+        data: {
+          address,
+          token: msg.amount.token,
+          offerId: msg.id,
+          title: msg.title,
+          value: msg.amount.value,
+        },
+      });
+      if (res.ok) {
+        setClaimed({
+          claimCode: res.claimCode,
+          value: res.value,
+          token: res.token,
+          receiptUrl: res.receiptUrl,
+          claim: res.claim,
+          onChainAuth: res.onChainAuth as OnChainAuthView,
+        });
+        setOpen(true);
+        await onSettled?.();
+      } else {
+        setClaimError(res.detail);
+      }
+    } catch (e) {
+      setClaimError(e instanceof Error ? e.message : "Could not claim the offer — try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function runApproval() {
     if (!msg.approval || !address) return;
@@ -144,7 +189,7 @@ export function InboxCard({
     }
   }
 
-  const receipt = result?.ok ? result.receiptUrl : msg.receiptUrl;
+  const receipt = result?.ok ? result.receiptUrl : (claimed?.receiptUrl ?? msg.receiptUrl);
 
   return (
     <article className={`min-w-0 rounded-2xl border bg-card/70 p-4 sm:p-5 ${k.ring}`}>
@@ -155,7 +200,13 @@ export function InboxCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className={`text-[10px] font-black uppercase tracking-[0.18em] ${k.tint}`}>
-              {result?.ok ? "Payout settled on Arc" : renewed ? "Mandate renewed" : k.label}
+              {result?.ok
+                ? "Payout settled on Arc"
+                : claimed
+                  ? "Offer claimed on Arc"
+                  : renewed
+                    ? "Mandate renewed"
+                    : k.label}
             </span>
             <span className="text-[10px] text-muted-foreground">
               {msg.agent} &middot; {ago(msg.at)}
@@ -175,6 +226,19 @@ export function InboxCard({
           {result && !result.ok && (
             <p className="mt-3 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-[11px] text-destructive-foreground">
               Payout failed: {result.detail}
+            </p>
+          )}
+
+          {claimError && (
+            <p className="mt-3 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-[11px] text-destructive-foreground">
+              Claim failed: {claimError}
+            </p>
+          )}
+
+          {claimed && (
+            <p className="mt-3 inline-flex flex-wrap items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-[11px] font-bold text-foreground">
+              <BadgeCheck className="h-3.5 w-3.5 text-glow" />
+              Claimed — code {claimed.claimCode} &middot; {claimed.value} {claimed.token}
             </p>
           )}
 
@@ -198,6 +262,7 @@ export function InboxCard({
 
           {result?.ok && result.onChainAuth ? <OnChainAuthRow auth={result.onChainAuth} /> : null}
           {renewed?.onChainAuth ? <OnChainAuthRow auth={renewed.onChainAuth} /> : null}
+          {claimed?.onChainAuth ? <OnChainAuthRow auth={claimed.onChainAuth} /> : null}
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {receipt && (
@@ -208,7 +273,7 @@ export function InboxCard({
                 className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-foreground hover:bg-primary/20"
               >
                 <BadgeCheck className="h-3.5 w-3.5 text-glow" />
-                View receipt on Arcscan
+                {claimed ? "View claim on Arcscan" : "View receipt on Arcscan"}
               </a>
             )}
 
@@ -243,16 +308,19 @@ export function InboxCard({
               </>
             )}
 
-            {msg.kind === "offer" && !acted && (
+            {msg.kind === "offer" && !acted && !claimed && (
               <>
                 <button
-                  onClick={() => setActed("claimed")}
-                  className="rounded-full bg-linear-to-r from-primary to-glow px-4 py-1.5 text-[11px] font-bold text-primary-foreground"
+                  onClick={() => void runClaim()}
+                  disabled={busy || !address}
+                  className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-primary to-glow px-4 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
                 >
-                  Claim offer
+                  {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  {busy ? "Claiming on Arc…" : address ? "Claim offer" : "Connect wallet first"}
                 </button>
                 <button
                   onClick={() => setActed("dismissed")}
+                  disabled={busy}
                   className="rounded-full border border-border px-4 py-1.5 text-[11px] font-bold text-muted-foreground hover:text-foreground"
                 >
                   Dismiss
@@ -309,6 +377,13 @@ export function InboxCard({
                 <JsonBlock
                   label="AP2 payout mandate · Ed25519 signed"
                   value={result.mandate}
+                  tone="green"
+                />
+              )}
+              {claimed && (
+                <JsonBlock
+                  label="AP2 offer claim · Ed25519 signed, logged on Arc"
+                  value={claimed.claim}
                   tone="green"
                 />
               )}
