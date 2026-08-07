@@ -206,38 +206,6 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
 
         </div>
       </div>
-
-      <div className={`rail flex items-center gap-2 md:hidden ${scrolled ? "pb-1.5" : "pb-2"}`}>
-        <div className="relative min-w-0 flex-1">
-          <nav className="flex items-center gap-1.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-
-            {NAV.map((n) => {
-              const active = pathname.startsWith(n.to);
-              return (
-                <Link
-                  key={n.to}
-                  to={n.to}
-                  className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-bold transition ${
-                    active
-                      ? "border-primary/60 bg-primary/15 text-foreground"
-                      : "border-border text-muted-foreground"
-                  }`}
-                >
-                  {n.label}
-                </Link>
-              );
-            })}
-          </nav>
-          <span className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-linear-to-l from-background to-transparent" />
-        </div>
-        <span className="shrink-0 sm:hidden">
-          <PayTokenToggle />
-        </span>
-        {extra ? <div className="shrink-0">{extra}</div> : null}
-      </div>
-
-
-
     </header>
   );
 }
