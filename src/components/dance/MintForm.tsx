@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useWallet } from "@/lib/wallet-context";
+import { useServerFn } from "@tanstack/react-start";
 import {
   createWalletClient,
   createPublicClient,
@@ -10,9 +11,10 @@ import {
   type Address,
 } from "viem";
 import { arcTestnet } from "@/lib/arc-chain";
-import { TOKENS, type TokenKey, ARC_EXPLORER } from "@/lib/tokens";
+import { TOKENS, type TokenKey, ARC_EXPLORER, convertFromUsd, type FxRates } from "@/lib/tokens";
 import contractCfg from "@/data/contract.json";
 import { TokenSwitcher } from "./TokenSwitcher";
+import { fetchFxRates } from "@/lib/fx.functions";
 
 const ERC20_APPROVE_ABI = [
   {
@@ -32,13 +34,43 @@ export function MintForm() {
   const [token, setToken] = useState<TokenKey>("USDC");
   const [cid, setCid] = useState("");
   const [amount, setAmount] = useState("1");
+  const [usdAmount, setUsdAmount] = useState("1");
+  const [mode, setMode] = useState<"token" | "usd">("token");
+  const [fx, setFx] = useState<FxRates | null>(null);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const getFx = useServerFn(fetchFxRates);
+
+  useEffect(() => {
+    let mounted = true;
+    void getFx({ data: undefined }).then((rates) => {
+      if (mounted) setFx(rates);
+    });
+    return () => { mounted = false; };
+  }, [getFx]);
 
   const contractAddress = contractCfg.address as Address;
   const contractDeployed = contractAddress && contractAddress !== "0x0000000000000000000000000000000000000000";
+
+  const tokenPerUsd = convertFromUsd(1, token, fx) || 1;
+  const tokenAmount = mode === "usd"
+    ? convertFromUsd(parseFloat(usdAmount || "0"), token, fx).toFixed(TOKENS[token].decimals === 8 ? 8 : 6)
+    : amount;
+  const usdEquivalent = mode === "usd"
+    ? parseFloat(usdAmount || "0")
+    : parseFloat(amount || "0") / tokenPerUsd;
+
+  function onUsdChange(raw: string) {
+    setUsdAmount(raw);
+    setMode("usd");
+  }
+
+  function onTokenChange(raw: string) {
+    setAmount(raw);
+    setMode("token");
+  }
 
   async function onSubmit() {
     setError(null);
@@ -59,7 +91,7 @@ export function MintForm() {
       await embedded.switchChain(arcTestnet.id);
 
       const tokenCfg = TOKENS[token];
-      const value = parseUnits(amount || "0", tokenCfg.decimals);
+      const value = parseUnits(tokenAmount || "0", tokenCfg.decimals);
       const from = embedded.address as Address;
 
       const walletClient = createWalletClient({
@@ -127,25 +159,84 @@ export function MintForm() {
         />
       </div>
 
-      <div>
-        <label className="text-xs uppercase tracking-widest text-muted-foreground">
-          Amount ({TOKENS[token].symbol})
-        </label>
-        <input
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          type="number"
-          inputMode="decimal"
-          pattern="[0-9]*\.?[0-9]*"
-          min="0"
-          step="0.01"
-          className="mt-1 w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-        />
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="text-xs uppercase tracking-widest text-muted-foreground">Amount</label>
+          <div className="flex rounded-full border border-border bg-surface p-0.5">
+            <button
+              type="button"
+              onClick={() => setMode("token")}
+              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold transition ${
+                mode === "token" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {TOKENS[token].symbol}
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("usd")}
+              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold transition ${
+                mode === "usd" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              USD
+            </button>
+          </div>
+        </div>
+
+        {mode === "usd" ? (
+          <input
+            value={usdAmount}
+            onChange={(e) => onUsdChange(e.target.value)}
+            type="number"
+            inputMode="decimal"
+            pattern="[0-9]*\.?[0-9]*"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+          />
+        ) : (
+          <input
+            value={amount}
+            onChange={(e) => onTokenChange(e.target.value)}
+            type="number"
+            inputMode="decimal"
+            pattern="[0-9]*\.?[0-9]*"
+            min="0"
+            step="0.01"
+            className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+          />
+        )}
+
+        <div className="rounded-lg border border-border/60 bg-background/40 px-3 py-2 text-xs text-muted-foreground">
+          {mode === "usd" ? (
+            <>
+              You will approve{" "}
+              <span className="font-semibold text-foreground">
+                {tokenAmount} {TOKENS[token].symbol}
+              </span>{" "}
+              (${usdAmount || "0"} USD at live FX rate).
+            </>
+          ) : (
+            <>
+              Listed payment:{" "}
+              <span className="font-semibold text-foreground">
+                {amount || "0"} {TOKENS[token].symbol}
+              </span>
+              {fx && (
+                <span className="ml-1 opacity-70">
+                  ≈ ${usdEquivalent.toFixed(2)} USD
+                </span>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {authenticated && contractDeployed && (
         <div className="rounded-lg border border-border bg-background/40 p-3 text-xs text-muted-foreground">
-          You'll approve <span className="font-semibold text-foreground">{amount || "0"} {TOKENS[token].symbol}</span>{" "}
+          You'll approve <span className="font-semibold text-foreground">{tokenAmount || "0"} {TOKENS[token].symbol}</span>{" "}
           to be spent by the DanceMoveTokens contract, then log the move.
           <br />
           <span className="text-muted-foreground">
