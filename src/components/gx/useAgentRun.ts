@@ -14,6 +14,7 @@ import {
   type SpendPolicy,
 } from "@/lib/spend-policy";
 import { fetchFxRates } from "@/lib/fx.functions";
+import { fetchDiscovery } from "@/lib/discovery.functions";
 
 
 export type StepStatus = "running" | "ok" | "blocked" | "failed" | "waiting";
@@ -53,6 +54,7 @@ export function useAgentRun(policy: SpendPolicy) {
   const resolveRef = useRef<((approved: boolean) => void) | null>(null);
   const [fx, setFx] = useState<FxRates | null>(null);
   const getFx = useServerFn(fetchFxRates);
+  const discover = useServerFn(fetchDiscovery);
 
   useEffect(() => {
     let mounted = true;
@@ -103,7 +105,7 @@ export function useAgentRun(policy: SpendPolicy) {
                 ? `Circle Agent Marketplace returned ${dis.total} x402 resources; ${dis.arcCount} settle on Arc Testnet. Agent selected ${dis.selected} by network + scheme match.`
                 : `Marketplace unreachable (${dis.reason ?? "unknown"}) — falling back to StreetRail's own resource ${dis.selected}.`,
             payloadLabel: "discovery · selected resource",
-            payload: dis.resources.find((r) => r.resource === dis.selected) ?? dis.resources[0],
+            payload: dis.resources.find((r: { resource: string }) => r.resource === dis.selected) ?? dis.resources[0],
             tone: dis.source === "circle" ? "green" : "amber",
           });
         } catch (e) {
