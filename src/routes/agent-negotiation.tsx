@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PrivyRoot } from "@/components/PrivyRoot";
 import { AgentNegotiation } from "@/components/gx/AgentNegotiation";
 import { Header } from "@/components/dance/Header";
+import { ModeSurface } from "@/components/gx/ModeSurface";
+import { useGxMode } from "@/lib/gx-mode";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { getPublicConfig } from "@/lib/config.functions";
 
@@ -22,11 +24,14 @@ export const Route = createFileRoute("/agent-negotiation")({
 
 function Page() {
   const { privyAppId } = Route.useLoaderData();
+  const [mode] = useGxMode();
   return (
     <PrivyRoot appId={privyAppId}>
       <div className="min-h-screen bg-background text-foreground">
         <Header />
-        <AgentNegotiation />
+        <ModeSurface mode={mode} agent={<AgentNegotiation />}>
+          <AgentNegotiation />
+        </ModeSurface>
         <SiteFooter />
       </div>
     </PrivyRoot>

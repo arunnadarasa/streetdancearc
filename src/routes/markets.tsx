@@ -8,6 +8,8 @@ import {
 } from "@/data/markets";
 import { PrivyRoot } from "@/components/PrivyRoot";
 import { Header } from "@/components/dance/Header";
+import { ModeSurface } from "@/components/gx/ModeSurface";
+import { useGxMode } from "@/lib/gx-mode";
 import { Reveal } from "@/components/layout/Reveal";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { getPublicConfig } from "@/lib/config.functions";
@@ -42,11 +44,14 @@ const GREEN = "var(--glow)";
 
 function MarketsPage() {
   const { privyAppId } = Route.useLoaderData();
+  const [mode] = useGxMode();
 
   return (
     <PrivyRoot appId={privyAppId}>
     <div className="min-h-screen bg-background text-foreground">
     <Header />
+    <ModeSurface mode={mode}>
+    <>
     <section className="aurora-bg relative">
       <div className="rail relative py-16 sm:py-24">
       <Reveal>
@@ -242,6 +247,8 @@ function MarketsPage() {
         </Link>
       </div>
     </main>
+    </>
+    </ModeSurface>
     <SiteFooter />
     </div>
     </PrivyRoot>
