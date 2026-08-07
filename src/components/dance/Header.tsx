@@ -159,16 +159,23 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
                   );
                 })}
               </nav>
-              <div className="space-y-4 border-t border-border p-4">
+              <div className="space-y-5 border-t border-border p-4">
+                {extra ? (
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">Cart</span>
+                    <span onClick={() => setMobileOpen(false)} className="inline-flex">{extra}</span>
+                  </div>
+                ) : null}
                 <div className="flex flex-col gap-2">
                   <span className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">Mode</span>
-                  <ModeToggle />
+                  <ModeToggle full />
                 </div>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 border-t border-border pt-4">
                   <span className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">Currency</span>
                   <PayTokenToggle />
                 </div>
               </div>
+
             </SheetContent>
           </Sheet>
 
