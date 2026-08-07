@@ -146,18 +146,30 @@ export function MintForm() {
         <p className="mt-2 text-xs text-muted-foreground">{TOKENS[token].label}</p>
       </div>
 
+      <MetadataPreview
+        token={token}
+        amount={tokenAmount || "0"}
+        cid={cid || null}
+        onConfirm={(next) => setCid(next)}
+        onReset={() => setCid("")}
+      />
+
       <div>
         <label className="text-xs uppercase tracking-widest text-muted-foreground">IPFS CID (rights metadata)</label>
         <input
           value={cid}
           onChange={(e) => setCid(e.target.value)}
-          placeholder="bafkrei…"
+          placeholder="bafkrei… (or preview above)"
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
           className="mt-1 w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
         />
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Confirm the preview above, or paste a CID you already pinned.
+        </p>
       </div>
+
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
