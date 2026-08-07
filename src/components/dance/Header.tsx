@@ -1,9 +1,11 @@
 import { useWallet } from "@/lib/wallet-context";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { Menu } from "lucide-react";
 import { ModeToggle } from "@/components/gx/ModeToggle";
 import { PayTokenToggle } from "@/components/gx/PayTokenToggle";
 import { BalancePanel } from "@/components/wallet/BalancePanel";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 import logoMark from "@/assets/streetrail-logo.png";
 
