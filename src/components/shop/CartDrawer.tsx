@@ -15,7 +15,7 @@ import { usePayToken } from "@/lib/pay-token";
 import { useWallet } from "@/lib/wallet-context";
 import { settleOnArc, settlementNote } from "@/lib/settle";
 import { DEMO_SCALE } from "@/lib/agent-card";
-import { TOKENS, formatAmount, toAtomic, type FxRates } from "@/lib/tokens";
+import { TOKENS, formatAmount, toAtomic, convertFromFiat, type FxRates } from "@/lib/tokens";
 import type { Address } from "viem";
 import { getPublicConfig } from "@/lib/config.functions";
 import { useServerFn } from "@tanstack/react-start";
