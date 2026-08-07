@@ -22,6 +22,8 @@ The same catalog, the same settlement rail, four interfaces. A global toggle in 
 | `A2A` · x402   | Agent → agent   | No UI in the loop: agent-card discovery, UCP/AP2 mandates, AIsa negotiation, then `402 Payment Required` → settle → receipt. |
 | `A2H` · inbox  | Agent → human   | The agent initiates. The Rights Agent pushes royalty payouts, requests approval when a payout breaks the standing AP2 mandate, and drops an Arcscan receipt in a payout inbox. |
 
+The header is responsive: desktop shows a full nav bar with the mode and currency toggles; mobile collapses navigation into a hamburger sheet so the wallet chip and toggles stay reachable.
+
 ### Settlement currency
 
 A second header toggle picks the settlement token — **USDC**, **EURC** or **cirBTC** — and applies to all four modes at once. It persists to `localStorage` and rides in the `?pay=` query param, so `/?mode=a2a&pay=cirBTC` links a judge straight into an agent-to-agent run priced in wrapped BTC.
@@ -31,6 +33,10 @@ A second header toggle picks the settlement token — **USDC**, **EURC** or **ci
 - `purchase.ts` quotes all three in its `402` challenge and verifies whichever arrived: native `value` for USDC, matching `Transfer` logs for the ERC-20s.
 - Fiat list prices convert through a **live FX feed** in `src/lib/fx.server.ts`: GBP/EUR rates from [Frankfurter](https://www.frankfurter.app) and BTC/USD from [CoinGecko](https://www.coingecko.com), cached for 5 minutes with hardcoded fallbacks. The feed is exposed to client components via the `fetchFxRates` server function and used by the cart, negotiation, agent run, A2H inbox, and protocol endpoints.
 
+### Balances
+
+Wallet balances for USDC, EURC and cirBTC are read through ERC-20 `balanceOf` via the same-origin RPC proxy, then converted from atomic units using each token's configured decimals. A safety guard re-normalises any value above 1B units in case an RPC provider returns native USDC in 18-decimal atomic units instead of 6, so the UI always shows normal human-readable amounts.
+
 
 
 **Agent surface** (all under `src/routes/api/public/`, callable by external agents):
@@ -38,6 +44,8 @@ A second header toggle picks the settlement token — **USDC**, **EURC** or **ci
 - `agent-card.ts` — A2A 0.3 agent card / capability discovery
 - `catalog.ts` — machine-readable product catalog
 - `purchase.ts` — x402 challenge, settlement, and signed receipt
+- `arc-rpc.ts` — same-origin JSON-RPC proxy so the Alchemy key never ships to the client
+- `x402/resources.ts` — StreetRail published in the Circle Agent Marketplace discovery shape
 - `a2a/`, `ap2/`, `ucp/` — protocol endpoints for tasks, mandates, and commerce intents
 
 **Client components:** `src/components/gx/` (A2A run panel, negotiation, spend policy, ledger, mode toggle), `src/components/h2a/H2aHome.tsx` and `src/components/a2h/` (payout inbox, standing mandate panel).
@@ -72,6 +80,10 @@ A second header toggle picks the settlement token — **USDC**, **EURC** or **ci
 | **Agent Stack** | `src/lib/discovery.server.ts` | The buyer agent resolves payable services through Circle's public x402 Marketplace Discovery API before negotiating. |
 
 Live status for all six is rendered in-app by `CircleRailsPanel` on the A2A and H2A screens, including the honest "unavailable, falling back" states.
+
+### Agent Marketplace Discovery
+
+The buyer agent does not hardcode StreetRail's checkout URL. Instead it calls Circle's public, keyless x402 Discovery API (`https://api.circle.com/v2/x402/discovery/resources`), filters for resources that settle on Arc Testnet, and selects the matching rail by network + scheme. The response is normalised defensively and cached server-side for 5 minutes. If Circle is unreachable, the agent falls back to StreetRail's own local resource published at `/api/public/x402/resources`, so the demo keeps working offline.
 
 ---
 
@@ -182,6 +194,8 @@ A short, polished post-mortem covering both the hackathon sprint and the product
 - **Zod negotiation schemas.** The first `SellerQuoteSchema` required fields that AIsa sometimes omitted, causing empty negotiation transcripts until we normalized optional fields.
 - **Multi-decimal arithmetic.** Mixing USDC/EURC (6 decimals) with cirBTC (8 decimals) produced off-by-100 quote bugs; we centralized `toAtomic`/`fromAtomic` helpers per token.
 - **Seeded A2H data.** The inbox initially showed fake payouts with fake transaction hashes; users rightly called it simulated, so we replaced it with live event logs.
+- **Discovery API shape drift.** Circle's marketplace response is undocumented and sparse on Arc Testnet resources; a defensive normaliser plus a local fallback prevents the agent run from failing when the catalog shape changes.
+- **18-decimal USDC balances.** Some RPCs return native USDC `eth_getBalance` in 18-decimal atomic units even though Arc USDC is 6 decimals. Reading balances through ERC-20 `balanceOf` and adding a re-normalisation guard fixed wallet chips showing trillions of dollars.
 
 ### Best practices
 
