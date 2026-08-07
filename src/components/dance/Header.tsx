@@ -5,6 +5,8 @@ import { Menu } from "lucide-react";
 import { ModeToggle } from "@/components/gx/ModeToggle";
 import { PayTokenToggle } from "@/components/gx/PayTokenToggle";
 import { BalancePanel } from "@/components/wallet/BalancePanel";
+import { MobileDrawer } from "@/components/dance/MobileDrawer";
+
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 import logoMark from "@/assets/streetrail-logo.png";
@@ -135,48 +137,21 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
               </button>
             </SheetTrigger>
 
-            <SheetContent side="right" className="w-[min(20rem,calc(100vw-2rem))] border-border bg-card p-0">
-              <SheetHeader className="border-b border-border p-4 text-left">
+            <SheetContent
+              side="right"
+              className="flex w-[min(20rem,calc(100vw-2rem))] flex-col border-border bg-card p-0"
+            >
+              <SheetHeader className="shrink-0 border-b border-border p-4 text-left">
                 <SheetTitle className="display text-left text-sm">StreetRail</SheetTitle>
                 <p className="text-xs text-muted-foreground">Street dance merch · settled on Arc</p>
               </SheetHeader>
-              <nav className="flex flex-col p-2">
-                {NAV.map((n) => {
-                  const active = pathname.startsWith(n.to);
-                  return (
-                    <Link
-                      key={n.to}
-                      to={n.to}
-                      onClick={() => setMobileOpen(false)}
-                      className={`rounded-xl px-4 py-3 text-sm font-bold transition ${
-                        active
-                          ? "bg-primary/15 text-foreground"
-                          : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
-                      }`}
-                    >
-                      {n.label}
-                    </Link>
-                  );
-                })}
-              </nav>
-              <div className="space-y-5 border-t border-border p-4">
-                {extra ? (
-                  <div className="flex flex-col gap-2">
-                    <span className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">Cart</span>
-                    <span onClick={() => setMobileOpen(false)} className="inline-flex">{extra}</span>
-                  </div>
-                ) : null}
-                <div className="flex flex-col gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">Mode</span>
-                  <ModeToggle full />
-                </div>
-                <div className="flex flex-col gap-2 border-t border-border pt-4">
-                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">Currency</span>
-                  <PayTokenToggle />
-                </div>
-              </div>
-
+              <MobileDrawer
+                pathname={pathname}
+                onNavigate={() => setMobileOpen(false)}
+                extra={extra}
+              />
             </SheetContent>
+
           </Sheet>
 
 
