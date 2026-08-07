@@ -182,6 +182,7 @@ The project uses **Lovable Cloud** for managed PostgreSQL, Auth, and Storage. Ru
 | `CIRCLE_TREASURY_WALLET_ID`      | Deployer / treasury wallet                 |
 | `CIRCLE_TREASURY_ADDRESS`        | Treasury address surfaced in the UI        |
 | `AISA_API_KEY`                   | AIsa agent reasoning and negotiation       |
+| `COINGECKO_API_KEY`              | Optional CoinGecko demo/pro key for BTC/USD FX |
 | `VITE_SHOPIFY_DOMAIN`            | Shopify store domain                       |
 | `VITE_SHOPIFY_STOREFRONT_TOKEN`  | Shopify Storefront API token               |
 
