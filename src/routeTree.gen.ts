@@ -23,6 +23,7 @@ import { Route as ApiPublicAgentCardRouteImport } from './routes/api/public/agen
 import { Route as ApiPublicX402ResourcesRouteImport } from './routes/api/public/x402/resources'
 import { Route as ApiPublicUcpSelfTestRouteImport } from './routes/api/public/ucp/self-test'
 import { Route as ApiPublicUcpDiscoveryRouteImport } from './routes/api/public/ucp/discovery'
+import { Route as ApiPublicErc1271AuthorizerRouteImport } from './routes/api/public/erc1271/authorizer'
 import { Route as ApiPublicAp2MandateRouteImport } from './routes/api/public/ap2/mandate'
 import { Route as ApiPublicA2aMessageRouteImport } from './routes/api/public/a2a/message'
 
@@ -96,6 +97,12 @@ const ApiPublicUcpDiscoveryRoute = ApiPublicUcpDiscoveryRouteImport.update({
   path: '/api/public/ucp/discovery',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicErc1271AuthorizerRoute =
+  ApiPublicErc1271AuthorizerRouteImport.update({
+    id: '/api/public/erc1271/authorizer',
+    path: '/api/public/erc1271/authorizer',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicAp2MandateRoute = ApiPublicAp2MandateRouteImport.update({
   id: '/api/public/ap2/mandate',
   path: '/api/public/ap2/mandate',
@@ -121,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/api/public/purchase': typeof ApiPublicPurchaseRoute
   '/api/public/a2a/message': typeof ApiPublicA2aMessageRoute
   '/api/public/ap2/mandate': typeof ApiPublicAp2MandateRoute
+  '/api/public/erc1271/authorizer': typeof ApiPublicErc1271AuthorizerRoute
   '/api/public/ucp/discovery': typeof ApiPublicUcpDiscoveryRoute
   '/api/public/ucp/self-test': typeof ApiPublicUcpSelfTestRoute
   '/api/public/x402/resources': typeof ApiPublicX402ResourcesRoute
@@ -139,6 +147,7 @@ export interface FileRoutesByTo {
   '/api/public/purchase': typeof ApiPublicPurchaseRoute
   '/api/public/a2a/message': typeof ApiPublicA2aMessageRoute
   '/api/public/ap2/mandate': typeof ApiPublicAp2MandateRoute
+  '/api/public/erc1271/authorizer': typeof ApiPublicErc1271AuthorizerRoute
   '/api/public/ucp/discovery': typeof ApiPublicUcpDiscoveryRoute
   '/api/public/ucp/self-test': typeof ApiPublicUcpSelfTestRoute
   '/api/public/x402/resources': typeof ApiPublicX402ResourcesRoute
@@ -158,6 +167,7 @@ export interface FileRoutesById {
   '/api/public/purchase': typeof ApiPublicPurchaseRoute
   '/api/public/a2a/message': typeof ApiPublicA2aMessageRoute
   '/api/public/ap2/mandate': typeof ApiPublicAp2MandateRoute
+  '/api/public/erc1271/authorizer': typeof ApiPublicErc1271AuthorizerRoute
   '/api/public/ucp/discovery': typeof ApiPublicUcpDiscoveryRoute
   '/api/public/ucp/self-test': typeof ApiPublicUcpSelfTestRoute
   '/api/public/x402/resources': typeof ApiPublicX402ResourcesRoute
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/api/public/purchase'
     | '/api/public/a2a/message'
     | '/api/public/ap2/mandate'
+    | '/api/public/erc1271/authorizer'
     | '/api/public/ucp/discovery'
     | '/api/public/ucp/self-test'
     | '/api/public/x402/resources'
@@ -196,6 +207,7 @@ export interface FileRouteTypes {
     | '/api/public/purchase'
     | '/api/public/a2a/message'
     | '/api/public/ap2/mandate'
+    | '/api/public/erc1271/authorizer'
     | '/api/public/ucp/discovery'
     | '/api/public/ucp/self-test'
     | '/api/public/x402/resources'
@@ -214,6 +226,7 @@ export interface FileRouteTypes {
     | '/api/public/purchase'
     | '/api/public/a2a/message'
     | '/api/public/ap2/mandate'
+    | '/api/public/erc1271/authorizer'
     | '/api/public/ucp/discovery'
     | '/api/public/ucp/self-test'
     | '/api/public/x402/resources'
@@ -233,6 +246,7 @@ export interface RootRouteChildren {
   ApiPublicPurchaseRoute: typeof ApiPublicPurchaseRoute
   ApiPublicA2aMessageRoute: typeof ApiPublicA2aMessageRoute
   ApiPublicAp2MandateRoute: typeof ApiPublicAp2MandateRoute
+  ApiPublicErc1271AuthorizerRoute: typeof ApiPublicErc1271AuthorizerRoute
   ApiPublicUcpDiscoveryRoute: typeof ApiPublicUcpDiscoveryRoute
   ApiPublicUcpSelfTestRoute: typeof ApiPublicUcpSelfTestRoute
   ApiPublicX402ResourcesRoute: typeof ApiPublicX402ResourcesRoute
@@ -338,6 +352,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicUcpDiscoveryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/erc1271/authorizer': {
+      id: '/api/public/erc1271/authorizer'
+      path: '/api/public/erc1271/authorizer'
+      fullPath: '/api/public/erc1271/authorizer'
+      preLoaderRoute: typeof ApiPublicErc1271AuthorizerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/ap2/mandate': {
       id: '/api/public/ap2/mandate'
       path: '/api/public/ap2/mandate'
@@ -369,6 +390,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPurchaseRoute: ApiPublicPurchaseRoute,
   ApiPublicA2aMessageRoute: ApiPublicA2aMessageRoute,
   ApiPublicAp2MandateRoute: ApiPublicAp2MandateRoute,
+  ApiPublicErc1271AuthorizerRoute: ApiPublicErc1271AuthorizerRoute,
   ApiPublicUcpDiscoveryRoute: ApiPublicUcpDiscoveryRoute,
   ApiPublicUcpSelfTestRoute: ApiPublicUcpSelfTestRoute,
   ApiPublicX402ResourcesRoute: ApiPublicX402ResourcesRoute,
@@ -376,13 +398,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
