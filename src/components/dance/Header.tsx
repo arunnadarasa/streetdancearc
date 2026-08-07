@@ -121,6 +121,52 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
             <PayTokenToggle />
           </span>
           <ModeToggle />
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                aria-label="Open menu"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-background/60 text-foreground transition hover:bg-secondary md:hidden"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[min(20rem,calc(100vw-2rem))] border-border bg-card p-0">
+              <SheetHeader className="border-b border-border p-4 text-left">
+                <SheetTitle className="display text-left text-sm">StreetRail</SheetTitle>
+                <p className="text-xs text-muted-foreground">Street dance merch · settled on Arc</p>
+              </SheetHeader>
+              <nav className="flex flex-col p-2">
+                {NAV.map((n) => {
+                  const active = pathname.startsWith(n.to);
+                  return (
+                    <Link
+                      key={n.to}
+                      to={n.to}
+                      onClick={() => setMobileOpen(false)}
+                      className={`rounded-xl px-4 py-3 text-sm font-bold transition ${
+                        active
+                          ? "bg-primary/15 text-foreground"
+                          : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+                      }`}
+                    >
+                      {n.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+              <div className="space-y-4 border-t border-border p-4">
+                <div className="flex flex-col gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">Mode</span>
+                  <ModeToggle />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">Currency</span>
+                  <PayTokenToggle />
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
 
 
           {!available ? (
