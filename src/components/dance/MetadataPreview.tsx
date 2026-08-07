@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import { Check, FileJson, RefreshCw, Upload, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, FileJson, RefreshCw } from "lucide-react";
+import { ClipPreview } from "./ClipPreview";
+
 import { useServerFn } from "@tanstack/react-start";
 import {
   DISCIPLINES,
