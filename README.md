@@ -47,6 +47,22 @@ Wallet balances for USDC, EURC and cirBTC are read through ERC-20 `balanceOf` vi
 
 The **Treasury Panel** in the A2H inbox surfaces the treasury address and its live Arc balances, with an amber warning when USDC gas drops below `0.5` so users know to top up before approving payouts.
 
+### Move registry improvements
+
+The `/moves` page is now a full registry console:
+
+- **Metadata preview step.** Before logging a move, dancers fill move name, discipline, rights holder and license, then preview the exact JSON and the IPFS CIDv1 it hashes to. Logging is blocked until the CID is confirmed, so the on-chain record matches the off-chain metadata.
+- **Receipt history panel.** Every `log()` call is listed newest-first with kind classification (move log, A2H payout, offer claim, nanopayment batch), formatted token amount, block number, success/failure status, and a clickable Arcscan link. History is read with a chunked, rate-limit-aware log sweep and cached for 45 seconds so public RPC limits don't break the UI.
+
+### Live totals & FX transparency
+
+- **Live total calculator.** Product pages, the cart drawer and the move-mint form show the real-time Arc token amount for the selected stablecoin, the listed fiat equivalent, the USD value, and the raw atomic value. Switching USDC/EURC/cirBTC updates the total instantly against the live FX feed.
+- **FX price widget.** The footer displays the last-updated time of the FX feed and the CoinGecko mode being used (`demo`, `pro`, or none). It turns amber when rates go stale and has a manual refresh button.
+
+### Primer for dancers new to web3
+
+`/primer` is a jargon-free onboarding page. Concept cards pair dance terms with their tech equivalents (e.g., "The Cypher" = blockchain, "The Setlist" = mandate). The interactive glossary lets beginners tap terms like *agentic*, *x402* or *mandate* to get a dance analogy, a plain definition, and related terms.
+
 
 
 **Agent surface** (all under `src/routes/api/public/`, callable by external agents):
