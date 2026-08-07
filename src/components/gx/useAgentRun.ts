@@ -92,7 +92,29 @@ export function useAgentRun(policy: SpendPolicy) {
           return;
         }
 
-        // 1 — Discovery
+        // 0 — Marketplace discovery (Circle Agent Marketplace, keyless public API)
+        push({ id: "marketplace", title: "Discover x402 resources", status: "running" });
+        try {
+          const dis = await discover();
+          patch("marketplace", {
+            status: "ok",
+            detail:
+              dis.source === "circle"
+                ? `Circle Agent Marketplace returned ${dis.total} x402 resources; ${dis.arcCount} settle on Arc Testnet. Agent selected ${dis.selected} by network + scheme match.`
+                : `Marketplace unreachable (${dis.reason ?? "unknown"}) — falling back to StreetRail's own resource ${dis.selected}.`,
+            payloadLabel: "discovery · selected resource",
+            payload: dis.resources.find((r) => r.resource === dis.selected) ?? dis.resources[0],
+            tone: dis.source === "circle" ? "green" : "amber",
+          });
+        } catch (e) {
+          patch("marketplace", {
+            status: "ok",
+            detail: `Discovery skipped (${e instanceof Error ? e.message : String(e)}); using the local x402 resource.`,
+            tone: "amber",
+          });
+        }
+
+        // 1 — Agent card
         push({ id: "discover", title: "GET /api/public/agent-card", status: "running" });
         const cardRes = await fetch("/api/public/agent-card");
         const card = await cardRes.json();
