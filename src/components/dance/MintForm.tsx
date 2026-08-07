@@ -87,7 +87,7 @@ export function MintForm() {
       await embedded.switchChain(arcTestnet.id);
 
       const tokenCfg = TOKENS[token];
-      const value = parseUnits(amount || "0", tokenCfg.decimals);
+      const value = parseUnits(tokenAmount || "0", tokenCfg.decimals);
       const from = embedded.address as Address;
 
       const walletClient = createWalletClient({
