@@ -34,10 +34,22 @@ export function MintForm() {
   const [token, setToken] = useState<TokenKey>("USDC");
   const [cid, setCid] = useState("");
   const [amount, setAmount] = useState("1");
+  const [usdAmount, setUsdAmount] = useState("1");
+  const [mode, setMode] = useState<"token" | "usd">("token");
+  const [fx, setFx] = useState<FxRates | null>(null);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const getFx = useServerFn(fetchFxRates);
+
+  useEffect(() => {
+    let mounted = true;
+    void getFx({ data: undefined }).then((rates) => {
+      if (mounted) setFx(rates);
+    });
+    return () => { mounted = false; };
+  }, [getFx]);
 
   const contractAddress = contractCfg.address as Address;
   const contractDeployed = contractAddress && contractAddress !== "0x0000000000000000000000000000000000000000";
