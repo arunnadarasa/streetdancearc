@@ -4,7 +4,7 @@ import { launchMarkets, sizing } from "@/data/markets";
 const GREEN = "#4f46e5";
 const CHERRY = "#E63946";
 
-function Chrome({ n, total = 16 }: { n: number; total?: number }) {
+function Chrome({ n, total = 17 }: { n: number; total?: number }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden items-center justify-between px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground sm:flex sm:px-6 sm:py-3 sm:text-xs">
       <span>StreetRail · Arc Testnet</span>
@@ -303,8 +303,9 @@ function SlideA2h() {
       <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
         In StreetRail the Rights Agent pays the choreographer in USDC the moment a move earns,
         pauses when the payout breaks the AP2 mandate, and drops an Arcscan receipt in a payout
-        inbox. Every mandate carries an on-chain authorization block; renewing it extends both the
-        Ed25519 mandate and the contract approval.
+        inbox. It also pushes limited-time merch offers that users can claim on-chain — agent-side
+        receipt, no user gas, discount applied at checkout. Every mandate carries an on-chain
+        authorization block; renewing it extends both the Ed25519 mandate and the contract approval.
       </p>
     </Slide>
   );
@@ -533,10 +534,59 @@ function SlideOnChainAuth() {
   );
 }
 
+// 9d — On-chain claim offers
+function SlideClaimOffers() {
+  const steps: [string, string][] = [
+    ["Offer", "Drop Agent pushes a limited-time merch discount to the inbox."],
+    ["Claim", "User taps Claim — no wallet prompt, no user gas."],
+    ["Log", "Treasury logs srclaim:<id> to DanceMoveTokens via Circle SCP."],
+    ["Receipt", "Claim code + Arcscan tx + signed AP2 OfferClaim mandate."],
+    ["Checkout", "Discount is applied when the user pays in USDC / EURC / cirBTC."],
+  ];
+  return (
+    <Slide n={12}>
+      <Kicker>A2H · On-chain claim offers</Kicker>
+      <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
+        Agent-to-human offers, <span style={{ color: GREEN }}>logged on Arc.</span>
+      </h3>
+      <div className="mt-3 grid flex-1 content-start gap-1.5 overflow-y-auto pr-1 sm:mt-5 sm:gap-2">
+        {steps.map(([k, v], i) => (
+          <div
+            key={k}
+            className="grid grid-cols-[minmax(0,0.35fr)_minmax(0,1.65fr)] items-center gap-3 rounded-lg border border-border p-2 sm:p-3"
+          >
+            <div className="text-xs font-black sm:text-base" style={{ color: GREEN }}>
+              {String(i + 1).padStart(2, "0")} {k}
+            </div>
+            <div className="text-[11px] text-muted-foreground sm:text-sm">{v}</div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2 sm:gap-4">
+        <div className="rounded-xl border border-border bg-background p-3 sm:p-4">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
+            Registry
+          </div>
+          <div className="mt-1 break-all font-mono text-[11px] sm:text-sm">0x4d13b45f823f8944522890c20d8695b6005465f0</div>
+        </div>
+        <div className="rounded-xl border border-border bg-background p-3 sm:p-4">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
+            Authorizer
+          </div>
+          <div className="mt-1 break-all font-mono text-[11px] sm:text-sm">0x0519c703cde7cbff6829fdfdcfe8c9a4c7aac327</div>
+        </div>
+      </div>
+      <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
+        Claims do not count against the payout cap and are audited on Arcscan.
+      </p>
+    </Slide>
+  );
+}
+
 // 9
 function SlideDefi() {
   return (
-    <Slide n={12}>
+    <Slide n={13}>
       <Kicker>Track 2 · DeFi</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
         Programmable money <span style={{ color: GREEN }}>for the culture.</span>
@@ -574,7 +624,7 @@ function SlideCriteria() {
     ["Verifiable authorization", "ERC-1271 contract returns 0x1626ba7e for an approved mandate digest"],
   ];
   return (
-    <Slide n={13}>
+    <Slide n={14}>
       <Kicker>How we map to the criteria</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Every judging bullet has a feature behind it.
@@ -610,16 +660,18 @@ function SlideRoadmap() {
     "ERC-1271 authorizer verified on Arcscan",
     "Circle x402 Discovery wired into negotiation",
     "Mobile-tuned end to end",
+    "On-chain claim offers (A2H)",
+    "Treasury balance panel + low-gas warning",
   ];
   const next = [
+    "Encode Club Demo Day — 9 Aug 2026",
     "Rights Agent GA — Gemini + Agent Stack",
     "Nanopayment royalty streams (per-play)",
     "ERC-721 receipt NFT per logged move",
     "Crew treasuries + on-chain cosigns",
-    "Demo Day rehearsal + judge Q&A pack",
   ];
   return (
-    <Slide n={14}>
+    <Slide n={15}>
       <Kicker>Traction & Roadmap</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Working today. Shipping through <span style={{ color: GREEN }}>Demo Day.</span>
@@ -655,7 +707,7 @@ function SlideRoadmap() {
 // 12
 function SlideMarkets() {
   return (
-    <Slide n={15}>
+    <Slide n={16}>
       <Kicker>Market opportunity</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-[0.95] tracking-tight sm:text-4xl md:text-5xl">
         Street dance travels
@@ -703,7 +755,7 @@ function SlideMarkets() {
 // 13
 function SlideClose() {
   return (
-    <Slide n={16} bg="bg-background">
+    <Slide n={17} bg="bg-background">
       <div className="flex h-full flex-col justify-between">
         <Kicker>Built for Encode Club · Programmable Money Hackathon</Kicker>
         <h2 className="text-4xl font-black leading-[0.9] tracking-tight sm:text-6xl md:text-7xl">
@@ -733,6 +785,7 @@ export const slides: Array<{ id: string; render: () => ReactNode }> = [
   { id: "protocols", render: () => <SlideProtocolStack /> },
   { id: "circle", render: () => <SlideCircleStack /> },
   { id: "onchain-auth", render: () => <SlideOnChainAuth /> },
+  { id: "claim-offers", render: () => <SlideClaimOffers /> },
   { id: "defi", render: () => <SlideDefi /> },
   { id: "criteria", render: () => <SlideCriteria /> },
   { id: "roadmap", render: () => <SlideRoadmap /> },
