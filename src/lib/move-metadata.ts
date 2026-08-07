@@ -16,6 +16,14 @@ export const DISCIPLINES = [
 
 export type Discipline = (typeof DISCIPLINES)[number];
 
+export interface MoveMedia {
+  cid: string;
+  uri: string;
+  gateway: string;
+  mimeType: string;
+  size: number;
+}
+
 export interface MoveMetadataInput {
   move: string;
   discipline: string;
@@ -23,10 +31,18 @@ export interface MoveMetadataInput {
   license: string;
   token: TokenKey;
   amount: string;
+  media?: MoveMedia | null;
 }
 
 export interface MoveMetadata {
   schema: "streetrail/move-rights@1";
+  /** ERC-721 display name (what wallets and marketplaces show). */
+  name: string;
+  description: string;
+  image?: string;
+  animation_url?: string;
+  media?: MoveMedia;
+  attributes: Array<{ trait_type: string; value: string }>;
   move: string;
   discipline: string;
   rights: {
@@ -52,12 +68,28 @@ export const LICENSES = [
 
 export function buildMoveMetadata(input: MoveMetadataInput): MoveMetadata {
   const cfg = TOKENS[input.token];
+  const move = input.move.trim() || "Untitled move";
+  const holder = input.rightsHolder.trim() || "unattributed";
+  const media = input.media ?? undefined;
+  const isVideo = media ? media.mimeType.startsWith("video/") : false;
+
   return {
     schema: "streetrail/move-rights@1",
-    move: input.move.trim() || "Untitled move",
+    name: `${move} · ${input.discipline}`,
+    description: `On-chain rights record for the ${input.discipline} move "${move}", held by ${holder} under a ${input.license} licence.`,
+    ...(media ? (isVideo ? { animation_url: media.gateway } : { image: media.gateway }) : {}),
+    ...(media ? { media } : {}),
+    attributes: [
+      { trait_type: "Discipline", value: input.discipline },
+      { trait_type: "Licence", value: input.license },
+      { trait_type: "Rights holder", value: holder },
+      { trait_type: "Settlement token", value: cfg.symbol },
+      { trait_type: "Evidence", value: media ? "clip pinned" : "text only" },
+    ],
+    move,
     discipline: input.discipline,
     rights: {
-      holder: input.rightsHolder.trim() || "unattributed",
+      holder,
       license: input.license,
       territory: "worldwide",
     },
