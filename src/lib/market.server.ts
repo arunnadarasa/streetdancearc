@@ -126,7 +126,7 @@ export async function listMarket(max = 24): Promise<{
   const items = await Promise.all(
     raw
       .filter((r): r is readonly [bigint, Address, Address, bigint] => r !== null)
-      .map(async ([tokenId, seller, payToken, priceAtomic]) => {
+      .map(async ([tokenId, seller, payToken, priceAtomic]): Promise<MarketListing | null> => {
         // Drop stale listings where the seller no longer holds the token.
         try {
           const owner = (await pub.readContract({
