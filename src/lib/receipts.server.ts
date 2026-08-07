@@ -178,7 +178,7 @@ export async function readReceipts(limit = 25, lookback = 5_000n): Promise<Recei
     heads.map(async (r) => {
       if (!r.txHash) return;
       try {
-        const receipt = await client.getTransactionReceipt({ txHash: r.txHash as `0x${string}` });
+        const receipt = await client.getTransactionReceipt({ hash: r.txHash as `0x${string}` });
         r.status = receipt.status === "success" ? "success" : "failed";
       } catch {
         // A log exists, so the tx landed; treat an unreadable receipt as unknown.
