@@ -533,6 +533,55 @@ function SlideOnChainAuth() {
   );
 }
 
+// 9d — On-chain claim offers
+function SlideClaimOffers() {
+  const steps: [string, string][] = [
+    ["Offer", "Drop Agent pushes a limited-time merch discount to the inbox."],
+    ["Claim", "User taps Claim — no wallet prompt, no user gas."],
+    ["Log", "Treasury logs srclaim:<id> to DanceMoveTokens via Circle SCP."],
+    ["Receipt", "Claim code + Arcscan tx + signed AP2 OfferClaim mandate."],
+    ["Checkout", "Discount is applied when the user pays in USDC / EURC / cirBTC."],
+  ];
+  return (
+    <Slide n={12}>
+      <Kicker>A2H · On-chain claim offers</Kicker>
+      <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
+        Agent-to-human offers, <span style={{ color: GREEN }}>logged on Arc.</span>
+      </h3>
+      <div className="mt-3 grid flex-1 content-start gap-1.5 overflow-y-auto pr-1 sm:mt-5 sm:gap-2">
+        {steps.map(([k, v], i) => (
+          <div
+            key={k}
+            className="grid grid-cols-[minmax(0,0.35fr)_minmax(0,1.65fr)] items-center gap-3 rounded-lg border border-border p-2 sm:p-3"
+          >
+            <div className="text-xs font-black sm:text-base" style={{ color: GREEN }}>
+              {String(i + 1).padStart(2, "0")} {k}
+            </div>
+            <div className="text-[11px] text-muted-foreground sm:text-sm">{v}</div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2 sm:gap-4">
+        <div className="rounded-xl border border-border bg-background p-3 sm:p-4">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
+            Registry
+          </div>
+          <div className="mt-1 break-all font-mono text-[11px] sm:text-sm">0x4d13b45f823f8944522890c20d8695b6005465f0</div>
+        </div>
+        <div className="rounded-xl border border-border bg-background p-3 sm:p-4">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
+            Authorizer
+          </div>
+          <div className="mt-1 break-all font-mono text-[11px] sm:text-sm">0x0519c703cde7cbff6829fdfdcfe8c9a4c7aac327</div>
+        </div>
+      </div>
+      <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
+        Claims do not count against the payout cap and are audited on Arcscan.
+      </p>
+    </Slide>
+  );
+}
+
 // 9
 function SlideDefi() {
   return (
