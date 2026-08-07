@@ -5,6 +5,8 @@ import { Menu } from "lucide-react";
 import { ModeToggle } from "@/components/gx/ModeToggle";
 import { PayTokenToggle } from "@/components/gx/PayTokenToggle";
 import { BalancePanel } from "@/components/wallet/BalancePanel";
+import { MobileDrawer } from "@/components/dance/MobileDrawer";
+
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 import logoMark from "@/assets/streetrail-logo.png";
