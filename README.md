@@ -96,6 +96,17 @@ The buyer agent does not hardcode StreetRail's checkout URL. Instead it calls Ci
 - **Deploy path:** Circle Smart Contract Platform, via the scripts below.
 - **Compiler:** `solc 0.8.24`, pinned to match the Arcscan verifier.
 
+### Treasury authorization (ERC-1271)
+
+`contracts/StreetRailAuthorizer.sol` is a lightweight ERC-1271 authorizer for the treasury/agent wallet, so Gateway actions can be authorized without an EOA delegate.
+
+- **Deployed:** [`0x0519c703cde7cbff6829fdfdcfe8c9a4c7aac327`](https://testnet.arcscan.io/address/0x0519c703cde7cbff6829fdfdcfe8c9a4c7aac327) — verified on Arcscan.
+- **Modes:**
+  - Pre-approved digests via `approveHash` — no EOA delegate needed.
+  - Time-boxed delegate signers for temporary authorization.
+- A2H payouts and mandate renewals carry an `onChainAuth` block; the inbox shows the ERC-1271 magic value `0x1626ba7e` when the digest is approved on-chain.
+- Public status endpoint: `/api/public/erc1271/authorizer`.
+
 ---
 
 ## Arc network config
