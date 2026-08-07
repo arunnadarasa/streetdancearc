@@ -155,6 +155,14 @@ function ProductPage() {
                     {variant?.price.currencyCode}{" "}
                     {parseFloat(variant?.price.amount ?? "0").toFixed(2)}
                   </p>
+                  <div className="mt-4">
+                    <LiveTotalCalculator
+                      fiatAmount={parseFloat(variant?.price.amount ?? "0") * qty}
+                      fiatCurrency={variant?.price.currencyCode ?? "GBP"}
+                      scale={DEMO_SCALE}
+                      note="Demo scale keeps testnet payments tiny. Judges can switch payment token in the header."
+                    />
+                  </div>
                 </div>
                 <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
                   {product.description}
