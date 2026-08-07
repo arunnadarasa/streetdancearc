@@ -33,6 +33,10 @@ A second header toggle picks the settlement token — **USDC**, **EURC** or **ci
 - `purchase.ts` quotes all three in its `402` challenge and verifies whichever arrived: native `value` for USDC, matching `Transfer` logs for the ERC-20s.
 - Fiat list prices convert through a **live FX feed** in `src/lib/fx.server.ts`: GBP/EUR rates from [Frankfurter](https://www.frankfurter.app) and BTC/USD from [CoinGecko](https://www.coingecko.com), cached for 5 minutes with hardcoded fallbacks. The feed is exposed to client components via the `fetchFxRates` server function and used by the cart, negotiation, agent run, A2H inbox, and protocol endpoints.
 
+### Balances
+
+Wallet balances for USDC, EURC and cirBTC are read through ERC-20 `balanceOf` via the same-origin RPC proxy, then converted from atomic units using each token's configured decimals. A safety guard re-normalises any value above 1B units in case an RPC provider returns native USDC in 18-decimal atomic units instead of 6, so the UI always shows normal human-readable amounts.
+
 
 
 **Agent surface** (all under `src/routes/api/public/`, callable by external agents):
