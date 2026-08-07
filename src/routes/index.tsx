@@ -183,7 +183,8 @@ function Index() {
               <MoveRegistry treasuryAddress={treasuryAddress} />
             </Section>
           </>
-        )}
+        </ModeSurface>
+
 
         <SiteFooter />
       </div>
