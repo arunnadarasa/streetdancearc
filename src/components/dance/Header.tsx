@@ -15,6 +15,7 @@ import logoMark from "@/assets/streetrail-logo.png";
 const NAV = [
   { to: "/shop", label: "Shop" },
   { to: "/moves", label: "Moves" },
+  { to: "/market", label: "Market" },
   { to: "/agent-negotiation", label: "Negotiate" },
   { to: "/markets", label: "Markets" },
   { to: "/primer", label: "Primer" },

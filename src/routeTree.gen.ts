@@ -13,6 +13,7 @@ import { Route as ShopRouteImport } from './routes/shop'
 import { Route as PrimerRouteImport } from './routes/primer'
 import { Route as MovesRouteImport } from './routes/moves'
 import { Route as MarketsRouteImport } from './routes/markets'
+import { Route as MarketRouteImport } from './routes/market'
 import { Route as DeckRouteImport } from './routes/deck'
 import { Route as AgentNegotiationRouteImport } from './routes/agent-negotiation'
 import { Route as IndexRouteImport } from './routes/index'
@@ -47,6 +48,11 @@ const MovesRoute = MovesRouteImport.update({
 const MarketsRoute = MarketsRouteImport.update({
   id: '/markets',
   path: '/markets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketRoute = MarketRouteImport.update({
+  id: '/market',
+  path: '/market',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeckRoute = DeckRouteImport.update({
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agent-negotiation': typeof AgentNegotiationRoute
   '/deck': typeof DeckRoute
+  '/market': typeof MarketRoute
   '/markets': typeof MarketsRoute
   '/moves': typeof MovesRoute
   '/primer': typeof PrimerRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agent-negotiation': typeof AgentNegotiationRoute
   '/deck': typeof DeckRoute
+  '/market': typeof MarketRoute
   '/markets': typeof MarketsRoute
   '/moves': typeof MovesRoute
   '/primer': typeof PrimerRoute
@@ -173,6 +181,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/agent-negotiation': typeof AgentNegotiationRoute
   '/deck': typeof DeckRoute
+  '/market': typeof MarketRoute
   '/markets': typeof MarketsRoute
   '/moves': typeof MovesRoute
   '/primer': typeof PrimerRoute
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agent-negotiation'
     | '/deck'
+    | '/market'
     | '/markets'
     | '/moves'
     | '/primer'
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agent-negotiation'
     | '/deck'
+    | '/market'
     | '/markets'
     | '/moves'
     | '/primer'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agent-negotiation'
     | '/deck'
+    | '/market'
     | '/markets'
     | '/moves'
     | '/primer'
@@ -260,6 +272,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgentNegotiationRoute: typeof AgentNegotiationRoute
   DeckRoute: typeof DeckRoute
+  MarketRoute: typeof MarketRoute
   MarketsRoute: typeof MarketsRoute
   MovesRoute: typeof MovesRoute
   PrimerRoute: typeof PrimerRoute
@@ -306,6 +319,13 @@ declare module '@tanstack/react-router' {
       path: '/markets'
       fullPath: '/markets'
       preLoaderRoute: typeof MarketsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/market': {
+      id: '/market'
+      path: '/market'
+      fullPath: '/market'
+      preLoaderRoute: typeof MarketRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/deck': {
@@ -420,6 +440,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentNegotiationRoute: AgentNegotiationRoute,
   DeckRoute: DeckRoute,
+  MarketRoute: MarketRoute,
   MarketsRoute: MarketsRoute,
   MovesRoute: MovesRoute,
   PrimerRoute: PrimerRoute,

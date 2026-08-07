@@ -37,6 +37,7 @@ const NAV_ROWS: NavRow[] = [
   { to: "/", label: "Home", hint: "The rail, in one screen", icon: Home, exact: true },
   { to: "/shop", label: "Shop", hint: "Streetwear, paid in stablecoins", icon: ShoppingBag },
   { to: "/moves", label: "Moves", hint: "Log a move, own the credit", icon: Music2 },
+  { to: "/market", label: "Market", hint: "Buy, sell and transfer move rights", icon: Music2 },
   { to: "/agent-negotiation", label: "Negotiate", hint: "Watch two agents settle", icon: Handshake },
   { to: "/markets", label: "Markets", hint: "Where the demand already is", icon: Globe2 },
   { to: "/primer", label: "Primer", hint: "Web3 explained in dance terms", icon: BookOpen },
