@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getCircleRails } from "@/lib/circle-rails.functions";
+import { getAuthorizer } from "@/lib/erc1271.functions";
 
 function Row({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
@@ -20,6 +21,12 @@ function Row({ label, value, hint }: { label: string; value: string; hint?: stri
  */
 export function CircleRailsPanel() {
   const fetchRails = useServerFn(getCircleRails);
+  const fetchAuthorizer = useServerFn(getAuthorizer);
+  const { data: auth } = useQuery({
+    queryKey: ["erc1271-authorizer"],
+    queryFn: () => fetchAuthorizer(),
+    staleTime: 5 * 60 * 1000,
+  });
   const { data, isLoading } = useQuery({
     queryKey: ["circle-rails"],
     queryFn: () => fetchRails(),
@@ -39,6 +46,15 @@ export function CircleRailsPanel() {
         <p className="mt-4 text-xs text-muted-foreground">Reading Circle rails…</p>
       ) : (
         <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+          <Row
+            label="ERC-1271 authorization"
+            value={auth ? (auth.reachable ? "live" : "off-chain only") : "checking…"}
+            hint={
+              auth
+                ? `Contract wallet ${auth.authorizer.slice(0, 10)}… authorizes Gateway actions with no EOA delegate — digests are pre-approved by the treasury and verified via isValidSignature.`
+                : "Reading the on-chain authorizer…"
+            }
+          />
           <Row
             label="Nanopayments"
             value={data.nanopay.available ? "batched" : "fallback"}
