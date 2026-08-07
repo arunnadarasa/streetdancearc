@@ -7,6 +7,7 @@ import { TOKEN_KEYS, type TokenKey } from "@/lib/tokens";
 import {
   runPushPayout,
   runApprovePayout,
+  runClaimOffer,
   runRenewMandate,
   runListPayouts,
   runAccruePayout,
@@ -91,3 +92,26 @@ export const renewMandate = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }) => runRenewMandate(data));
+
+export const claimOffer = createServerFn({ method: "POST" })
+  .inputValidator(
+    (input: {
+      address: string;
+      token: TokenKey;
+      offerId: string;
+      title: string;
+      usd: number;
+      expiresInHours?: number;
+    }) =>
+      z
+        .object({
+          address: AddressSchema,
+          token: TokenEnum,
+          offerId: z.string().min(1).max(80),
+          title: z.string().min(1).max(160),
+          usd: z.number().min(0).max(500),
+          expiresInHours: z.number().min(1).max(720).default(6),
+        })
+        .parse(input),
+  )
+  .handler(async ({ data }) => runClaimOffer(data));
