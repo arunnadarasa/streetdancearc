@@ -232,7 +232,7 @@ export function MintForm() {
 
       {authenticated && contractDeployed && (
         <div className="rounded-lg border border-border bg-background/40 p-3 text-xs text-muted-foreground">
-          You'll approve <span className="font-semibold text-foreground">{amount || "0"} {TOKENS[token].symbol}</span>{" "}
+          You'll approve <span className="font-semibold text-foreground">{tokenAmount || "0"} {TOKENS[token].symbol}</span>{" "}
           to be spent by the DanceMoveTokens contract, then log the move.
           <br />
           <span className="text-muted-foreground">
