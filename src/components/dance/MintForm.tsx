@@ -155,20 +155,79 @@ export function MintForm() {
         />
       </div>
 
-      <div>
-        <label className="text-xs uppercase tracking-widest text-muted-foreground">
-          Amount ({TOKENS[token].symbol})
-        </label>
-        <input
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          type="number"
-          inputMode="decimal"
-          pattern="[0-9]*\.?[0-9]*"
-          min="0"
-          step="0.01"
-          className="mt-1 w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-        />
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="text-xs uppercase tracking-widest text-muted-foreground">Amount</label>
+          <div className="flex rounded-full border border-border bg-surface p-0.5">
+            <button
+              type="button"
+              onClick={() => setMode("token")}
+              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold transition ${
+                mode === "token" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {TOKENS[token].symbol}
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("usd")}
+              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold transition ${
+                mode === "usd" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              USD
+            </button>
+          </div>
+        </div>
+
+        {mode === "usd" ? (
+          <input
+            value={usdAmount}
+            onChange={(e) => onUsdChange(e.target.value)}
+            type="number"
+            inputMode="decimal"
+            pattern="[0-9]*\.?[0-9]*"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+          />
+        ) : (
+          <input
+            value={amount}
+            onChange={(e) => onTokenChange(e.target.value)}
+            type="number"
+            inputMode="decimal"
+            pattern="[0-9]*\.?[0-9]*"
+            min="0"
+            step="0.01"
+            className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+          />
+        )}
+
+        <div className="rounded-lg border border-border/60 bg-background/40 px-3 py-2 text-xs text-muted-foreground">
+          {mode === "usd" ? (
+            <>
+              You will approve{" "}
+              <span className="font-semibold text-foreground">
+                {tokenAmount} {TOKENS[token].symbol}
+              </span>{" "}
+              (${usdAmount || "0"} USD at live FX rate).
+            </>
+          ) : (
+            <>
+              Listed payment:{" "}
+              <span className="font-semibold text-foreground">
+                {amount || "0"} {TOKENS[token].symbol}
+              </span>
+              {fx && (
+                <span className="ml-1 opacity-70">
+                  ≈ ${(parseFloat(amount || "0") / (convertFromUsd(1, token, fx) || 1)).toFixed(2)} USD
+                </span>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {authenticated && contractDeployed && (
