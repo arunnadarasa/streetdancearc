@@ -623,7 +623,7 @@ function SlideCriteria() {
     ["Verifiable authorization", "ERC-1271 contract returns 0x1626ba7e for an approved mandate digest"],
   ];
   return (
-    <Slide n={13}>
+    <Slide n={14}>
       <Kicker>How we map to the criteria</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Every judging bullet has a feature behind it.
