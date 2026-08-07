@@ -38,6 +38,8 @@ A second header toggle picks the settlement token — **USDC**, **EURC** or **ci
 - `agent-card.ts` — A2A 0.3 agent card / capability discovery
 - `catalog.ts` — machine-readable product catalog
 - `purchase.ts` — x402 challenge, settlement, and signed receipt
+- `arc-rpc.ts` — same-origin JSON-RPC proxy so the Alchemy key never ships to the client
+- `x402/resources.ts` — StreetRail published in the Circle Agent Marketplace discovery shape
 - `a2a/`, `ap2/`, `ucp/` — protocol endpoints for tasks, mandates, and commerce intents
 
 **Client components:** `src/components/gx/` (A2A run panel, negotiation, spend policy, ledger, mode toggle), `src/components/h2a/H2aHome.tsx` and `src/components/a2h/` (payout inbox, standing mandate panel).
