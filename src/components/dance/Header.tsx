@@ -194,7 +194,8 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
                   onClick={() => (authenticated ? setWalletOpen((v) => !v) : void login())}
                   aria-expanded={authenticated ? walletOpen : undefined}
                   aria-haspopup={authenticated ? "dialog" : undefined}
-                  className="lift shrink-0 rounded-full bg-linear-to-r from-primary to-glow px-3 py-1.5 text-[11px] font-bold text-primary-foreground shadow-glow-sm sm:px-4 sm:py-2 sm:text-xs"
+                  className="lift flex h-11 shrink-0 items-center rounded-full bg-linear-to-r from-primary to-glow px-3 text-[11px] font-bold text-primary-foreground shadow-glow-sm sm:h-auto sm:px-4 sm:py-2 sm:text-xs"
+
                 >
                   {authenticated
                     ? addr
