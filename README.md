@@ -39,6 +39,8 @@ A second header toggle picks the settlement token — **USDC**, **EURC** or **ci
 
 Wallet balances for USDC, EURC and cirBTC are read through ERC-20 `balanceOf` via the same-origin RPC proxy, then converted from atomic units using each token's configured decimals. A safety guard re-normalises any value above 1B units in case an RPC provider returns native USDC in 18-decimal atomic units instead of 6, so the UI always shows normal human-readable amounts.
 
+The **Treasury Panel** in the A2H inbox surfaces the treasury address and its live Arc balances, with an amber warning when USDC gas drops below `0.5` so users know to top up before approving payouts.
+
 
 
 **Agent surface** (all under `src/routes/api/public/`, callable by external agents):
