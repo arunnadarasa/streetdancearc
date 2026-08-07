@@ -294,13 +294,16 @@ export async function runClaimOffer(data: {
   token: TokenKey;
   offerId: string;
   title: string;
-  usd: number;
+  /** Discounted price in the settle token, already formatted (e.g. "56.68"). */
+  value: string;
   expiresInHours?: number;
 }) {
   const fx = await getFxRates().catch(() => ({ ...FALLBACK_RATES, stale: true }));
-  const value = convertFromUsd(data.usd, data.token, fx).toFixed(places(data.token));
+  const value = Number(data.value).toFixed(places(data.token));
+  const usd = Number(value) / getTokenUsdRate(data.token, fx);
   const cfg = TOKENS[data.token];
   const atomic = toAtomic(value, data.token);
+
   const claimCode = `SR-${data.offerId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 6).toUpperCase()}-${data.address.slice(-4).toUpperCase()}`;
   const expiresAt = new Date(Date.now() + (data.expiresInHours ?? 6) * 3_600_000).toISOString();
 
