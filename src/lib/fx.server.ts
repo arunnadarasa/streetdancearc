@@ -21,11 +21,17 @@ async function fetchFrankfurter(): Promise<{ usdPerGbp: number; usdPerEur: numbe
 
 async function fetchCoinGecko(): Promise<{ usdPerBtc: number }> {
   const key = process.env["COINGECKO_API_KEY"];
+  // CoinGecko demo keys start with "CG-" and use the public endpoint with the
+  // x-cg-demo-api-key header. Pro keys use pro-api.coingecko.com with
+  // x-cg-pro-api-key.
+  const isDemo = key ? key.startsWith("CG-") : false;
   const url = key
-    ? "https://pro-api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
+    ? isDemo
+      ? "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
+      : "https://pro-api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
     : "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd";
   const headers: Record<string, string> = {};
-  if (key) headers["x-cg-pro-api-key"] = key;
+  if (key) headers[isDemo ? "x-cg-demo-api-key" : "x-cg-pro-api-key"] = key;
   const res = await fetch(url, { headers });
   if (!res.ok) throw new Error(`CoinGecko ${res.status}: ${await res.text()}`);
   const json = (await res.json()) as { bitcoin: { usd: number } };
