@@ -54,6 +54,20 @@ export function MintForm() {
   const contractAddress = contractCfg.address as Address;
   const contractDeployed = contractAddress && contractAddress !== "0x0000000000000000000000000000000000000000";
 
+  const tokenAmount = mode === "usd"
+    ? convertFromUsd(parseFloat(usdAmount || "0"), token, fx).toFixed(TOKENS[token].decimals === 8 ? 8 : 6)
+    : amount;
+
+  function onUsdChange(raw: string) {
+    setUsdAmount(raw);
+    setMode("usd");
+  }
+
+  function onTokenChange(raw: string) {
+    setAmount(raw);
+    setMode("token");
+  }
+
   async function onSubmit() {
     setError(null);
     setTxHash(null);
