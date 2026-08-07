@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Section, SectionHead } from "@/components/layout/Section";
 import { Reveal } from "@/components/layout/Reveal";
 import { ArrowRight, BookOpen } from "lucide-react";
+import { InteractiveGlossary } from "@/components/primer/InteractiveGlossary";
 
 export const Route = createFileRoute("/primer")({
   head: () => ({
@@ -78,25 +79,6 @@ const CARDS = [
     tech: "Wallet",
     body: "Privy gives you an embedded wallet with Google login. It's your digital dance card: it holds your stablecoins, signs your moves, and proves it's you at the door.",
   },
-];
-
-const GLOSSARY = [
-  { term: "Agentic", def: "Software that can act on its own within rules you set." },
-  { term: "Arc", def: "Circle's blockchain testnet where StreetRail settles. Chain ID 5042002." },
-  { term: "AP2", def: "Agent Payment Protocol — a signed permission slip for automated spending." },
-  { term: "Blockchain", def: "A shared, ordered ledger that nobody can unilaterally rewrite." },
-  { term: "cirBTC", def: "A Circle-issued bitcoin token used as a payment option on Arc." },
-  { term: "EURC", def: "A euro-backed stablecoin accepted at checkout." },
-  { term: "Gas", def: "The fee paid to the network to process a transaction." },
-  { term: "GX", def: "Generative Experience — an interface built for you and an agent to collaborate." },
-  { term: "H2A", def: "Human-to-agent: you set intent, the agent executes." },
-  { term: "H2H", def: "Human-to-human: a normal storefront experience." },
-  { term: "Mandate", def: "A time-boxed, signed spending rule an agent must follow." },
-  { term: "Privy", def: "The login and wallet service; sign in with Google, no seed phrase needed." },
-  { term: "Receipt", def: "An on-chain proof that a payment happened." },
-  { term: "Stablecoin", def: "A token pegged to a real-world currency so the price stays steady." },
-  { term: "USDC", def: "A dollar-backed stablecoin and Arc's native gas token." },
-  { term: "x402", def: "A protocol that turns 'Payment Required' into a machine-payable checkout." },
 ];
 
 function PrimerPage() {
