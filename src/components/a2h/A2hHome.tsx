@@ -1,6 +1,8 @@
 import { Inbox, Loader2, ShieldCheck, Zap } from "lucide-react";
 import { JsonBlock } from "@/components/gx/JsonBlock";
 import { InboxCard } from "./InboxCard";
+import { TreasuryPanel } from "./TreasuryPanel";
+
 import {
   RIGHTS_REGISTRY,
   approvalMessage,
