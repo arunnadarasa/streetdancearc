@@ -11,6 +11,7 @@ import { Section, SectionHead } from "@/components/layout/Section";
 import { Reveal } from "@/components/layout/Reveal";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { GxShop } from "@/components/gx/GxShop";
+import { ModeSurface } from "@/components/gx/ModeSurface";
 import { useGxMode } from "@/lib/gx-mode";
 import { H2aHome } from "@/components/h2a/H2aHome";
 import { getPublicConfig } from "@/lib/config.functions";
@@ -62,12 +63,7 @@ function ShopPage() {
       <div className="min-h-screen bg-background text-foreground">
         <Header extra={mode === "h2h" ? <CartDrawer /> : undefined} />
 
-        {mode !== "h2h" ? (
-          <Section tone="base" lines>
-            {mode === "h2a" ? <H2aHome /> : <GxShop />}
-          </Section>
-        ) : (
-
+        <ModeSurface mode={mode} agent={<GxShop />}>
           <>
             <section className="aurora-bg relative">
               <div className="rail relative flex min-h-[40vh] flex-col justify-center py-12 sm:min-h-[52vh] sm:py-24 lg:min-h-[34vh] lg:py-16">
@@ -122,7 +118,8 @@ function ShopPage() {
               )}
             </Section>
           </>
-        )}
+        </ModeSurface>
+
 
         <SiteFooter />
       </div>

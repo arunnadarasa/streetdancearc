@@ -7,6 +7,7 @@ import { FeaturedMerch } from "@/components/shop/FeaturedMerch";
 import { CartDrawer } from "@/components/shop/CartDrawer";
 import { useCartSync } from "@/hooks/useCartSync";
 import { GxHome } from "@/components/gx/GxHome";
+import { ModeSurface } from "@/components/gx/ModeSurface";
 import { Section, SectionHead } from "@/components/layout/Section";
 import { Reveal } from "@/components/layout/Reveal";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -73,11 +74,7 @@ function Index() {
       <div className="min-h-screen bg-background text-foreground">
         <Header extra={mode === "h2h" ? <CartDrawer /> : undefined} />
 
-        {mode !== "h2h" ? (
-          <Section tone="base" lines>
-            {mode === "h2a" ? <H2aHome /> : mode === "a2h" ? <A2hHome /> : <GxHome />}
-          </Section>
-        ) : (
+        <ModeSurface mode={mode} agent={<GxHome />}>
           <>
             {/* HERO */}
             <section className="aurora-bg relative">
@@ -186,7 +183,8 @@ function Index() {
               <MoveRegistry treasuryAddress={treasuryAddress} />
             </Section>
           </>
-        )}
+        </ModeSurface>
+
 
         <SiteFooter />
       </div>

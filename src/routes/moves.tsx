@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PrivyRoot } from "@/components/PrivyRoot";
 import { Header } from "@/components/dance/Header";
+import { ModeSurface } from "@/components/gx/ModeSurface";
+import { useGxMode } from "@/lib/gx-mode";
 import { MoveRegistry } from "@/components/dance/MoveRegistry";
 import { Section } from "@/components/layout/Section";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -31,14 +33,17 @@ export const Route = createFileRoute("/moves")({
 
 function MovesPage() {
   const { privyAppId, treasuryAddress } = Route.useLoaderData();
+  const [mode] = useGxMode();
 
   return (
     <PrivyRoot appId={privyAppId}>
       <div className="min-h-screen bg-background text-foreground">
         <Header />
-        <Section tone="base" lines>
-          <MoveRegistry treasuryAddress={treasuryAddress} />
-        </Section>
+        <ModeSurface mode={mode}>
+          <Section tone="base" lines>
+            <MoveRegistry treasuryAddress={treasuryAddress} />
+          </Section>
+        </ModeSurface>
         <SiteFooter />
       </div>
     </PrivyRoot>

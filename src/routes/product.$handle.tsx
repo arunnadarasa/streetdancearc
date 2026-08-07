@@ -18,7 +18,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 
 import { GxOffer } from "@/components/gx/GxOffer";
 import { useGxMode } from "@/lib/gx-mode";
-import { H2aHome } from "@/components/h2a/H2aHome";
+import { ModeSurface } from "@/components/gx/ModeSurface";
 import { getPublicConfig } from "@/lib/config.functions";
 
 export const Route = createFileRoute("/product/$handle")({
@@ -98,9 +98,10 @@ function ProductPage() {
       <PrivyRoot appId={privyAppId}>
         <div className="min-h-screen bg-background text-foreground">
           <Header />
-          <Section tone="base" lines>
-            {mode === "h2a" ? <H2aHome /> : <GxOffer product={product} />}
-          </Section>
+          <ModeSurface mode={mode} agent={<GxOffer product={product} />}>
+            <GxOffer product={product} />
+          </ModeSurface>
+
           <SiteFooter />
         </div>
       </PrivyRoot>
