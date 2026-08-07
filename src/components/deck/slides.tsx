@@ -785,6 +785,7 @@ export const slides: Array<{ id: string; render: () => ReactNode }> = [
   { id: "protocols", render: () => <SlideProtocolStack /> },
   { id: "circle", render: () => <SlideCircleStack /> },
   { id: "onchain-auth", render: () => <SlideOnChainAuth /> },
+  { id: "claim-offers", render: () => <SlideClaimOffers /> },
   { id: "defi", render: () => <SlideDefi /> },
   { id: "criteria", render: () => <SlideCriteria /> },
   { id: "roadmap", render: () => <SlideRoadmap /> },
