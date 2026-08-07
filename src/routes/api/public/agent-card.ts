@@ -52,6 +52,13 @@ export const Route = createFileRoute("/api/public/agent-card")({
                 tags: ["ap2", "mandate", "x402"],
                 endpoint: { method: "POST", path: "/api/public/ap2/mandate" },
               },
+              {
+                id: "x402_resources",
+                name: "x402 resource discovery",
+                description: "StreetRail published in the Circle Agent Marketplace discovery shape — resource, accepts[] for USDC/EURC/cirBTC on Arc Testnet, and provider metadata.",
+                tags: ["x402", "discovery", "marketplace", "arc"],
+                endpoint: { method: "GET", path: "/api/public/x402/resources" },
+              },
             ],
           },
           { headers: { ...CORS, "Cache-Control": "public, max-age=60" } },

@@ -20,6 +20,7 @@ import { Route as ApiPublicPurchaseRouteImport } from './routes/api/public/purch
 import { Route as ApiPublicCatalogRouteImport } from './routes/api/public/catalog'
 import { Route as ApiPublicArcRpcRouteImport } from './routes/api/public/arc-rpc'
 import { Route as ApiPublicAgentCardRouteImport } from './routes/api/public/agent-card'
+import { Route as ApiPublicX402ResourcesRouteImport } from './routes/api/public/x402/resources'
 import { Route as ApiPublicUcpSelfTestRouteImport } from './routes/api/public/ucp/self-test'
 import { Route as ApiPublicUcpDiscoveryRouteImport } from './routes/api/public/ucp/discovery'
 import { Route as ApiPublicAp2MandateRouteImport } from './routes/api/public/ap2/mandate'
@@ -80,6 +81,11 @@ const ApiPublicAgentCardRoute = ApiPublicAgentCardRouteImport.update({
   path: '/api/public/agent-card',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicX402ResourcesRoute = ApiPublicX402ResourcesRouteImport.update({
+  id: '/api/public/x402/resources',
+  path: '/api/public/x402/resources',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicUcpSelfTestRoute = ApiPublicUcpSelfTestRouteImport.update({
   id: '/api/public/ucp/self-test',
   path: '/api/public/ucp/self-test',
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/api/public/ap2/mandate': typeof ApiPublicAp2MandateRoute
   '/api/public/ucp/discovery': typeof ApiPublicUcpDiscoveryRoute
   '/api/public/ucp/self-test': typeof ApiPublicUcpSelfTestRoute
+  '/api/public/x402/resources': typeof ApiPublicX402ResourcesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -134,6 +141,7 @@ export interface FileRoutesByTo {
   '/api/public/ap2/mandate': typeof ApiPublicAp2MandateRoute
   '/api/public/ucp/discovery': typeof ApiPublicUcpDiscoveryRoute
   '/api/public/ucp/self-test': typeof ApiPublicUcpSelfTestRoute
+  '/api/public/x402/resources': typeof ApiPublicX402ResourcesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/api/public/ap2/mandate': typeof ApiPublicAp2MandateRoute
   '/api/public/ucp/discovery': typeof ApiPublicUcpDiscoveryRoute
   '/api/public/ucp/self-test': typeof ApiPublicUcpSelfTestRoute
+  '/api/public/x402/resources': typeof ApiPublicX402ResourcesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -171,6 +180,7 @@ export interface FileRouteTypes {
     | '/api/public/ap2/mandate'
     | '/api/public/ucp/discovery'
     | '/api/public/ucp/self-test'
+    | '/api/public/x402/resources'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/api/public/ap2/mandate'
     | '/api/public/ucp/discovery'
     | '/api/public/ucp/self-test'
+    | '/api/public/x402/resources'
   id:
     | '__root__'
     | '/'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/api/public/ap2/mandate'
     | '/api/public/ucp/discovery'
     | '/api/public/ucp/self-test'
+    | '/api/public/x402/resources'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -223,6 +235,7 @@ export interface RootRouteChildren {
   ApiPublicAp2MandateRoute: typeof ApiPublicAp2MandateRoute
   ApiPublicUcpDiscoveryRoute: typeof ApiPublicUcpDiscoveryRoute
   ApiPublicUcpSelfTestRoute: typeof ApiPublicUcpSelfTestRoute
+  ApiPublicX402ResourcesRoute: typeof ApiPublicX402ResourcesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -304,6 +317,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicAgentCardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/x402/resources': {
+      id: '/api/public/x402/resources'
+      path: '/api/public/x402/resources'
+      fullPath: '/api/public/x402/resources'
+      preLoaderRoute: typeof ApiPublicX402ResourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/ucp/self-test': {
       id: '/api/public/ucp/self-test'
       path: '/api/public/ucp/self-test'
@@ -351,17 +371,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAp2MandateRoute: ApiPublicAp2MandateRoute,
   ApiPublicUcpDiscoveryRoute: ApiPublicUcpDiscoveryRoute,
   ApiPublicUcpSelfTestRoute: ApiPublicUcpSelfTestRoute,
+  ApiPublicX402ResourcesRoute: ApiPublicX402ResourcesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
