@@ -25,6 +25,7 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
   const addr = user?.wallet?.address;
   const [scrolled, setScrolled] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const walletRef = useRef<HTMLDivElement | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
