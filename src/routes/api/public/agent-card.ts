@@ -27,6 +27,7 @@ export const Route = createFileRoute("/api/public/agent-card")({
                 { uri: "https://github.com/google-agentic-commerce/a2a-x402/v0.1", description: "a2a-x402 onchain settlement" },
                 { uri: "https://ucp.dev/spec", description: "UCP discovery at /api/public/ucp/discovery" },
                 { uri: "https://github.com/google-agentic-commerce/AP2", description: "AP2 mandates at /api/public/ap2/mandate" },
+                { uri: "https://eips.ethereum.org/EIPS/eip-1271", description: "ERC-1271 contract-wallet authorization at /api/public/erc1271/authorizer — treasury actions authorized without an EOA delegate" },
               ],
             },
             skills: [

@@ -59,5 +59,6 @@ for (let i = 0; i < 60 && !addr; i++) {
   if (contract.status === "COMPLETE") addr = contract.contractAddress;
 }
 fs.mkdirSync("src/data", { recursive: true });
-fs.writeFileSync("src/data/contract.json", JSON.stringify({ address: addr, abi, chainId: 5042002, explorer: "https://testnet.arcscan.app" }, null, 2));
+const outFile = name === "DanceMoveTokens" ? "src/data/contract.json" : `src/data/${name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase()}.json`;
+fs.writeFileSync(outFile, JSON.stringify({ address: addr, abi, chainId: 5042002, explorer: "https://testnet.arcscan.app" }, null, 2));
 console.log(`Deployed ${name} -> ${addr} (https://testnet.arcscan.app/address/${addr})`);

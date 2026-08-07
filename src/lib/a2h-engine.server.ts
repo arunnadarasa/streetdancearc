@@ -6,6 +6,7 @@ import { getFxRates } from "@/lib/fx.server";
 import { convertFromUsd, getTokenUsdRate, microToUsd, usdToMicro } from "@/lib/fx";
 import { TOKENS, ARC_EXPLORER, type TokenKey } from "@/lib/tokens";
 import { signMandate } from "@/lib/mandate-sign.server";
+import { approveAuthOnChain, AUTHORIZER, authorizerUrl } from "@/lib/erc1271.server";
 import {
   accrue,
   accrualKey,
@@ -157,12 +158,17 @@ async function settle(input: SettleInput) {
       issuedAt: new Date().toISOString(),
     };
 
+    // ERC-1271: anchor the mandate digest on Arc so any counterparty can verify
+    // the treasury authorized this payout — no EOA delegate required.
+    const onChainAuth = await approveAuthOnChain(mandate);
+
     return {
       ok: true as const,
       ...result,
       receiptUrl: `${ARC_EXPLORER}/tx/${result.transferTx}`,
       registryUrl: `${ARC_EXPLORER}/tx/${result.registryTx}`,
-      mandate: { ...mandate, signature: signMandate(mandate) },
+      onChainAuth,
+      mandate: { ...mandate, signature: signMandate(mandate), onChainAuth },
     };
   } catch (e) {
     const message = e instanceof Error ? e.message : "payout_failed";
@@ -300,9 +306,14 @@ export async function runRenewMandate(data: {
     renewed_at: new Date().toISOString(),
     expires_at: expiresAt,
   };
+  const onChainAuth = await approveAuthOnChain(mandate, data.days * 86_400);
+
   return {
     ok: true as const,
     expiresAt,
-    mandate: { ...mandate, signature: signMandate(mandate) },
+    authorizer: AUTHORIZER,
+    authorizerUrl: authorizerUrl(),
+    onChainAuth,
+    mandate: { ...mandate, signature: signMandate(mandate), onChainAuth },
   };
 }
