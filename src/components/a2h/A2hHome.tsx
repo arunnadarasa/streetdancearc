@@ -185,11 +185,19 @@ export function A2hHome() {
           registry's on-chain events. Nothing here started with a click.
         </p>
 
+        {lowGas && (
+          <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-200">
+            Treasury is low on USDC gas, so approvals and sweeps will fail until it is topped up
+            at faucet.circle.com (Arc Testnet).
+          </p>
+        )}
+
         {chainError && (
           <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-200">
             {chainError} Payouts still settle on Arc — new settlements appear here immediately.
           </p>
         )}
+
 
 
 
