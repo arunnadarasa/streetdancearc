@@ -39,7 +39,7 @@ A second header toggle picks the settlement token — **USDC**, **EURC** or **ci
 - **USDC** is Arc's gas token, so paying it is a native value transfer.
 - **EURC** (6 decimals) and **cirBTC** (8 decimals) are ERC-20s, settled with `transfer()` — gas is still paid in USDC.
 - `purchase.ts` quotes all three in its `402` challenge and verifies whichever arrived: native `value` for USDC, matching `Transfer` logs for the ERC-20s.
-- Fiat list prices convert through a **live FX feed** in `src/lib/fx.server.ts`: GBP/EUR rates from [Frankfurter](https://www.frankfurter.app) and BTC/USD from [CoinGecko](https://www.coingecko.com), cached for 5 minutes with hardcoded fallbacks. The feed is exposed to client components via the `fetchFxRates` server function and used by the cart, negotiation, agent run, A2H inbox, and protocol endpoints.
+- Fiat list prices convert through a **live FX feed** in `src/lib/fx.server.ts`: GBP/EUR rates from [Frankfurter](https://www.frankfurter.app) and BTC/USD from [CoinGecko](https://www.coingecko.com), cached for 5 minutes with hardcoded fallbacks. A `COINGECKO_API_KEY` secret is optional; demo keys (`CG-…`) route to the public endpoint with the `x-cg-demo-api-key` header, while paid Pro keys use `pro-api.coingecko.com`. The feed is exposed to client components via the `fetchFxRates` server function and used by the cart, negotiation, agent run, A2H inbox, live total calculator, and protocol endpoints.
 
 ### Balances
 
