@@ -99,7 +99,9 @@ function ProductPage() {
         <div className="min-h-screen bg-background text-foreground">
           <Header />
           <Section tone="base" lines>
-            {mode === "h2a" ? <H2aHome /> : <GxOffer product={product} />}
+            <ModeSurface mode={mode} agent={<GxOffer product={product} />}>
+              <GxOffer product={product} />
+            </ModeSurface>
           </Section>
           <SiteFooter />
         </div>
