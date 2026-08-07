@@ -668,7 +668,7 @@ function SlideRoadmap() {
     "Demo Day rehearsal + judge Q&A pack",
   ];
   return (
-    <Slide n={14}>
+    <Slide n={15}>
       <Kicker>Traction & Roadmap</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Working today. Shipping through <span style={{ color: GREEN }}>Demo Day.</span>
