@@ -118,7 +118,8 @@ function ShopPage() {
               )}
             </Section>
           </>
-        )}
+        </ModeSurface>
+
 
         <SiteFooter />
       </div>
