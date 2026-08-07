@@ -39,13 +39,29 @@ A second header toggle picks the settlement token — **USDC**, **EURC** or **ci
 - **USDC** is Arc's gas token, so paying it is a native value transfer.
 - **EURC** (6 decimals) and **cirBTC** (8 decimals) are ERC-20s, settled with `transfer()` — gas is still paid in USDC.
 - `purchase.ts` quotes all three in its `402` challenge and verifies whichever arrived: native `value` for USDC, matching `Transfer` logs for the ERC-20s.
-- Fiat list prices convert through a **live FX feed** in `src/lib/fx.server.ts`: GBP/EUR rates from [Frankfurter](https://www.frankfurter.app) and BTC/USD from [CoinGecko](https://www.coingecko.com), cached for 5 minutes with hardcoded fallbacks. The feed is exposed to client components via the `fetchFxRates` server function and used by the cart, negotiation, agent run, A2H inbox, and protocol endpoints.
+- Fiat list prices convert through a **live FX feed** in `src/lib/fx.server.ts`: GBP/EUR rates from [Frankfurter](https://www.frankfurter.app) and BTC/USD from [CoinGecko](https://www.coingecko.com), cached for 5 minutes with hardcoded fallbacks. A `COINGECKO_API_KEY` secret is optional; demo keys (`CG-…`) route to the public endpoint with the `x-cg-demo-api-key` header, while paid Pro keys use `pro-api.coingecko.com`. The feed is exposed to client components via the `fetchFxRates` server function and used by the cart, negotiation, agent run, A2H inbox, live total calculator, and protocol endpoints.
 
 ### Balances
 
 Wallet balances for USDC, EURC and cirBTC are read through ERC-20 `balanceOf` via the same-origin RPC proxy, then converted from atomic units using each token's configured decimals. A safety guard re-normalises any value above 1B units in case an RPC provider returns native USDC in 18-decimal atomic units instead of 6, so the UI always shows normal human-readable amounts.
 
 The **Treasury Panel** in the A2H inbox surfaces the treasury address and its live Arc balances, with an amber warning when USDC gas drops below `0.5` so users know to top up before approving payouts.
+
+### Move registry improvements
+
+The `/moves` page is now a full registry console:
+
+- **Metadata preview step.** Before logging a move, dancers fill move name, discipline, rights holder and license, then preview the exact JSON and the IPFS CIDv1 it hashes to. Logging is blocked until the CID is confirmed, so the on-chain record matches the off-chain metadata.
+- **Receipt history panel.** Every `log()` call is listed newest-first with kind classification (move log, A2H payout, offer claim, nanopayment batch), formatted token amount, block number, success/failure status, and a clickable Arcscan link. History is read with a chunked, rate-limit-aware log sweep and cached for 45 seconds so public RPC limits don't break the UI.
+
+### Live totals & FX transparency
+
+- **Live total calculator.** Product pages, the cart drawer and the move-mint form show the real-time Arc token amount for the selected stablecoin, the listed fiat equivalent, the USD value, and the raw atomic value. Switching USDC/EURC/cirBTC updates the total instantly against the live FX feed.
+- **FX price widget.** The footer displays the last-updated time of the FX feed and the CoinGecko mode being used (`demo`, `pro`, or none). It turns amber when rates go stale and has a manual refresh button.
+
+### Primer for dancers new to web3
+
+`/primer` is a jargon-free onboarding page. Concept cards pair dance terms with their tech equivalents (e.g., "The Cypher" = blockchain, "The Setlist" = mandate). The interactive glossary lets beginners tap terms like *agentic*, *x402* or *mandate* to get a dance analogy, a plain definition, and related terms.
 
 
 
@@ -139,10 +155,11 @@ Testnet tokens have no financial value.
 | -------------------- | ----------------------------------------------------------------- |
 | `/`                  | Home — featured merch, mode toggle, move registry below the fold   |
 | `/shop`              | Full catalog grid                                                  |
-| `/product/$handle`   | Product detail, quantity stepper, add to cart                      |
-| `/moves`             | On-chain move registry (log a CID, pay the stablecoin fee)         |
+| `/product/$handle`   | Product detail, quantity stepper, add to cart, live Arc total      |
+| `/moves`             | On-chain move registry: preview metadata, log a CID, receipt history |
 | `/agent-negotiation` | AIsa-powered buyer/seller negotiation transcript                   |
 | `/markets`           | FX-volatility research — why stablecoin rails matter in NGN/ARS/PHP markets |
+| `/primer`            | Web3 for dancers — concept cards + interactive glossary            |
 | `/deck`              | Interactive judges' slide deck (native React, mobile-friendly)     |
 
 ---
@@ -165,6 +182,7 @@ The project uses **Lovable Cloud** for managed PostgreSQL, Auth, and Storage. Ru
 | `CIRCLE_TREASURY_WALLET_ID`      | Deployer / treasury wallet                 |
 | `CIRCLE_TREASURY_ADDRESS`        | Treasury address surfaced in the UI        |
 | `AISA_API_KEY`                   | AIsa agent reasoning and negotiation       |
+| `COINGECKO_API_KEY`              | Optional CoinGecko demo/pro key for BTC/USD FX |
 | `VITE_SHOPIFY_DOMAIN`            | Shopify store domain                       |
 | `VITE_SHOPIFY_STOREFRONT_TOKEN`  | Shopify Storefront API token               |
 
