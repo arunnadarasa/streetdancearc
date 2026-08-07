@@ -20,24 +20,27 @@ export function SiteFooter() {
           </p>
 
         </div>
-        <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold text-muted-foreground">
-          <a href="/shop" className="hover:text-foreground">Shop</a>
-          <a href="/markets" className="hover:text-foreground">Markets</a>
-          <a href="/deck" className="hover:text-foreground">Deck</a>
-          <a
-            href="https://github.com/arunnadarasa/streetdancearc"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-foreground"
-          >
-            GitHub
-          </a>
-          <a
-            href="/.well-known/agent-card.json"
-            className="hover:text-foreground"
-          >
-            Agent card
-          </a>
+        <div className="flex flex-col items-start gap-4 sm:items-end">
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold text-muted-foreground">
+            <a href="/shop" className="hover:text-foreground">Shop</a>
+            <a href="/markets" className="hover:text-foreground">Markets</a>
+            <a href="/deck" className="hover:text-foreground">Deck</a>
+            <a
+              href="https://github.com/arunnadarasa/streetdancearc"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground"
+            >
+              GitHub
+            </a>
+            <a
+              href="/.well-known/agent-card.json"
+              className="hover:text-foreground"
+            >
+              Agent card
+            </a>
+          </div>
+          <FxPriceWidget />
         </div>
       </div>
     </footer>
