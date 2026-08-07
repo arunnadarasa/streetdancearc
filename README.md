@@ -194,6 +194,8 @@ A short, polished post-mortem covering both the hackathon sprint and the product
 - **Zod negotiation schemas.** The first `SellerQuoteSchema` required fields that AIsa sometimes omitted, causing empty negotiation transcripts until we normalized optional fields.
 - **Multi-decimal arithmetic.** Mixing USDC/EURC (6 decimals) with cirBTC (8 decimals) produced off-by-100 quote bugs; we centralized `toAtomic`/`fromAtomic` helpers per token.
 - **Seeded A2H data.** The inbox initially showed fake payouts with fake transaction hashes; users rightly called it simulated, so we replaced it with live event logs.
+- **Discovery API shape drift.** Circle's marketplace response is undocumented and sparse on Arc Testnet resources; a defensive normaliser plus a local fallback prevents the agent run from failing when the catalog shape changes.
+- **18-decimal USDC balances.** Some RPCs return native USDC `eth_getBalance` in 18-decimal atomic units even though Arc USDC is 6 decimals. Reading balances through ERC-20 `balanceOf` and adding a re-normalisation guard fixed wallet chips showing trillions of dollars.
 
 ### Best practices
 
