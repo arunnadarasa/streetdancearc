@@ -18,6 +18,7 @@ import { Route as AgentNegotiationRouteImport } from './routes/agent-negotiation
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
 import { Route as ApiPublicPurchaseRouteImport } from './routes/api/public/purchase'
+import { Route as ApiPublicPinRouteImport } from './routes/api/public/pin'
 import { Route as ApiPublicCatalogRouteImport } from './routes/api/public/catalog'
 import { Route as ApiPublicArcRpcRouteImport } from './routes/api/public/arc-rpc'
 import { Route as ApiPublicAgentCardRouteImport } from './routes/api/public/agent-card'
@@ -71,6 +72,11 @@ const ProductHandleRoute = ProductHandleRouteImport.update({
 const ApiPublicPurchaseRoute = ApiPublicPurchaseRouteImport.update({
   id: '/api/public/purchase',
   path: '/api/public/purchase',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPinRoute = ApiPublicPinRouteImport.update({
+  id: '/api/public/pin',
+  path: '/api/public/pin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicCatalogRoute = ApiPublicCatalogRouteImport.update({
@@ -132,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
   '/api/public/arc-rpc': typeof ApiPublicArcRpcRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
+  '/api/public/pin': typeof ApiPublicPinRoute
   '/api/public/purchase': typeof ApiPublicPurchaseRoute
   '/api/public/a2a/message': typeof ApiPublicA2aMessageRoute
   '/api/public/ap2/mandate': typeof ApiPublicAp2MandateRoute
@@ -152,6 +159,7 @@ export interface FileRoutesByTo {
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
   '/api/public/arc-rpc': typeof ApiPublicArcRpcRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
+  '/api/public/pin': typeof ApiPublicPinRoute
   '/api/public/purchase': typeof ApiPublicPurchaseRoute
   '/api/public/a2a/message': typeof ApiPublicA2aMessageRoute
   '/api/public/ap2/mandate': typeof ApiPublicAp2MandateRoute
@@ -173,6 +181,7 @@ export interface FileRoutesById {
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
   '/api/public/arc-rpc': typeof ApiPublicArcRpcRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
+  '/api/public/pin': typeof ApiPublicPinRoute
   '/api/public/purchase': typeof ApiPublicPurchaseRoute
   '/api/public/a2a/message': typeof ApiPublicA2aMessageRoute
   '/api/public/ap2/mandate': typeof ApiPublicAp2MandateRoute
@@ -195,6 +204,7 @@ export interface FileRouteTypes {
     | '/api/public/agent-card'
     | '/api/public/arc-rpc'
     | '/api/public/catalog'
+    | '/api/public/pin'
     | '/api/public/purchase'
     | '/api/public/a2a/message'
     | '/api/public/ap2/mandate'
@@ -215,6 +225,7 @@ export interface FileRouteTypes {
     | '/api/public/agent-card'
     | '/api/public/arc-rpc'
     | '/api/public/catalog'
+    | '/api/public/pin'
     | '/api/public/purchase'
     | '/api/public/a2a/message'
     | '/api/public/ap2/mandate'
@@ -235,6 +246,7 @@ export interface FileRouteTypes {
     | '/api/public/agent-card'
     | '/api/public/arc-rpc'
     | '/api/public/catalog'
+    | '/api/public/pin'
     | '/api/public/purchase'
     | '/api/public/a2a/message'
     | '/api/public/ap2/mandate'
@@ -256,6 +268,7 @@ export interface RootRouteChildren {
   ApiPublicAgentCardRoute: typeof ApiPublicAgentCardRoute
   ApiPublicArcRpcRoute: typeof ApiPublicArcRpcRoute
   ApiPublicCatalogRoute: typeof ApiPublicCatalogRoute
+  ApiPublicPinRoute: typeof ApiPublicPinRoute
   ApiPublicPurchaseRoute: typeof ApiPublicPurchaseRoute
   ApiPublicA2aMessageRoute: typeof ApiPublicA2aMessageRoute
   ApiPublicAp2MandateRoute: typeof ApiPublicAp2MandateRoute
@@ -328,6 +341,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/purchase'
       fullPath: '/api/public/purchase'
       preLoaderRoute: typeof ApiPublicPurchaseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/pin': {
+      id: '/api/public/pin'
+      path: '/api/public/pin'
+      fullPath: '/api/public/pin'
+      preLoaderRoute: typeof ApiPublicPinRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/catalog': {
@@ -408,6 +428,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAgentCardRoute: ApiPublicAgentCardRoute,
   ApiPublicArcRpcRoute: ApiPublicArcRpcRoute,
   ApiPublicCatalogRoute: ApiPublicCatalogRoute,
+  ApiPublicPinRoute: ApiPublicPinRoute,
   ApiPublicPurchaseRoute: ApiPublicPurchaseRoute,
   ApiPublicA2aMessageRoute: ApiPublicA2aMessageRoute,
   ApiPublicAp2MandateRoute: ApiPublicAp2MandateRoute,
@@ -419,13 +440,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

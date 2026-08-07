@@ -1,6 +1,8 @@
 import { TreasuryCard } from "@/components/dance/TreasuryCard";
 import { MintForm } from "@/components/dance/MintForm";
+import { MoveNftGallery } from "@/components/dance/MoveNftGallery";
 import { ReceiptHistoryPanel } from "@/components/dance/ReceiptHistoryPanel";
+
 import { SectionHead } from "@/components/layout/Section";
 import { Reveal } from "@/components/layout/Reveal";
 
@@ -28,7 +30,9 @@ export function MoveRegistry({
       <Reveal delay={120}>
         <div className="space-y-6">
           <MintForm />
+          <MoveNftGallery />
           <ReceiptHistoryPanel />
+
         </div>
       </Reveal>
     </div>

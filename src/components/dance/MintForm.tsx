@@ -15,6 +15,7 @@ import { TOKENS, type TokenKey, ARC_EXPLORER, convertFromUsd, type FxRates } fro
 import contractCfg from "@/data/contract.json";
 import { TokenSwitcher } from "./TokenSwitcher";
 import { fetchFxRates } from "@/lib/fx.functions";
+import { getMoveNftConfig, mintMoveNft } from "@/lib/nft.functions";
 import { MetadataPreview } from "./MetadataPreview";
 
 
@@ -43,7 +44,16 @@ export function MintForm() {
   const [status, setStatus] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [mintHash, setMintHash] = useState<string | null>(null);
+  const [nftCfg, setNftCfg] = useState<{
+    nftConfigured: boolean;
+    nftAddress: string;
+    pinningEnabled: boolean;
+    maxUploadBytes: number;
+  } | null>(null);
   const getFx = useServerFn(fetchFxRates);
+  const getNftCfg = useServerFn(getMoveNftConfig);
+  const mintNft = useServerFn(mintMoveNft);
 
   useEffect(() => {
     let mounted = true;
@@ -52,6 +62,14 @@ export function MintForm() {
     });
     return () => { mounted = false; };
   }, [getFx]);
+
+  useEffect(() => {
+    let mounted = true;
+    void getNftCfg({ data: undefined })
+      .then((cfg) => { if (mounted) setNftCfg(cfg); })
+      .catch(() => undefined);
+    return () => { mounted = false; };
+  }, [getNftCfg]);
 
   const contractAddress = contractCfg.address as Address;
   const contractDeployed = contractAddress && contractAddress !== "0x0000000000000000000000000000000000000000";
@@ -77,6 +95,7 @@ export function MintForm() {
   async function onSubmit() {
     setError(null);
     setTxHash(null);
+    setMintHash(null);
     setBusy(true);
     try {
       if (!authenticated) {
@@ -131,6 +150,19 @@ export function MintForm() {
       });
       setTxHash(hash);
       setStatus(`Logged with ${tokenCfg.symbol}`);
+
+      // 3. Mint the move NFT to the dancer, agent-side from the treasury.
+      if (nftCfg?.nftConfigured) {
+        try {
+          setStatus("Minting your move NFT on Arc…");
+          const minted = await mintNft({ data: { to: from, cid: cid || "bafkreidemo" } });
+          setMintHash(minted.txHash);
+          setStatus(`Logged with ${tokenCfg.symbol} · move NFT minted`);
+        } catch (mintErr) {
+          const m = mintErr instanceof Error ? mintErr.message : String(mintErr);
+          setStatus(`Logged with ${tokenCfg.symbol} · NFT mint failed (${m.slice(0, 80)})`);
+        }
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setError(msg);
@@ -152,6 +184,8 @@ export function MintForm() {
         token={token}
         amount={tokenAmount || "0"}
         cid={cid || null}
+        pinningEnabled={nftCfg?.pinningEnabled ?? false}
+        maxUploadBytes={nftCfg?.maxUploadBytes ?? 25 * 1024 * 1024}
         onConfirm={(next) => setCid(next)}
         onReset={() => setCid("")}
       />
@@ -284,6 +318,16 @@ export function MintForm() {
           className="block break-all text-sm text-glow hover:underline"
         >
           View tx on Arcscan → {txHash}
+        </a>
+      )}
+      {mintHash && (
+        <a
+          href={`${ARC_EXPLORER}/tx/${mintHash}`}
+          target="_blank"
+          rel="noreferrer"
+          className="block break-all text-sm text-glow hover:underline"
+        >
+          Move NFT mint on Arcscan → {mintHash}
         </a>
       )}
       {error && <p className="text-sm text-red-400">{error}</p>}
