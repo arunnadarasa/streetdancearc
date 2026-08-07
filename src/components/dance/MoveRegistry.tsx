@@ -30,7 +30,9 @@ export function MoveRegistry({
       <Reveal delay={120}>
         <div className="space-y-6">
           <MintForm />
+          <MoveNftGallery />
           <ReceiptHistoryPanel />
+
         </div>
       </Reveal>
     </div>
