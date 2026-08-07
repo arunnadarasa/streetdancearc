@@ -75,6 +75,10 @@ A second header toggle picks the settlement token — **USDC**, **EURC** or **ci
 
 Live status for all six is rendered in-app by `CircleRailsPanel` on the A2A and H2A screens, including the honest "unavailable, falling back" states.
 
+### Agent Marketplace Discovery
+
+The buyer agent does not hardcode StreetRail's checkout URL. Instead it calls Circle's public, keyless x402 Discovery API (`https://api.circle.com/v2/x402/discovery/resources`), filters for resources that settle on Arc Testnet, and selects the matching rail by network + scheme. The response is normalised defensively and cached server-side for 5 minutes. If Circle is unreachable, the agent falls back to StreetRail's own local resource published at `/api/public/x402/resources`, so the demo keeps working offline.
+
 ---
 
 ## On-chain
