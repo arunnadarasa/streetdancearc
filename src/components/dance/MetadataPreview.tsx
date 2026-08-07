@@ -162,58 +162,19 @@ export function MetadataPreview({
       </div>
 
       {pinningEnabled && (
-        <div className="rounded-lg border border-border/60 bg-surface p-3">
+        <div className="space-y-2">
           <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
             Move clip (optional evidence)
           </p>
-          {media ? (
-            <div className="mt-2 flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="truncate text-xs text-foreground">
-                  {media.mimeType.startsWith("video/") ? "Clip" : "Image"} pinned ·{" "}
-                  {(media.size / 1024 / 1024).toFixed(2)} MB
-                </p>
-                <a
-                  href={media.gateway}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block break-all text-[11px] text-glow hover:underline"
-                >
-                  {media.uri}
-                </a>
-              </div>
-              <button
-                type="button"
-                onClick={() => setMedia(null)}
-                aria-label="Remove clip"
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:text-foreground"
-              >
-                <X className="h-4 w-4" aria-hidden />
-              </button>
-            </div>
-          ) : (
-            <>
-              <input
-                ref={fileRef}
-                type="file"
-                accept={ACCEPT}
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) void onFile(f);
-                }}
-                className="mt-2 block w-full text-xs text-muted-foreground file:mr-3 file:h-9 file:cursor-pointer file:rounded-full file:border file:border-border file:bg-background/60 file:px-4 file:text-xs file:font-bold file:text-foreground"
-              />
-              <p className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
-                <Upload className="h-3 w-3" aria-hidden />
-                {uploading
-                  ? "Pinning to IPFS…"
-                  : `MP4, MOV, WebM or an image · max ${Math.round(maxUploadBytes / 1024 / 1024)} MB`}
-              </p>
-            </>
-          )}
-          {uploadError && <p className="mt-1 text-[11px] text-red-400">{uploadError}</p>}
+          <ClipPreview
+            media={media}
+            maxUploadBytes={maxUploadBytes}
+            onPinned={setMedia}
+            onClear={() => setMedia(null)}
+          />
         </div>
       )}
+
 
       {preview ? (
         <div className="space-y-3">
