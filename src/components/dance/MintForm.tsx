@@ -15,6 +15,8 @@ import { TOKENS, type TokenKey, ARC_EXPLORER, convertFromUsd, type FxRates } fro
 import contractCfg from "@/data/contract.json";
 import { TokenSwitcher } from "./TokenSwitcher";
 import { fetchFxRates } from "@/lib/fx.functions";
+import { MetadataPreview } from "./MetadataPreview";
+
 
 const ERC20_APPROVE_ABI = [
   {
