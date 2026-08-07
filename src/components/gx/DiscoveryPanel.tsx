@@ -112,7 +112,7 @@ export function DiscoveryPanel() {
               StreetRail is currently the Arc Testnet entry.
             </p>
           ) : (
-            <ul className="mt-4 grid gap-2 lg:grid-cols-2">
+            <ul className="mt-4 grid max-h-[26rem] gap-2 overflow-y-auto pr-1 lg:grid-cols-2">
               {rows.map((r) => {
                 const mine = r.resource.includes("/api/public/purchase");
                 return (
