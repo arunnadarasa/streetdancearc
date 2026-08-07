@@ -58,6 +58,7 @@ export type BatchView = ReturnType<typeof batchView>;
 export async function runListPayouts(address?: string) {
   const fx = await getFxRates();
   let payouts: OnChainPayout[] = [];
+
   let error: string | null = null;
   let degraded = false;
   try {
