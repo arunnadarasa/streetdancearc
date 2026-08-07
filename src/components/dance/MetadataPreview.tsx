@@ -24,8 +24,6 @@ interface Props {
   onReset: () => void;
 }
 
-const ACCEPT = "video/mp4,video/quicktime,video/webm,image/jpeg,image/png,image/webp,image/gif";
-
 export function MetadataPreview({
   token,
   amount,
@@ -42,9 +40,6 @@ export function MetadataPreview({
   const [media, setMedia] = useState<MoveMedia | null>(null);
   const [preview, setPreview] = useState<{ json: string; cid: string; pinned: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
   const pinJson = useServerFn(pinMoveMetadata);
 
   const meta = buildMoveMetadata({ move, discipline, rightsHolder, license, token, amount, media });
@@ -58,34 +53,6 @@ export function MetadataPreview({
     }
   }, [json, preview, onReset]);
 
-  async function onFile(file: File) {
-    setUploadError(null);
-    if (file.size > maxUploadBytes) {
-      setUploadError(`Clip is too large (max ${Math.round(maxUploadBytes / 1024 / 1024)} MB).`);
-      return;
-    }
-    setUploading(true);
-    try {
-      const form = new FormData();
-      form.append("file", file, file.name);
-      form.append("name", file.name);
-      const res = await fetch("/api/public/pin", { method: "POST", body: form });
-      const body = (await res.json()) as Partial<MoveMedia> & { error?: string };
-      if (!res.ok || !body.cid) throw new Error(body.error ?? "Upload failed.");
-      setMedia({
-        cid: body.cid,
-        uri: body.uri ?? `ipfs://${body.cid}`,
-        gateway: body.gateway ?? "",
-        mimeType: body.mimeType ?? file.type,
-        size: body.size ?? file.size,
-      });
-    } catch (e) {
-      setUploadError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
-  }
 
   async function onPreview() {
     setBusy(true);
