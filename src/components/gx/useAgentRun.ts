@@ -287,7 +287,7 @@ export function useAgentRun(policy: SpendPolicy) {
         setInterrupt(null);
       }
     },
-    [authenticated, login, patch, payToken, policy, push, tokenCfg.symbol, wallets, fx],
+    [authenticated, discover, login, patch, payToken, policy, push, tokenCfg.symbol, wallets, fx],
   );
 
   return { steps, busy, run, interrupt, answerInterrupt };

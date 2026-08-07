@@ -20,6 +20,7 @@ import { categoryFor } from "@/routes/api/public/catalog";
 import { fetchFxRates } from "@/lib/fx.functions";
 import { payWithNanopayments } from "@/lib/circle-rails.functions";
 import { CircleRailsPanel } from "./CircleRailsPanel";
+import { DiscoveryPanel } from "./DiscoveryPanel";
 
 function explorerUrl(value: unknown): string | null {
   try {
@@ -347,6 +348,8 @@ export function AgentNegotiation() {
               {nanoNote}
             </p>
           )}
+
+          <DiscoveryPanel />
 
           <CircleRailsPanel />
 
