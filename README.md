@@ -139,10 +139,11 @@ Testnet tokens have no financial value.
 | -------------------- | ----------------------------------------------------------------- |
 | `/`                  | Home — featured merch, mode toggle, move registry below the fold   |
 | `/shop`              | Full catalog grid                                                  |
-| `/product/$handle`   | Product detail, quantity stepper, add to cart                      |
-| `/moves`             | On-chain move registry (log a CID, pay the stablecoin fee)         |
+| `/product/$handle`   | Product detail, quantity stepper, add to cart, live Arc total      |
+| `/moves`             | On-chain move registry: preview metadata, log a CID, receipt history |
 | `/agent-negotiation` | AIsa-powered buyer/seller negotiation transcript                   |
 | `/markets`           | FX-volatility research — why stablecoin rails matter in NGN/ARS/PHP markets |
+| `/primer`            | Web3 for dancers — concept cards + interactive glossary            |
 | `/deck`              | Interactive judges' slide deck (native React, mobile-friendly)     |
 
 ---
