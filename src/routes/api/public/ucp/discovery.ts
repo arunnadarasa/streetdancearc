@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ARC_CAIP2, USDC_ARC } from "@/lib/agent-card";
 import { UCP_VERSION, type DiscoveryProfile } from "@/lib/ucp";
 import { publicJwk } from "@/lib/mandate-sign.server";
+import { AUTHORIZER } from "@/lib/erc1271.server";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -60,6 +61,19 @@ export const Route = createFileRoute("/api/public/ucp/discovery")({
                 version: "0.3.0",
                 schema: "https://a2a-protocol.org/schemas/agent-card",
                 config: { endpoint: `${origin}/api/public/a2a/message` },
+              },
+              {
+                name: "authorization.erc1271",
+                spec: "https://eips.ethereum.org/EIPS/eip-1271",
+                version: "1.0",
+                schema: "https://eips.ethereum.org/EIPS/eip-1271",
+                config: {
+                  endpoint: `${origin}/api/public/erc1271/authorizer`,
+                  authorizer: AUTHORIZER,
+                  network: ARC_CAIP2,
+                  magicValue: "0x1626ba7e",
+                  delegateRequired: false,
+                },
               },
             ],
             services: {
