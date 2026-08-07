@@ -56,7 +56,8 @@ function batchView(a: Accrual) {
 export type BatchView = ReturnType<typeof batchView>;
 
 export async function runListPayouts(address?: string) {
-  const fx = await getFxRates();
+  const fx = await getFxRates().catch(() => FALLBACK_FX);
+
   let payouts: OnChainPayout[] = [];
 
   let error: string | null = null;
