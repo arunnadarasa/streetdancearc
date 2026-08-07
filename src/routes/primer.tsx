@@ -157,23 +157,13 @@ function PrimerPage() {
       <Section>
         <SectionHead
           eyebrow="Quick lookup"
-          title="Glossary"
-          blurb="One-liners for the words you'll see across the site."
+          title="Interactive glossary"
+          blurb="Tap any term — agentic, x402, mandates — for a dance analogy, a plain-English definition, and the terms it connects to."
         />
 
-        <div className="mt-8 overflow-hidden rounded-3xl border border-border bg-card/70 sm:mt-12">
-          <dl className="divide-y divide-border">
-            {GLOSSARY.map((item, i) => (
-              <Reveal key={item.term} delay={i * 30} as="div">
-                <div className="flex flex-col gap-1 px-5 py-4 sm:flex-row sm:items-baseline sm:gap-6 sm:px-8 sm:py-5">
-                  <dt className="min-w-[8rem] text-sm font-black text-foreground">{item.term}</dt>
-                  <dd className="text-sm leading-relaxed text-muted-foreground">{item.def}</dd>
-                </div>
-              </Reveal>
-            ))}
-          </dl>
-        </div>
+        <InteractiveGlossary />
       </Section>
+
 
       <Section tone="deep" innerClassName="py-10 sm:py-16">
         <Reveal>
