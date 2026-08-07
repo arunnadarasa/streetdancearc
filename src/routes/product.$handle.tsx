@@ -15,11 +15,13 @@ import { Header } from "@/components/dance/Header";
 import { Section } from "@/components/layout/Section";
 import { Reveal } from "@/components/layout/Reveal";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { LiveTotalCalculator } from "@/components/fx/LiveTotalCalculator";
 
 import { GxOffer } from "@/components/gx/GxOffer";
 import { useGxMode } from "@/lib/gx-mode";
 import { ModeSurface } from "@/components/gx/ModeSurface";
 import { getPublicConfig } from "@/lib/config.functions";
+import { DEMO_SCALE } from "@/lib/agent-card";
 
 export const Route = createFileRoute("/product/$handle")({
   loader: () => getPublicConfig(),
