@@ -24,6 +24,8 @@ The same catalog, the same settlement rail, four interfaces. A global toggle in 
 
 The header is responsive: desktop shows a full nav bar with the mode and currency toggles; mobile collapses navigation into a hamburger sheet so the wallet chip and toggles stay reachable.
 
+In A2H, agent-pushed offers can be claimed on-chain. Tapping **Claim offer** logs an agent-side receipt to the `DanceMoveTokens` registry via Circle SCP (no user wallet prompt, no user gas), returns a claim code and an Arcscan receipt, and produces a signed AP2 `OfferClaim` mandate. The discount is applied at checkout. Claims are logged for audit and do not count against the daily payout cap.
+
 ### Settlement currency
 
 A second header toggle picks the settlement token — **USDC**, **EURC** or **cirBTC** — and applies to all four modes at once. It persists to `localStorage` and rides in the `?pay=` query param, so `/?mode=a2a&pay=cirBTC` links a judge straight into an agent-to-agent run priced in wrapped BTC.
@@ -36,6 +38,8 @@ A second header toggle picks the settlement token — **USDC**, **EURC** or **ci
 ### Balances
 
 Wallet balances for USDC, EURC and cirBTC are read through ERC-20 `balanceOf` via the same-origin RPC proxy, then converted from atomic units using each token's configured decimals. A safety guard re-normalises any value above 1B units in case an RPC provider returns native USDC in 18-decimal atomic units instead of 6, so the UI always shows normal human-readable amounts.
+
+The **Treasury Panel** in the A2H inbox surfaces the treasury address and its live Arc balances, with an amber warning when USDC gas drops below `0.5` so users know to top up before approving payouts.
 
 
 
@@ -94,6 +98,17 @@ The buyer agent does not hardcode StreetRail's checkout URL. Instead it calls Ci
 - **Deploy path:** Circle Smart Contract Platform, via the scripts below.
 - **Compiler:** `solc 0.8.24`, pinned to match the Arcscan verifier.
 
+### Treasury authorization (ERC-1271)
+
+`contracts/StreetRailAuthorizer.sol` is a lightweight ERC-1271 authorizer for the treasury/agent wallet, so Gateway actions can be authorized without an EOA delegate.
+
+- **Deployed:** [`0x0519c703cde7cbff6829fdfdcfe8c9a4c7aac327`](https://testnet.arcscan.io/address/0x0519c703cde7cbff6829fdfdcfe8c9a4c7aac327) — verified on Arcscan.
+- **Modes:**
+  - Pre-approved digests via `approveHash` — no EOA delegate needed.
+  - Time-boxed delegate signers for temporary authorization.
+- A2H payouts and mandate renewals carry an `onChainAuth` block; the inbox shows the ERC-1271 magic value `0x1626ba7e` when the digest is approved on-chain.
+- Public status endpoint: `/api/public/erc1271/authorizer`.
+
 ---
 
 ## Arc network config
@@ -133,7 +148,7 @@ npm install
 npm run dev
 ```
 
-Configuration lives in project secrets, not a committed `.env`. Names only:
+The project uses **Lovable Cloud** for managed PostgreSQL, Auth, and Storage. Runtime configuration lives in project secrets, not a committed `.env`. Names only:
 
 | Name                             | Used for                                   |
 | -------------------------------- | ------------------------------------------ |
