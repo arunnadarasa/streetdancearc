@@ -660,13 +660,15 @@ function SlideRoadmap() {
     "ERC-1271 authorizer verified on Arcscan",
     "Circle x402 Discovery wired into negotiation",
     "Mobile-tuned end to end",
+    "On-chain claim offers (A2H)",
+    "Treasury balance panel + low-gas warning",
   ];
   const next = [
+    "Encode Club Demo Day — 9 Aug 2026",
     "Rights Agent GA — Gemini + Agent Stack",
     "Nanopayment royalty streams (per-play)",
     "ERC-721 receipt NFT per logged move",
     "Crew treasuries + on-chain cosigns",
-    "Demo Day rehearsal + judge Q&A pack",
   ];
   return (
     <Slide n={15}>
