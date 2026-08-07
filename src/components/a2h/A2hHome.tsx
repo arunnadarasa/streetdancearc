@@ -1,6 +1,8 @@
 import { Inbox, Loader2, ShieldCheck, Zap } from "lucide-react";
 import { JsonBlock } from "@/components/gx/JsonBlock";
 import { InboxCard } from "./InboxCard";
+import { TreasuryPanel } from "./TreasuryPanel";
+
 import {
   RIGHTS_REGISTRY,
   approvalMessage,
@@ -43,6 +45,8 @@ export function A2hHome() {
   const [chain, setChain] = useState<ChainPayout[]>([]);
   const [loading, setLoading] = useState(true);
   const [chainError, setChainError] = useState<string | null>(null);
+  const [lowGas, setLowGas] = useState(false);
+
   const getFx = useServerFn(fetchFxRates);
   const getPayouts = useServerFn(listPayouts);
 
@@ -116,7 +120,11 @@ export function A2hHome() {
         </p>
       </section>
 
+      <TreasuryPanel onLowGas={setLowGas} />
+
       <section className="rounded-2xl border border-border bg-card/70 p-5">
+
+
         <div className="flex items-start gap-3">
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-glow" />
           <div className="min-w-0 flex-1">
@@ -185,11 +193,19 @@ export function A2hHome() {
           registry's on-chain events. Nothing here started with a click.
         </p>
 
+        {lowGas && (
+          <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-200">
+            Treasury is low on USDC gas, so approvals and sweeps will fail until it is topped up
+            at faucet.circle.com (Arc Testnet).
+          </p>
+        )}
+
         {chainError && (
           <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-200">
             {chainError} Payouts still settle on Arc — new settlements appear here immediately.
           </p>
         )}
+
 
 
 

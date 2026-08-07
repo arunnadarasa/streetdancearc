@@ -3,7 +3,7 @@
 // Kept out of a2h.functions.ts because server-fn splitting deletes siblings.
 
 import { getFxRates } from "@/lib/fx.server";
-import { convertFromUsd, getTokenUsdRate, microToUsd, usdToMicro } from "@/lib/fx";
+import { convertFromUsd, getTokenUsdRate, microToUsd, usdToMicro, FALLBACK_RATES } from "@/lib/fx";
 import { TOKENS, ARC_EXPLORER, type TokenKey } from "@/lib/tokens";
 import { signMandate } from "@/lib/mandate-sign.server";
 import { approveAuthOnChain, AUTHORIZER, authorizerUrl } from "@/lib/erc1271.server";
@@ -56,8 +56,10 @@ function batchView(a: Accrual) {
 export type BatchView = ReturnType<typeof batchView>;
 
 export async function runListPayouts(address?: string) {
-  const fx = await getFxRates();
+  const fx = await getFxRates().catch(() => ({ ...FALLBACK_RATES, stale: true }));
+
   let payouts: OnChainPayout[] = [];
+
   let error: string | null = null;
   let degraded = false;
   try {
