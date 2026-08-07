@@ -24,6 +24,8 @@ The same catalog, the same settlement rail, four interfaces. A global toggle in 
 
 The header is responsive: desktop shows a full nav bar with the mode and currency toggles; mobile collapses navigation into a hamburger sheet so the wallet chip and toggles stay reachable.
 
+In A2H, agent-pushed offers can be claimed on-chain. Tapping **Claim offer** logs an agent-side receipt to the `DanceMoveTokens` registry via Circle SCP (no user wallet prompt, no user gas), returns a claim code and an Arcscan receipt, and produces a signed AP2 `OfferClaim` mandate. The discount is applied at checkout. Claims are logged for audit and do not count against the daily payout cap.
+
 ### Settlement currency
 
 A second header toggle picks the settlement token — **USDC**, **EURC** or **cirBTC** — and applies to all four modes at once. It persists to `localStorage` and rides in the `?pay=` query param, so `/?mode=a2a&pay=cirBTC` links a judge straight into an agent-to-agent run priced in wrapped BTC.
