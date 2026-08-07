@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ShopRouteImport } from './routes/shop'
+import { Route as PrimerRouteImport } from './routes/primer'
 import { Route as MovesRouteImport } from './routes/moves'
 import { Route as MarketsRouteImport } from './routes/markets'
 import { Route as DeckRouteImport } from './routes/deck'
@@ -30,6 +31,11 @@ import { Route as ApiPublicA2aMessageRouteImport } from './routes/api/public/a2a
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrimerRoute = PrimerRouteImport.update({
+  id: '/primer',
+  path: '/primer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MovesRoute = MovesRouteImport.update({
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/deck': typeof DeckRoute
   '/markets': typeof MarketsRoute
   '/moves': typeof MovesRoute
+  '/primer': typeof PrimerRoute
   '/shop': typeof ShopRoute
   '/product/$handle': typeof ProductHandleRoute
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/deck': typeof DeckRoute
   '/markets': typeof MarketsRoute
   '/moves': typeof MovesRoute
+  '/primer': typeof PrimerRoute
   '/shop': typeof ShopRoute
   '/product/$handle': typeof ProductHandleRoute
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
@@ -159,6 +167,7 @@ export interface FileRoutesById {
   '/deck': typeof DeckRoute
   '/markets': typeof MarketsRoute
   '/moves': typeof MovesRoute
+  '/primer': typeof PrimerRoute
   '/shop': typeof ShopRoute
   '/product/$handle': typeof ProductHandleRoute
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
@@ -180,6 +189,7 @@ export interface FileRouteTypes {
     | '/deck'
     | '/markets'
     | '/moves'
+    | '/primer'
     | '/shop'
     | '/product/$handle'
     | '/api/public/agent-card'
@@ -199,6 +209,7 @@ export interface FileRouteTypes {
     | '/deck'
     | '/markets'
     | '/moves'
+    | '/primer'
     | '/shop'
     | '/product/$handle'
     | '/api/public/agent-card'
@@ -218,6 +229,7 @@ export interface FileRouteTypes {
     | '/deck'
     | '/markets'
     | '/moves'
+    | '/primer'
     | '/shop'
     | '/product/$handle'
     | '/api/public/agent-card'
@@ -238,6 +250,7 @@ export interface RootRouteChildren {
   DeckRoute: typeof DeckRoute
   MarketsRoute: typeof MarketsRoute
   MovesRoute: typeof MovesRoute
+  PrimerRoute: typeof PrimerRoute
   ShopRoute: typeof ShopRoute
   ProductHandleRoute: typeof ProductHandleRoute
   ApiPublicAgentCardRoute: typeof ApiPublicAgentCardRoute
@@ -259,6 +272,13 @@ declare module '@tanstack/react-router' {
       path: '/shop'
       fullPath: '/shop'
       preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/primer': {
+      id: '/primer'
+      path: '/primer'
+      fullPath: '/primer'
+      preLoaderRoute: typeof PrimerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/moves': {
@@ -382,6 +402,7 @@ const rootRouteChildren: RootRouteChildren = {
   DeckRoute: DeckRoute,
   MarketsRoute: MarketsRoute,
   MovesRoute: MovesRoute,
+  PrimerRoute: PrimerRoute,
   ShopRoute: ShopRoute,
   ProductHandleRoute: ProductHandleRoute,
   ApiPublicAgentCardRoute: ApiPublicAgentCardRoute,
@@ -398,13 +419,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

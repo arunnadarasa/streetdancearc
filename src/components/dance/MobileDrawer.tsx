@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
+  BookOpen,
   Check,
   ChevronRight,
   Copy,
@@ -38,6 +39,7 @@ const NAV_ROWS: NavRow[] = [
   { to: "/moves", label: "Moves", hint: "Log a move, own the credit", icon: Music2 },
   { to: "/agent-negotiation", label: "Negotiate", hint: "Watch two agents settle", icon: Handshake },
   { to: "/markets", label: "Markets", hint: "Where the demand already is", icon: Globe2 },
+  { to: "/primer", label: "Primer", hint: "Web3 explained in dance terms", icon: BookOpen },
   { to: "/deck", label: "Deck", hint: "The judges' walkthrough", icon: Presentation },
 ];
 

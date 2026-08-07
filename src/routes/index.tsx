@@ -178,6 +178,29 @@ function Index() {
               </div>
             </Section>
 
+            {/* PRIMER TEASER */}
+            <Section tone="deep" innerClassName="py-10 sm:py-14">
+              <Reveal>
+                <div className="flex flex-col items-start justify-between gap-5 rounded-3xl border border-glow/30 bg-glow/10 p-6 sm:flex-row sm:items-center sm:p-8">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-glow">New to web3?</p>
+                    <h3 className="display mt-2 text-xl text-foreground sm:text-2xl">
+                      Read the StreetRail Primer
+                    </h3>
+                    <p className="mt-1 max-w-lg text-sm text-muted-foreground">
+                      Blockchain, agents, x402 and stablecoins — explained in dance terminology.
+                    </p>
+                  </div>
+                  <Link
+                    to="/primer"
+                    className="lift inline-flex h-11 shrink-0 items-center gap-2 rounded-full bg-linear-to-r from-primary to-glow px-6 text-sm font-black text-primary-foreground shadow-glow-sm"
+                  >
+                    Open the primer →
+                  </Link>
+                </div>
+              </Reveal>
+            </Section>
+
             {/* MOVE REGISTRY — secondary */}
             <Section id="register" tone="raised">
               <MoveRegistry treasuryAddress={treasuryAddress} />

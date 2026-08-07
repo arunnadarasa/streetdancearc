@@ -17,6 +17,7 @@ const NAV = [
   { to: "/moves", label: "Moves" },
   { to: "/agent-negotiation", label: "Negotiate" },
   { to: "/markets", label: "Markets" },
+  { to: "/primer", label: "Primer" },
   { to: "/deck", label: "Deck" },
 ] as const;
 
