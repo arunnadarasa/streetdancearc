@@ -226,7 +226,7 @@ export function MintForm() {
               </span>
               {fx && (
                 <span className="ml-1 opacity-70">
-                  ≈ ${(parseFloat(amount || "0") / (convertFromUsd(1, token, fx) || 1)).toFixed(2)} USD
+                  ≈ ${usdEquivalent.toFixed(2)} USD
                 </span>
               )}
             </>
