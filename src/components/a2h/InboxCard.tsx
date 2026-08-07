@@ -273,7 +273,7 @@ export function InboxCard({
                 className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-foreground hover:bg-primary/20"
               >
                 <BadgeCheck className="h-3.5 w-3.5 text-glow" />
-                View receipt on Arcscan
+                {claimed ? "View claim on Arcscan" : "View receipt on Arcscan"}
               </a>
             )}
 
