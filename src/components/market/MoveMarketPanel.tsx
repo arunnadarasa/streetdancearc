@@ -172,15 +172,18 @@ export function MoveMarketPanel() {
   function begin(key: string) {
     setBusy(key);
     setError(null);
+    setErrorDetail(null);
     setStatus(null);
     setTxHash(null);
   }
 
-  function fail(e: unknown) {
-    const msg = e instanceof Error ? e.message : String(e);
-    setError(msg.slice(0, 220));
+  function fail(e: unknown, context?: { tokenId?: string }) {
+    const friendly = mapChainError(e, context);
+    setError(friendly.message);
+    setErrorDetail(friendly.detail && friendly.detail !== friendly.message ? friendly.detail : null);
     setStatus(null);
   }
+
 
   async function onList() {
     begin("list");
