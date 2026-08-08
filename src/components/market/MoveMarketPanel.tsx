@@ -56,6 +56,20 @@ const ERC721_ABI = [
   },
   {
     type: "function",
+    name: "ownerOf",
+    stateMutability: "view",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [{ type: "address" }],
+  },
+  {
+    type: "function",
+    name: "getApproved",
+    stateMutability: "view",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [{ type: "address" }],
+  },
+  {
+    type: "function",
     name: "safeTransferFrom",
     stateMutability: "nonpayable",
     inputs: [
@@ -66,6 +80,20 @@ const ERC721_ABI = [
     outputs: [],
   },
 ] as const;
+
+const ZERO = "0x0000000000000000000000000000000000000000";
+
+interface TransferPreflight {
+  tokenId: string;
+  to: string;
+  owner: string;
+  isOwner: boolean;
+  approvedOperator: string | null;
+  marketApprovedForAll: boolean;
+  listed: boolean;
+  selfSend: boolean;
+}
+
 
 function short(a: string) {
   return `${a.slice(0, 6)}…${a.slice(-4)}`;
