@@ -135,8 +135,9 @@ Circle's pre-audited ERC-721 SCP template (`76b83278-50e2-4006-8b63-5b1a2a814533
 
 `contracts/MoveMarket.sol` is a non-custodial secondary market for Move Rights NFTs: the seller keeps the token and only grants an approval, so nothing is escrowed.
 
-- **Deployed:** [`0xe692d23b253c5ff52369bf950ed8bc6aa90b97e5`](https://testnet.arcscan.app/address/0xe692d23b253c5ff52369bf950ed8bc6aa90b97e5) — verified on Arcscan.
-- **Flow:** `list(tokenId, payToken, price)` → `buy(tokenId)` moves the payment token to the seller and the NFT to the buyer in one call; `cancel(tokenId)` pulls the listing. Direct transfers are also supported from the UI.
+- **Deployed:** [`0x5b00367612ef4533e89ed9547dd4c2f3080f783e`](https://testnet.arcscan.app/address/0x5b00367612ef4533e89ed9547dd4c2f3080f783e) — verified on Arcscan.
+- **Flow:** `list(tokenId, payToken, price)` → `buy(tokenId)` splits the payment and moves the NFT to the buyer in one call; `cancel(tokenId)` pulls the listing. Direct transfers are also supported from the UI.
+- **Creator royalties (automatic):** `buy()` reads the NFT's ERC-2981 `royaltyInfo(tokenId, price)` and pays the 5% royalty to the creator in the *same* payment token, atomically, before the seller's proceeds — carved out of the listed price, not added on top. `royaltyFor(tokenId, price)` exposes the split as a view, a `RoyaltyPaid` event is emitted alongside `Sold`, and a token that declares no royalty simply pays the seller in full. The buy confirmation shows "you pay / creator receives / seller receives" before anything is signed, and the listing form shows net proceeds live.
 - **Settlement:** any Arc stablecoin — USDC, EURC or cirBTC — with gas paid in USDC.
 - **Discovery:** `activeCount()` / `listingAt(index)` enumerate live listings on-chain; the server cross-checks current ERC-721 ownership and filters stale listings.
 - **UI:** `/market` (linked in the header and the mobile drawer) shows listings with pinned clip media, plus list / cancel / buy / transfer actions.

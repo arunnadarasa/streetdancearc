@@ -30,7 +30,7 @@ import { ARC_EXPLORER, TOKENS, TOKEN_KEYS, getTokenUsdRate, type FxRates } from 
 const REPO_URL = "https://github.com/arunnadarasa/streetdancearc";
 const REGISTRY_ADDRESS = "0x4d13b45f823f8944522890c20d8695b6005465f0";
 const AUTHORIZER_ADDRESS = "0x0519c703cde7cbff6829fdfdcfe8c9a4c7aac327";
-const MARKET_ADDRESS = "0xe692d23b253c5ff52369bf950ed8bc6aa90b97e5";
+const MARKET_ADDRESS = "0x5b00367612ef4533e89ed9547dd4c2f3080f783e";
 
 type NavRow = { to: string; label: string; hint: string; icon: LucideIcon; exact?: boolean };
 

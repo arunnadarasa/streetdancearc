@@ -29,6 +29,9 @@ const CANCELLED = parseAbiItem("event Cancelled(uint256 indexed tokenId, address
 const SOLD = parseAbiItem(
   "event Sold(uint256 indexed tokenId, address indexed seller, address indexed buyer, address payToken, uint256 price)",
 );
+const ROYALTY_PAID = parseAbiItem(
+  "event RoyaltyPaid(uint256 indexed tokenId, address indexed receiver, address payToken, uint256 amount)",
+);
 const TRANSFER = parseAbiItem(
   "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
 );
@@ -66,6 +69,10 @@ export interface MarketActivityEvent {
   logIndex: number;
   atSeconds: number;
   status: "success" | "failed" | "unknown";
+  /** Creator royalty paid in the same tx, when the sale carried one. */
+  royalty: string | null;
+  royaltyAtomic: string | null;
+  royaltyReceiver: string | null;
   explorerUrl: string;
   tokenUrl: string;
 }
@@ -105,6 +112,19 @@ function formatUnits(atomic: bigint, decimals: number): string {
   const whole = s.slice(0, -decimals);
   const frac = s.slice(-decimals).replace(/0+$/, "");
   return frac ? `${whole}.${frac}` : whole;
+}
+
+/** Attach a matching RoyaltyPaid leg to a Sold row. */
+function applyRoyalty(
+  event: MarketActivityEvent,
+  royalty: { atomic: bigint; receiver: string | null; payToken: string } | undefined,
+) {
+  if (!royalty || royalty.atomic <= 0n) return;
+  const key = tokenKeyFor(royalty.payToken || event.payToken || "");
+  const decimals = key ? TOKENS[key].decimals : 6;
+  event.royaltyAtomic = royalty.atomic.toString();
+  event.royalty = formatUnits(royalty.atomic, decimals);
+  event.royaltyReceiver = royalty.receiver;
 }
 
 function priceFields(payToken: string, atomic: bigint) {
@@ -241,6 +261,17 @@ async function readViaExplorer(): Promise<MarketActivityEvent[] | null> {
 
   const events: MarketActivityEvent[] = [];
   const soldKeys = new Set<string>();
+  const royaltyByKey = new Map<string, { atomic: bigint; receiver: string | null; payToken: string }>();
+
+  for (const log of marketLogs?.items ?? []) {
+    if ((log.decoded?.method_call ?? "").startsWith("RoyaltyPaid")) {
+      royaltyByKey.set(`${log.transaction_hash ?? ""}:${paramOf(log, "tokenId") ?? ""}`, {
+        atomic: BigInt(paramOf(log, "amount") ?? "0"),
+        receiver: paramOf(log, "receiver"),
+        payToken: paramOf(log, "payToken") ?? "",
+      });
+    }
+  }
 
   for (const log of marketLogs?.items ?? []) {
     const call = log.decoded?.method_call ?? "";
@@ -257,6 +288,9 @@ async function readViaExplorer(): Promise<MarketActivityEvent[] | null> {
       logIndex: Number(log.index ?? 0),
       atSeconds: secondsFrom(log.block_timestamp),
       status: "success" as const,
+      royalty: null,
+      royaltyAtomic: null,
+      royaltyReceiver: null,
       ...urls(tokenId, txHash),
     };
 
@@ -314,8 +348,15 @@ async function readViaExplorer(): Promise<MarketActivityEvent[] | null> {
       logIndex: Number(t.log_index ?? 0),
       atSeconds: secondsFrom(t.timestamp),
       status: "success",
+      royalty: null,
+      royaltyAtomic: null,
+      royaltyReceiver: null,
       ...urls(tokenId, txHash),
     });
+  }
+
+  for (const e of events) {
+    if (e.kind === "sold") applyRoyalty(e, royaltyByKey.get(`${e.txHash}:${e.tokenId}`));
   }
 
   for (const e of events) {
@@ -365,7 +406,7 @@ async function sweep(
       const [m, n] = await Promise.all([
         client.getLogs({
           address: MARKET_ADDRESS,
-          events: [LISTED, CANCELLED, SOLD],
+          events: [LISTED, CANCELLED, SOLD, ROYALTY_PAID],
           fromBlock: from,
           toBlock: cursor,
         }),
@@ -425,16 +466,30 @@ async function readViaRpc(lookback: bigint): Promise<{
       logIndex: Number(log.logIndex ?? 0),
       atSeconds: 0,
       status: "unknown" as const,
+      royalty: null,
+      royaltyAtomic: null,
+      royaltyReceiver: null,
       ...urls(tokenId, txHash),
     };
   };
 
   const events: MarketActivityEvent[] = [];
   const soldKeys = new Set<string>();
+  const royaltyByKey = new Map<string, { atomic: bigint; receiver: string | null; payToken: string }>();
+
+  for (const log of swept.market) {
+    if (log.args["receiver"] === undefined) continue;
+    royaltyByKey.set(`${log.transactionHash ?? ""}:${String(log.args["tokenId"] ?? "")}`, {
+      atomic: (log.args["amount"] as bigint) ?? 0n,
+      receiver: (log.args["receiver"] as string) ?? null,
+      payToken: String(log.args["payToken"] ?? ""),
+    });
+  }
 
   for (const log of swept.market) {
     const tokenId = String(log.args["tokenId"] ?? "");
     const seller = (log.args["seller"] as string | undefined) ?? null;
+    if (log.args["receiver"] !== undefined) continue;
 
     if (log.args["buyer"] !== undefined) {
       soldKeys.add(`${log.transactionHash ?? ""}:${tokenId}`);
@@ -480,6 +535,10 @@ async function readViaRpc(lookback: bigint): Promise<{
       to: String(log.args["to"] ?? ""),
       ...EMPTY_PRICE,
     });
+  }
+
+  for (const e of events) {
+    if (e.kind === "sold") applyRoyalty(e, royaltyByKey.get(`${e.txHash}:${e.tokenId}`));
   }
 
   events.sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber) || b.logIndex - a.logIndex);

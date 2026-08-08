@@ -5,6 +5,13 @@ interface IERC20 {
     function transferFrom(address from, address to, uint256 value) external returns (bool);
 }
 
+interface IERC2981 {
+    function royaltyInfo(uint256 tokenId, uint256 salePrice)
+        external
+        view
+        returns (address receiver, uint256 royaltyAmount);
+}
+
 interface IERC721 {
     function transferFrom(address from, address to, uint256 tokenId) external;
     function ownerOf(uint256 tokenId) external view returns (address);
@@ -15,6 +22,8 @@ interface IERC721 {
 /// @title StreetRail Move Market — list, buy and transfer Move Rights NFTs on Arc.
 /// @notice Non-custodial: the seller keeps the token and only grants an approval.
 ///         Payment settles in any Arc stablecoin (USDC, EURC, cirBTC).
+///         Creator royalties (ERC-2981) are carved out of the listed price and
+///         paid atomically in the same token on every buy.
 contract MoveMarket {
     struct Listing {
         address seller;
@@ -30,6 +39,7 @@ contract MoveMarket {
     event Listed(uint256 indexed tokenId, address indexed seller, address payToken, uint256 price);
     event Cancelled(uint256 indexed tokenId, address indexed seller);
     event Sold(uint256 indexed tokenId, address indexed seller, address indexed buyer, address payToken, uint256 price);
+    event RoyaltyPaid(uint256 indexed tokenId, address indexed receiver, address payToken, uint256 amount);
 
     constructor(address nftAddress) {
         nft = IERC721(nftAddress);
@@ -63,9 +73,42 @@ contract MoveMarket {
         require(l.seller != msg.sender, "self_buy");
         require(nft.ownerOf(tokenId) == l.seller, "seller_moved");
         _remove(tokenId);
-        require(IERC20(l.payToken).transferFrom(msg.sender, l.seller, l.price), "pay_failed");
+
+        (address royaltyReceiver, uint256 royaltyAmount) = _royalty(tokenId, l.price);
+        if (royaltyAmount > 0) {
+            require(
+                IERC20(l.payToken).transferFrom(msg.sender, royaltyReceiver, royaltyAmount),
+                "royalty_failed"
+            );
+            emit RoyaltyPaid(tokenId, royaltyReceiver, l.payToken, royaltyAmount);
+        }
+
+        uint256 proceeds = l.price - royaltyAmount;
+        if (proceeds > 0) {
+            require(IERC20(l.payToken).transferFrom(msg.sender, l.seller, proceeds), "pay_failed");
+        }
+
         nft.transferFrom(l.seller, msg.sender, tokenId);
         emit Sold(tokenId, l.seller, msg.sender, l.payToken, l.price);
+    }
+
+    /// @notice Royalty carved out of `price` for `tokenId`. Zero when the token
+    ///         declares no royalty, points nowhere, or would swallow the sale.
+    function royaltyFor(uint256 tokenId, uint256 price)
+        external
+        view
+        returns (address receiver, uint256 amount)
+    {
+        return _royalty(tokenId, price);
+    }
+
+    function _royalty(uint256 tokenId, uint256 price) private view returns (address, uint256) {
+        try IERC2981(address(nft)).royaltyInfo(tokenId, price) returns (address r, uint256 a) {
+            if (r == address(0) || a == 0 || a > price) return (address(0), 0);
+            return (r, a);
+        } catch {
+            return (address(0), 0);
+        }
     }
 
     function activeCount() external view returns (uint256) {

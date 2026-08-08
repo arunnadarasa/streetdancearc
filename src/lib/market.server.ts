@@ -73,6 +73,15 @@ export interface MarketListing {
   mediaUrl: string | null;
   mediaKind: "video" | "image" | null;
   explorerUrl: string;
+  /** ERC-2981 royalty carved out of the price, in atomic units. "0" when none. */
+  royaltyAtomic: string;
+  royalty: string;
+  royaltyReceiver: string | null;
+  /** What the seller actually receives after the royalty carve-out. */
+  sellerNetAtomic: string;
+  sellerNet: string;
+  /** Royalty as a percentage of the price, e.g. 5 for 5%. */
+  royaltyPercent: number;
 }
 
 function formatUnits(atomic: bigint, decimals: number): string {
@@ -179,6 +188,24 @@ export async function listMarket(max = 24): Promise<{
           /* metadata unreachable — still list the token */
         }
 
+        let royaltyAtomic = 0n;
+        let royaltyReceiver: string | null = null;
+        try {
+          const [receiver, amount] = (await pub.readContract({
+            address: MARKET_ADDRESS,
+            abi: MARKET_ABI,
+            functionName: "royaltyFor",
+            args: [tokenId, priceAtomic],
+          })) as readonly [Address, bigint];
+          if (amount > 0n && receiver.toLowerCase() !== ZERO) {
+            royaltyAtomic = amount;
+            royaltyReceiver = receiver;
+          }
+        } catch {
+          /* older market build without royaltyFor — treat as no royalty */
+        }
+        const sellerNetAtomic = priceAtomic - royaltyAtomic;
+
         return {
           tokenId: tokenId.toString(),
           seller,
@@ -194,6 +221,13 @@ export async function listMarket(max = 24): Promise<{
           mediaUrl,
           mediaKind,
           explorerUrl: `${nft.explorer}/token/${nft.address}/instance/${tokenId.toString()}`,
+          royaltyAtomic: royaltyAtomic.toString(),
+          royalty: formatUnits(royaltyAtomic, decimals),
+          royaltyReceiver,
+          sellerNetAtomic: sellerNetAtomic.toString(),
+          sellerNet: formatUnits(sellerNetAtomic, decimals),
+          royaltyPercent:
+            priceAtomic > 0n ? Number((royaltyAtomic * 10000n) / priceAtomic) / 100 : 0,
         } satisfies MarketListing;
       }),
   );

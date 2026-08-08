@@ -179,6 +179,14 @@ function ActivityRow({ event, me }: { event: MarketActivityEvent; me: string }) 
           <dt className="shrink-0 text-muted-foreground">Counterparty</dt>
           <dd className="min-w-0 break-all text-foreground">{short(event.to ?? event.from)}</dd>
         </div>
+        {event.royalty && event.symbol ? (
+          <div className="flex min-w-0 gap-2 sm:col-span-2">
+            <dt className="shrink-0 text-muted-foreground">Creator royalty</dt>
+            <dd className="min-w-0 break-all text-foreground">
+              {event.royalty} {event.symbol} to {short(event.royaltyReceiver)}
+            </dd>
+          </div>
+        ) : null}
         <div className="flex min-w-0 gap-2 sm:col-span-2">
           <dt className="shrink-0 text-muted-foreground">Metadata CID</dt>
           <dd className="flex min-w-0 flex-wrap items-center gap-1 text-foreground">

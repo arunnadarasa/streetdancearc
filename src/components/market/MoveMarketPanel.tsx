@@ -83,7 +83,30 @@ const ERC721_ABI = [
   },
 ] as const;
 
+const ERC2981_ABI = [
+  {
+    type: "function",
+    name: "royaltyInfo",
+    stateMutability: "view",
+    inputs: [
+      { name: "tokenId", type: "uint256" },
+      { name: "salePrice", type: "uint256" },
+    ],
+    outputs: [
+      { name: "receiver", type: "address" },
+      { name: "royaltyAmount", type: "uint256" },
+    ],
+  },
+] as const;
+
 const ZERO = "0x0000000000000000000000000000000000000000";
+
+function formatAtomic(atomic: bigint, decimals: number): string {
+  const s = atomic.toString().padStart(decimals + 1, "0");
+  const whole = s.slice(0, -decimals);
+  const frac = s.slice(-decimals).replace(/0+$/, "");
+  return frac ? `${whole}.${frac}` : whole;
+}
 
 interface TransferPreflight {
   tokenId: string;
@@ -125,6 +148,8 @@ export function MoveMarketPanel() {
   const [transferToken, setTransferToken] = useState<string>("");
   const [preflight, setPreflight] = useState<TransferPreflight | null>(null);
   const [staleListing, setStaleListing] = useState<string | null>(null);
+  const [buyConfirm, setBuyConfirm] = useState<Listing | null>(null);
+  const [listRoyalty, setListRoyalty] = useState<{ royalty: string; net: string; percent: number } | null>(null);
 
 
   const address = (wallets.find((w) => w.walletClientType === "privy")?.address ?? wallets[0]?.address ?? "") as string;
@@ -153,6 +178,46 @@ export function MoveMarketPanel() {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  // Live "you receive" preview: the royalty is carved out of the listed price.
+  useEffect(() => {
+    let cancelled = false;
+    const decimals = TOKENS[payToken].decimals;
+    let value = 0n;
+    try {
+      value = parseUnits(price || "0", decimals);
+    } catch {
+      value = 0n;
+    }
+    if (!cfg?.nft || !sellToken || value <= 0n) {
+      setListRoyalty(null);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const pub = createPublicClient({ chain: arcTestnet, transport: http() });
+        const [receiver, amount] = (await pub.readContract({
+          address: cfg.nft as Address,
+          abi: ERC2981_ABI,
+          functionName: "royaltyInfo",
+          args: [BigInt(sellToken), value],
+        })) as readonly [Address, bigint];
+        if (cancelled) return;
+        const royalty = receiver && receiver !== ZERO && amount > 0n && amount <= value ? amount : 0n;
+        setListRoyalty({
+          royalty: formatAtomic(royalty, decimals),
+          net: formatAtomic(value - royalty, decimals),
+          percent: Number((royalty * 10000n) / value) / 100,
+        });
+      } catch {
+        if (!cancelled) setListRoyalty(null);
+      }
+    }, 350);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [cfg?.nft, sellToken, price, payToken]);
 
   async function clients() {
     if (!authenticated) {
@@ -266,6 +331,7 @@ export function MoveMarketPanel() {
       });
       await pub.waitForTransactionReceipt({ hash });
       setTxHash(hash);
+      setBuyConfirm(null);
       setStatus(`Bought move #${item.tokenId} for ${item.price} ${item.symbol}`);
       await refresh();
     } catch (e) {
@@ -429,6 +495,12 @@ export function MoveMarketPanel() {
                     {item.price} <span className="text-sm font-bold text-glow">{item.symbol}</span>
                   </p>
                   <p className="text-[11px] text-muted-foreground">Seller {short(item.seller)}</p>
+                  {Number(item.royaltyAtomic) > 0 && (
+                    <p className="text-[11px] text-muted-foreground">
+                      Includes {item.royalty} {item.symbol} creator royalty ({item.royaltyPercent}%) · seller nets{" "}
+                      {item.sellerNet} {item.symbol}
+                    </p>
+                  )}
                   <div className="mt-3 flex flex-wrap gap-2">
                     {mine ? (
                       <button
@@ -442,7 +514,11 @@ export function MoveMarketPanel() {
                     ) : (
                       <button
                         type="button"
-                        onClick={() => void onBuy(item)}
+                        onClick={() => {
+                          setError(null);
+                          setErrorDetail(null);
+                          setBuyConfirm(item);
+                        }}
                         disabled={busy !== null}
                         className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-xs font-bold text-primary-foreground transition hover:bg-primary/85 disabled:opacity-60"
                       >
@@ -460,6 +536,66 @@ export function MoveMarketPanel() {
           </ul>
         )}
       </div>
+
+      {buyConfirm && (
+        <div className="min-w-0 space-y-2 rounded-2xl border border-primary/50 bg-card/70 p-5">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Confirm purchase</p>
+          <p className="text-sm font-bold text-foreground">
+            {buyConfirm.name ?? "Move"} · #{buyConfirm.tokenId}
+          </p>
+          <dl className="grid gap-1 text-[13px]">
+            <div className="flex items-baseline justify-between gap-3">
+              <dt className="text-muted-foreground">You pay</dt>
+              <dd className="font-bold text-foreground">
+                {buyConfirm.price} {buyConfirm.symbol}
+              </dd>
+            </div>
+            <div className="flex items-baseline justify-between gap-3">
+              <dt className="text-muted-foreground">
+                Creator royalty{Number(buyConfirm.royaltyAtomic) > 0 ? ` (${buyConfirm.royaltyPercent}%)` : ""}
+              </dt>
+              <dd className="text-foreground">
+                {Number(buyConfirm.royaltyAtomic) > 0
+                  ? `${buyConfirm.royalty} ${buyConfirm.symbol}`
+                  : `0 ${buyConfirm.symbol}`}
+              </dd>
+            </div>
+            <div className="flex items-baseline justify-between gap-3">
+              <dt className="text-muted-foreground">Seller receives</dt>
+              <dd className="text-foreground">
+                {buyConfirm.sellerNet} {buyConfirm.symbol}
+              </dd>
+            </div>
+          </dl>
+          {buyConfirm.royaltyReceiver && Number(buyConfirm.royaltyAtomic) > 0 && (
+            <p className="min-w-0 break-all text-[11px] text-muted-foreground">
+              Royalty goes to <span className="font-mono text-glow">{buyConfirm.royaltyReceiver}</span> in the same
+              transaction, in {buyConfirm.symbol}.
+            </p>
+          )}
+          <p className="text-[11px] text-muted-foreground">
+            You approve the full price; the split happens on-chain inside the buy.
+          </p>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => void onBuy(buyConfirm)}
+              disabled={busy !== null}
+              className="inline-flex h-11 items-center rounded-full bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:bg-primary/85 disabled:opacity-50"
+            >
+              {busy === `buy-${buyConfirm.tokenId}` ? "Buying…" : `Confirm & pay ${buyConfirm.price} ${buyConfirm.symbol}`}
+            </button>
+            <button
+              type="button"
+              onClick={() => setBuyConfirm(null)}
+              disabled={busy !== null}
+              className="inline-flex h-11 items-center rounded-full border border-border px-4 text-sm font-semibold text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+            >
+              Back
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="space-y-3 rounded-2xl border border-border bg-card/70 p-5">
@@ -495,6 +631,16 @@ export function MoveMarketPanel() {
               className="mt-1 h-11 w-full rounded-lg border border-border bg-background/50 px-3 text-sm text-foreground outline-none focus:border-primary"
             />
           </label>
+          {listRoyalty && (
+            <p className="text-[11px] text-muted-foreground">
+              Creator royalty {listRoyalty.royalty} {TOKENS[payToken].symbol}
+              {listRoyalty.percent > 0 ? ` (${listRoyalty.percent}%)` : ""} is carved out of the price — you receive{" "}
+              <span className="font-bold text-foreground">
+                {listRoyalty.net} {TOKENS[payToken].symbol}
+              </span>
+              .
+            </p>
+          )}
           <button
             type="button"
             onClick={() => void onList()}

@@ -28,7 +28,23 @@ export function mapChainError(e: unknown, context?: { tokenId?: string }): Frien
   if (hay.includes("transfer to the zero address") || hay.includes("invalidreceiver")) {
     return { message: "That recipient address cannot receive the token.", detail: msg };
   }
+  if (hay.includes("royalty_failed")) {
+    return {
+      message: "The creator royalty leg of the payment failed — check your token balance and approval, then retry.",
+      detail: msg,
+    };
+  }
+  if (hay.includes("pay_failed")) {
+    return {
+      message: "The payment transfer failed. Approve the full listed price in that token and try again.",
+      detail: msg,
+    };
+  }
+  if (hay.includes("not_listed") || hay.includes("seller_moved")) {
+    return { message: `${id} is no longer available at that listing. Refresh the marketplace.`, detail: msg };
+  }
   if (hay.includes("chain mismatch") || hay.includes("does not match the target chain")) {
+
     return { message: "Your wallet is on the wrong network. Switch to Arc Testnet and retry.", detail: msg };
   }
   if (hay.includes("failed to fetch") || hay.includes("network request failed") || hay.includes("timeout")) {

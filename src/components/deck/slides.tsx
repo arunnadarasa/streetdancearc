@@ -388,8 +388,8 @@ function SlideLive() {
           },
           {
             name: "MoveMarket.sol",
-            addr: "0xe692d23b253c5ff52369bf950ed8bc6aa90b97e5",
-            note: "Non-custodial resale · USDC · EURC · cirBTC",
+            addr: "0x5b00367612ef4533e89ed9547dd4c2f3080f783e",
+            note: "Non-custodial resale · ERC-2981 royalties · USDC · EURC · cirBTC",
           },
           {
             name: "Move Rights (ERC-721)",
@@ -663,10 +663,12 @@ function SlideMarketplace() {
         <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
           MoveMarket.sol · verified on Arcscan
         </div>
-        <div className="mt-1 break-all font-mono text-[11px] sm:text-sm">0xe692d23b253c5ff52369bf950ed8bc6aa90b97e5</div>
+        <div className="mt-1 break-all font-mono text-[11px] sm:text-sm">0x5b00367612ef4533e89ed9547dd4c2f3080f783e</div>
       </div>
       <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
-        Live at /market — list, cancel, buy and transfer, all settled on Arc.
+        Live at /market — list, cancel, buy and transfer, all settled on Arc. Every buy
+        carves out the creator's 5% ERC-2981 royalty and pays it in the same stablecoin,
+        in the same transaction.
       </p>
     </Slide>
   );
