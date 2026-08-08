@@ -202,7 +202,7 @@ function SlideWhyArc() {
 // 5
 function SlideWhatWeBuilt() {
   return (
-    <Slide n={4}>
+    <Slide n={5}>
       <Kicker>What We Built</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
         Two products. One repo. Same wallet.
@@ -266,7 +266,7 @@ function SlideInterfaces() {
     },
   ];
   return (
-    <Slide n={5}>
+    <Slide n={6}>
       <Kicker>Interfaces</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
         Four interfaces, <span style={{ color: GREEN }}>one rail.</span>
@@ -310,7 +310,7 @@ function SlideA2h() {
     { tag: "A2H", who: "Agent → Human", body: "The agent initiates. Royalties are pushed, approvals requested." },
   ];
   return (
-    <Slide n={6}>
+    <Slide n={7}>
       <Kicker>A2H · The missing direction</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Nobody builds agent-to-human,{" "}
@@ -359,7 +359,7 @@ function SlideLive() {
     { k: "6", v: "decimals — USDC is gas" },
   ];
   return (
-    <Slide n={7}>
+    <Slide n={8}>
       <Kicker>Live on Arc</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
         Shipped. Deployed. <span style={{ color: GREEN }}>Verified.</span>
@@ -424,7 +424,7 @@ function SlideAgent() {
     ["Ledger", "Every step logged, Arcscan tx as the receipt."],
   ];
   return (
-    <Slide n={8}>
+    <Slide n={9}>
       <Kicker>H2A · Human to agent</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         You set the policy. <span style={{ color: GREEN }}>The agent spends inside it.</span>
@@ -462,7 +462,7 @@ function SlideProtocolStack() {
     ["Arc Testnet", "USDC settlement, real tx hash on Arcscan"],
   ];
   return (
-    <Slide n={9}>
+    <Slide n={10}>
       <Kicker>A2A · Agent to agent</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         A standards stack, <span style={{ color: GREEN }}>not a custom flow.</span>
@@ -503,7 +503,7 @@ function SlideCircleStack() {
     ["ERC-1271 authorizer", "Treasury-owned contract signs for the agent — Gateway actions need no EOA delegate"],
   ];
   return (
-    <Slide n={10}>
+    <Slide n={11}>
       <Kicker>Built on Circle, end to end</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Six Circle products, <span style={{ color: GREEN }}>one rail.</span>
@@ -542,7 +542,7 @@ function SlideOnChainAuth() {
     ],
   ];
   return (
-    <Slide n={11}>
+    <Slide n={12}>
       <Kicker>On-chain authorization</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         The treasury signs for the agent — <span style={{ color: GREEN }}>no EOA delegate.</span>
@@ -593,7 +593,7 @@ function SlideClaimOffers() {
     ["Checkout", "Discount is applied when the user pays in USDC / EURC / cirBTC."],
   ];
   return (
-    <Slide n={12}>
+    <Slide n={13}>
       <Kicker>A2H · On-chain claim offers</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Agent-to-human offers, <span style={{ color: GREEN }}>logged on Arc.</span>
@@ -641,7 +641,7 @@ function SlideMarketplace() {
     ["Gas", "Paid in USDC, so no second asset is ever needed."],
   ];
   return (
-    <Slide n={13}>
+    <Slide n={14}>
       <Kicker>Secondary market</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Move rights that <span style={{ color: GREEN }}>resell themselves.</span>
@@ -675,7 +675,7 @@ function SlideMarketplace() {
 // 14
 function SlideDefi() {
   return (
-    <Slide n={14}>
+    <Slide n={15}>
       <Kicker>Track 2 · DeFi</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
         Programmable money <span style={{ color: GREEN }}>for the culture.</span>
@@ -713,7 +713,7 @@ function SlideCriteria() {
     ["Verifiable authorization", "ERC-1271 contract returns 0x1626ba7e for an approved mandate digest"],
   ];
   return (
-    <Slide n={15}>
+    <Slide n={16}>
       <Kicker>How we map to the criteria</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Every judging bullet has a feature behind it.
@@ -761,7 +761,7 @@ function SlideRoadmap() {
     "Crew treasuries + on-chain cosigns",
   ];
   return (
-    <Slide n={16}>
+    <Slide n={17}>
       <Kicker>Traction & Roadmap</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Working today. Shipping through <span style={{ color: GREEN }}>Demo Day.</span>
@@ -797,7 +797,7 @@ function SlideRoadmap() {
 // 12
 function SlideMarkets() {
   return (
-    <Slide n={17}>
+    <Slide n={18}>
       <Kicker>Market opportunity</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-[0.95] tracking-tight sm:text-4xl md:text-5xl">
         Street dance travels
@@ -845,7 +845,7 @@ function SlideMarkets() {
 // 13
 function SlideClose() {
   return (
-    <Slide n={18} bg="bg-background">
+    <Slide n={19} bg="bg-background">
       <div className="flex h-full flex-col justify-between">
         <Kicker>Built for Encode Club · Programmable Money Hackathon</Kicker>
         <h2 className="text-4xl font-black leading-[0.9] tracking-tight sm:text-6xl md:text-7xl">
