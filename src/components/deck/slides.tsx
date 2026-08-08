@@ -67,7 +67,9 @@ function SlideTitle() {
             <span style={{ color: GREEN }}>Rail.</span>
           </h2>
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:mt-5 sm:text-lg">
-            Streetwear + onchain move rights, settled in stablecoins on Circle's Arc.
+            Streetwear checkout and dance-move royalties, settled in stablecoins on Circle's Arc —
+            where a $0.001 payment is worth making because gas is a rounding error and paid in the
+            same asset.
           </p>
 
         </div>
@@ -161,6 +163,43 @@ function SlideInsight() {
 }
 
 // 4
+function SlideWhyArc() {
+  const rows: Array<{ rail: string; gas: string; verdict: string; color: string }> = [
+    { rail: "Ethereum L1", gas: "~$1\u20135", verdict: "Fee is 1,000\u20135,000\u00d7 the payment. Impossible.", color: CHERRY },
+    { rail: "Typical L2", gas: "~$0.005\u20130.05", verdict: "Fee still exceeds the payment. Needs batching plus a separate gas asset.", color: "#f59e0b" },
+    { rail: "Arc Testnet", gas: "Fractions of a cent, in USDC", verdict: "Fee is a slice of the payment, in the same asset.", color: GREEN },
+  ];
+  return (
+    <Slide n={4}>
+      <Kicker>Why Arc</Kicker>
+      <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
+        A $0.001 royalty only works where
+        <br />
+        <span style={{ color: GREEN }}>gas is a rounding error.</span>
+      </h3>
+      <p className="mt-3 max-w-3xl text-xs text-muted-foreground sm:text-sm">
+        StreetRail pays choreographers $0.001 per play and batches accruals off-chain until they
+        clear $0.50. That unit economics only survives where the fee is a fraction of the payment —
+        and the same asset as the payment.
+      </p>
+      <div className="mt-auto divide-y divide-border rounded-xl border border-border">
+        {rows.map((r) => (
+          <div key={r.rail} className="grid gap-1 p-3 sm:grid-cols-[10rem_13rem_1fr] sm:items-center sm:gap-4 sm:p-4">
+            <p className="text-xs font-black sm:text-sm">{r.rail}</p>
+            <p className="text-xs font-bold sm:text-sm" style={{ color: r.color }}>{r.gas}</p>
+            <p className="text-[11px] text-muted-foreground sm:text-sm">{r.verdict}</p>
+          </div>
+        ))}
+      </div>
+      <p className="mt-3 text-[10px] text-muted-foreground sm:text-xs">
+        Gas figures are illustrative orders of magnitude from public fee trackers, not measured
+        benchmarks. On Arc, USDC is the gas token — no second asset to bridge or top up.
+      </p>
+    </Slide>
+  );
+}
+
+// 5
 function SlideWhatWeBuilt() {
   return (
     <Slide n={4}>
@@ -828,6 +867,7 @@ export const slides: Array<{ id: string; render: () => ReactNode }> = [
   { id: "title", render: () => <SlideTitle /> },
   { id: "problem", render: () => <SlideProblem /> },
   { id: "insight", render: () => <SlideInsight /> },
+  { id: "why-arc", render: () => <SlideWhyArc /> },
   { id: "built", render: () => <SlideWhatWeBuilt /> },
   { id: "interfaces", render: () => <SlideInterfaces /> },
   { id: "a2h", render: () => <SlideA2h /> },
