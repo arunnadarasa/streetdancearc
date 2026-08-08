@@ -4,6 +4,8 @@ import { Header } from "@/components/dance/Header";
 import { Section, SectionHead } from "@/components/layout/Section";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { MoveMarketPanel } from "@/components/market/MoveMarketPanel";
+import { MarketActivityPanel } from "@/components/market/MarketActivityPanel";
+
 import { getPublicConfig } from "@/lib/config.functions";
 
 export const Route = createFileRoute("/market")({
@@ -44,6 +46,10 @@ function MarketPage() {
           <div className="mt-8">
             <MoveMarketPanel />
           </div>
+          <div className="mt-6">
+            <MarketActivityPanel />
+          </div>
+
         </Section>
         <SiteFooter />
       </div>
