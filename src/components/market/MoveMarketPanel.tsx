@@ -201,12 +201,18 @@ export function MoveMarketPanel() {
   };
   const setFilters = useCallback(
     (patch: Partial<MarketFilterValues>) => {
-      void navigate({ search: (prev) => ({ ...prev, ...patch }), replace: true });
+      void navigate({
+        search: (prev: MarketFilterValues) => ({ ...prev, ...patch }),
+        replace: true,
+      });
     },
     [navigate],
   );
   const clearFilters = useCallback(() => {
-    void navigate({ search: (prev) => ({ ...prev, ...DEFAULT_FILTERS }), replace: true });
+    void navigate({
+      search: (prev: MarketFilterValues) => ({ ...prev, ...DEFAULT_FILTERS }),
+      replace: true,
+    });
   }, [navigate]);
 
   const disciplines = useMemo(
@@ -230,8 +236,7 @@ export function MoveMarketPanel() {
     });
     return sortListings(filtered, filters.sort);
   }, [listings, filters.cat, filters.license, filters.tok, filters.q, filters.sort]);
-  const filtersActive =
-    filters.q.trim() !== "" || filters.cat !== "all" || filters.license !== "all" || filters.tok !== "all";
+
   const [listRoyalty, setListRoyalty] = useState<{ royalty: string; net: string; percent: number } | null>(null);
 
 
