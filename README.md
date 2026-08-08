@@ -180,7 +180,7 @@ Testnet tokens have no financial value.
 | `/shop`              | Full catalog grid                                                  |
 | `/product/$handle`   | Product detail, quantity stepper, add to cart, live Arc total      |
 | `/moves`             | On-chain move registry: preview metadata, log a CID, receipt history |
-| `/market`            | Move Rights secondary market — list, buy, cancel, transfer on Arc  |
+| `/market`            | Move Rights secondary market — browse (search, filters, sorting), list, buy, cancel, transfer on Arc |
 | `/agent-negotiation` | AIsa-powered buyer/seller negotiation transcript                   |
 | `/markets`           | FX-volatility research — why stablecoin rails matter in NGN/ARS/PHP markets |
 | `/primer`            | Web3 for dancers — concept cards + interactive glossary            |
