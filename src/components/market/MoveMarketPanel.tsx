@@ -11,6 +11,8 @@ import {
 } from "viem";
 import { ArrowLeftRight, RefreshCw, ShoppingBag, Store, Tag } from "lucide-react";
 import { arcTestnet } from "@/lib/arc-chain";
+import { mapChainError } from "@/lib/chain-errors";
+
 import { useWallet } from "@/lib/wallet-context";
 import { TOKENS, type TokenKey } from "@/lib/tokens";
 import { TokenSwitcher } from "@/components/dance/TokenSwitcher";
@@ -56,6 +58,20 @@ const ERC721_ABI = [
   },
   {
     type: "function",
+    name: "ownerOf",
+    stateMutability: "view",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [{ type: "address" }],
+  },
+  {
+    type: "function",
+    name: "getApproved",
+    stateMutability: "view",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [{ type: "address" }],
+  },
+  {
+    type: "function",
     name: "safeTransferFrom",
     stateMutability: "nonpayable",
     inputs: [
@@ -66,6 +82,20 @@ const ERC721_ABI = [
     outputs: [],
   },
 ] as const;
+
+const ZERO = "0x0000000000000000000000000000000000000000";
+
+interface TransferPreflight {
+  tokenId: string;
+  to: string;
+  owner: string;
+  isOwner: boolean;
+  approvedOperator: string | null;
+  marketApprovedForAll: boolean;
+  listed: boolean;
+  selfSend: boolean;
+}
+
 
 function short(a: string) {
   return `${a.slice(0, 6)}…${a.slice(-4)}`;
@@ -85,6 +115,7 @@ export function MoveMarketPanel() {
   const [busy, setBusy] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
 
   const [sellToken, setSellToken] = useState<string>("");
@@ -92,6 +123,9 @@ export function MoveMarketPanel() {
   const [price, setPrice] = useState("5");
   const [transferTo, setTransferTo] = useState("");
   const [transferToken, setTransferToken] = useState<string>("");
+  const [preflight, setPreflight] = useState<TransferPreflight | null>(null);
+  const [staleListing, setStaleListing] = useState<string | null>(null);
+
 
   const address = (wallets.find((w) => w.walletClientType === "privy")?.address ?? wallets[0]?.address ?? "") as string;
 
@@ -140,15 +174,20 @@ export function MoveMarketPanel() {
   function begin(key: string) {
     setBusy(key);
     setError(null);
+    setErrorDetail(null);
     setStatus(null);
     setTxHash(null);
+    setStaleListing(null);
   }
 
-  function fail(e: unknown) {
-    const msg = e instanceof Error ? e.message : String(e);
-    setError(msg.slice(0, 220));
+
+  function fail(e: unknown, context?: { tokenId?: string }) {
+    const friendly = mapChainError(e, context);
+    setError(friendly.message);
+    setErrorDetail(friendly.detail && friendly.detail !== friendly.message ? friendly.detail : null);
     setStatus(null);
   }
+
 
   async function onList() {
     begin("list");
@@ -257,12 +296,65 @@ export function MoveMarketPanel() {
     }
   }
 
-  async function onTransfer() {
-    begin("transfer");
+  /** Reads ownership + approval state on Arc before anything is signed. */
+  async function onCheckTransfer() {
+    begin("transfer-check");
+    setPreflight(null);
     try {
       if (!cfg?.configured) throw new Error("Marketplace contract is not deployed.");
       if (!transferToken) throw new Error("Pick one of your move NFTs first.");
-      if (!/^0x[0-9a-fA-F]{40}$/.test(transferTo.trim())) throw new Error("Enter a valid Arc address.");
+      const to = transferTo.trim();
+      if (!/^0x[0-9a-fA-F]{40}$/.test(to)) throw new Error("Enter a valid Arc address (0x followed by 40 hex characters).");
+
+      const { from, pub } = await clients();
+      setStatus("Checking ownership and approvals on Arc…");
+
+      const tokenId = BigInt(transferToken);
+      const nft = cfg.nft as Address;
+      const [owner, approvedOperator, marketApprovedForAll] = await Promise.all([
+        pub.readContract({ address: nft, abi: ERC721_ABI, functionName: "ownerOf", args: [tokenId] }) as Promise<string>,
+        pub
+          .readContract({ address: nft, abi: ERC721_ABI, functionName: "getApproved", args: [tokenId] })
+          .then((v) => v as string)
+          .catch(() => ZERO),
+        cfg.market
+          ? (pub.readContract({
+              address: nft,
+              abi: ERC721_ABI,
+              functionName: "isApprovedForAll",
+              args: [from, cfg.market as Address],
+            }) as Promise<boolean>)
+          : Promise.resolve(false),
+      ]);
+
+      const isOwner = owner.toLowerCase() === from.toLowerCase();
+      setPreflight({
+        tokenId: transferToken,
+        to,
+        owner,
+        isOwner,
+        approvedOperator: approvedOperator && approvedOperator !== ZERO ? approvedOperator : null,
+        marketApprovedForAll,
+        listed: listings.some((l) => l.tokenId === transferToken),
+        selfSend: to.toLowerCase() === from.toLowerCase(),
+      });
+      setStatus(null);
+      if (!isOwner) {
+        setError(`Move #${transferToken} is held by ${short(owner)}, not your wallet. Only the current owner can transfer it.`);
+      }
+
+    } catch (e) {
+      fail(e, { tokenId: transferToken });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function onConfirmTransfer() {
+    if (!preflight || !preflight.isOwner) return;
+    begin("transfer");
+    try {
+      if (!cfg?.configured) throw new Error("Marketplace contract is not deployed.");
       const { from, wallet, pub } = await clients();
       setStatus("Transferring the rights token…");
       const hash = await wallet.sendTransaction({
@@ -270,21 +362,24 @@ export function MoveMarketPanel() {
         data: encodeFunctionData({
           abi: ERC721_ABI,
           functionName: "safeTransferFrom",
-          args: [from, transferTo.trim() as Address, BigInt(transferToken)],
+          args: [from, preflight.to as Address, BigInt(preflight.tokenId)],
         }),
         chain: arcTestnet,
       });
       await pub.waitForTransactionReceipt({ hash });
       setTxHash(hash);
-      setStatus(`Move #${transferToken} sent to ${short(transferTo.trim())}`);
+      setStatus(`Move #${preflight.tokenId} sent to ${short(preflight.to)}`);
+      setStaleListing(preflight.listed ? preflight.tokenId : null);
       setTransferTo("");
+      setPreflight(null);
       await refresh();
     } catch (e) {
-      fail(e);
+      fail(e, { tokenId: preflight.tokenId });
     } finally {
       setBusy(null);
     }
   }
+
 
   const explorer = cfg?.explorer ?? "https://testnet.arcscan.app";
 
@@ -422,7 +517,11 @@ export function MoveMarketPanel() {
             <span className="text-[11px] uppercase tracking-widest text-muted-foreground">Your move NFT</span>
             <select
               value={transferToken}
-              onChange={(e) => setTransferToken(e.target.value)}
+              onChange={(e) => {
+                setTransferToken(e.target.value);
+                setPreflight(null);
+              }}
+              disabled={busy !== null}
               className="mt-1 h-11 w-full rounded-lg border border-border bg-background/50 px-3 text-sm text-foreground outline-none focus:border-primary"
             >
               <option value="">{owned.length ? "Select a move" : "No move NFTs in this wallet"}</option>
@@ -437,32 +536,120 @@ export function MoveMarketPanel() {
             <span className="text-[11px] uppercase tracking-widest text-muted-foreground">Recipient address</span>
             <input
               value={transferTo}
-              onChange={(e) => setTransferTo(e.target.value)}
+              onChange={(e) => {
+                setTransferTo(e.target.value);
+                setPreflight(null);
+              }}
               placeholder="0x…"
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
+              disabled={busy !== null}
               className="mt-1 h-11 w-full rounded-lg border border-border bg-background/50 px-3 text-sm text-foreground outline-none focus:border-primary"
             />
           </label>
-          <button
-            type="button"
-            onClick={() => void onTransfer()}
-            disabled={busy !== null}
-            className="h-11 w-full rounded-full border border-border bg-surface px-4 text-sm font-bold text-foreground transition hover:border-primary disabled:opacity-50"
-          >
-            {busy === "transfer" ? "Transferring…" : "Transfer rights"}
-          </button>
+
+          {preflight ? (
+            <div className="min-w-0 space-y-2 rounded-xl border border-border/60 bg-surface p-3">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                Step 2 · Confirm transfer
+              </p>
+              <p className="text-sm font-bold text-foreground">
+                {owned.find((o) => o.tokenId === preflight.tokenId)?.name ?? "Move"} · #{preflight.tokenId}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                From {short(address || preflight.owner)} → {short(preflight.to)}
+              </p>
+              <code className="block break-all text-[11px] text-glow">{preflight.to}</code>
+
+              <ul className="space-y-1 text-[11px]">
+                <li className={preflight.isOwner ? "text-muted-foreground" : "text-red-400"}>
+                  {preflight.isOwner
+                    ? "Ownership check passed — this wallet holds the token."
+                    : `Held by ${short(preflight.owner)}, not your wallet.`}
+                </li>
+                <li className="text-muted-foreground">
+                  {preflight.marketApprovedForAll
+                    ? "The marketplace still has blanket approval on your wallet (needed for listings)."
+                    : "No blanket marketplace approval on your wallet."}
+                </li>
+                {preflight.approvedOperator && (
+                  <li className="text-muted-foreground">
+                    Per-token operator approved: {short(preflight.approvedOperator)} — it clears on transfer.
+                  </li>
+                )}
+                {preflight.selfSend && (
+                  <li className="text-amber-400">This is your own address — the transfer would be a no-op that still costs gas.</li>
+                )}
+                {preflight.listed && (
+                  <li className="text-amber-400">
+                    This move is actively listed. The listing will point at a token you no longer own — cancel it first.
+                  </li>
+                )}
+              </ul>
+              <p className="text-[11px] text-muted-foreground">Transfers are irreversible once confirmed on Arc.</p>
+
+              <div className="flex flex-wrap gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => void onConfirmTransfer()}
+                  disabled={busy !== null || !preflight.isOwner}
+                  className="inline-flex h-11 items-center rounded-full bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:bg-primary/85 disabled:opacity-50"
+                >
+                  {busy === "transfer" ? "Transferring…" : "Confirm transfer"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreflight(null)}
+                  disabled={busy !== null}
+                  className="inline-flex h-11 items-center rounded-full border border-border px-4 text-sm font-semibold text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                >
+                  Back
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => void onCheckTransfer()}
+              disabled={busy !== null}
+              className="h-11 w-full rounded-full border border-border bg-surface px-4 text-sm font-bold text-foreground transition hover:border-primary disabled:opacity-50"
+            >
+              {busy === "transfer-check"
+                ? "Checking ownership…"
+                : authenticated
+                  ? "Check & review transfer"
+                  : "Sign in to transfer"}
+            </button>
+          )}
+
           <p className="text-[11px] text-muted-foreground">
             Gas is paid in USDC on Arc, so no ETH is needed for any of these steps.
           </p>
+
         </div>
       </div>
 
-      {(status || error || txHash) && (
-        <div className="rounded-xl border border-border bg-surface p-4 text-sm">
+      {(status || error || txHash || staleListing) && (
+        <div className="min-w-0 rounded-xl border border-border bg-surface p-4 text-sm">
           {status && <p className="text-foreground">{status}</p>}
-          {error && <p className="text-red-400">{error}</p>}
+          {error && <p className="break-words text-red-400">{error}</p>}
+          {errorDetail && (
+            <details className="mt-1">
+              <summary className="cursor-pointer text-[11px] uppercase tracking-widest text-muted-foreground">
+                Details
+              </summary>
+              <pre className="mt-1 max-h-40 overflow-y-auto whitespace-pre-wrap break-all text-[11px] text-muted-foreground">
+                {errorDetail}
+              </pre>
+            </details>
+          )}
+          {staleListing && (
+            <p className="mt-1 text-[11px] text-amber-400">
+              Move #{staleListing} was still listed when it moved. The listing is now stale — only the new owner can settle
+              or cancel it.
+            </p>
+          )}
           {txHash && (
             <a href={`${explorer}/tx/${txHash}`} target="_blank" rel="noreferrer" className="mt-1 block break-all text-xs text-glow hover:underline">
               View receipt on Arcscan →
@@ -470,6 +657,7 @@ export function MoveMarketPanel() {
           )}
         </div>
       )}
+
 
       {cfg?.market && (
         <p className="break-all text-[11px] text-muted-foreground">
