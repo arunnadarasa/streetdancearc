@@ -173,7 +173,7 @@ export function MintForm() {
   }
 
   return (
-    <div className="min-w-0 space-y-4 overflow-hidden rounded-2xl border border-border bg-card/70 p-4 sm:p-6">
+    <div className="min-w-0 max-w-full space-y-4 overflow-hidden rounded-2xl border border-border bg-card/70 p-4 sm:p-6">
       <div>
         <p className="mb-2 text-xs uppercase tracking-widest text-muted-foreground">Pay with</p>
         <TokenSwitcher value={token} onChange={setToken} />
