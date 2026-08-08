@@ -340,7 +340,9 @@ export function MarketActivityPanel({ className = "" }: { className?: string }) 
           <p className="mt-4 rounded-lg border border-border/60 bg-surface px-3 py-2 text-[13px] text-muted-foreground">
             {scope === "mine" && address
               ? "No marketplace activity for this wallet yet. List, buy or transfer a move and it will show up here."
-              : "No marketplace activity in the recent block window yet."}
+              : data?.source === "explorer"
+                ? "No marketplace activity on Arc Testnet yet."
+                : "No marketplace activity in the recent block window yet."}
           </p>
         )
       ) : (
@@ -351,10 +353,12 @@ export function MarketActivityPanel({ className = "" }: { className?: string }) 
         </ul>
       )}
 
-      {data && !data.degraded && data.scannedBlocks > 0 && (
+      {data && !data.degraded && (data.source === "explorer" || data.scannedBlocks > 0) && (
         <p className="mt-3 text-[11px] text-muted-foreground">
-          Scanned the last {data.scannedBlocks.toLocaleString()} Arc blocks · market {short(data.market)} · collection{" "}
-          {short(data.nft)}
+          {data.source === "explorer"
+            ? "Full history indexed by Arcscan"
+            : `Scanned the last ${data.scannedBlocks.toLocaleString()} Arc blocks`}{" "}
+          · market {short(data.market)} · collection {short(data.nft)}
         </p>
       )}
     </section>
