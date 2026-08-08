@@ -519,7 +519,11 @@ export function MoveMarketPanel() {
             <span className="text-[11px] uppercase tracking-widest text-muted-foreground">Your move NFT</span>
             <select
               value={transferToken}
-              onChange={(e) => setTransferToken(e.target.value)}
+              onChange={(e) => {
+                setTransferToken(e.target.value);
+                setPreflight(null);
+              }}
+              disabled={busy !== null}
               className="mt-1 h-11 w-full rounded-lg border border-border bg-background/50 px-3 text-sm text-foreground outline-none focus:border-primary"
             >
               <option value="">{owned.length ? "Select a move" : "No move NFTs in this wallet"}</option>
@@ -534,25 +538,97 @@ export function MoveMarketPanel() {
             <span className="text-[11px] uppercase tracking-widest text-muted-foreground">Recipient address</span>
             <input
               value={transferTo}
-              onChange={(e) => setTransferTo(e.target.value)}
+              onChange={(e) => {
+                setTransferTo(e.target.value);
+                setPreflight(null);
+              }}
               placeholder="0x…"
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
+              disabled={busy !== null}
               className="mt-1 h-11 w-full rounded-lg border border-border bg-background/50 px-3 text-sm text-foreground outline-none focus:border-primary"
             />
           </label>
-          <button
-            type="button"
-            onClick={() => void onTransfer()}
-            disabled={busy !== null}
-            className="h-11 w-full rounded-full border border-border bg-surface px-4 text-sm font-bold text-foreground transition hover:border-primary disabled:opacity-50"
-          >
-            {busy === "transfer" ? "Transferring…" : "Transfer rights"}
-          </button>
+
+          {preflight ? (
+            <div className="min-w-0 space-y-2 rounded-xl border border-border/60 bg-surface p-3">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                Step 2 · Confirm transfer
+              </p>
+              <p className="text-sm font-bold text-foreground">
+                {owned.find((o) => o.tokenId === preflight.tokenId)?.name ?? "Move"} · #{preflight.tokenId}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                From {short(address || preflight.owner)} → {short(preflight.to)}
+              </p>
+              <code className="block break-all text-[11px] text-glow">{preflight.to}</code>
+
+              <ul className="space-y-1 text-[11px]">
+                <li className={preflight.isOwner ? "text-muted-foreground" : "text-red-400"}>
+                  {preflight.isOwner
+                    ? "Ownership check passed — this wallet holds the token."
+                    : `Held by ${short(preflight.owner)}, not your wallet.`}
+                </li>
+                <li className="text-muted-foreground">
+                  {preflight.marketApprovedForAll
+                    ? "The marketplace still has blanket approval on your wallet (needed for listings)."
+                    : "No blanket marketplace approval on your wallet."}
+                </li>
+                {preflight.approvedOperator && (
+                  <li className="text-muted-foreground">
+                    Per-token operator approved: {short(preflight.approvedOperator)} — it clears on transfer.
+                  </li>
+                )}
+                {preflight.selfSend && (
+                  <li className="text-amber-400">This is your own address — the transfer would be a no-op that still costs gas.</li>
+                )}
+                {preflight.listed && (
+                  <li className="text-amber-400">
+                    This move is actively listed. The listing will point at a token you no longer own — cancel it first.
+                  </li>
+                )}
+              </ul>
+              <p className="text-[11px] text-muted-foreground">Transfers are irreversible once confirmed on Arc.</p>
+
+              <div className="flex flex-wrap gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => void onConfirmTransfer()}
+                  disabled={busy !== null || !preflight.isOwner}
+                  className="inline-flex h-11 items-center rounded-full bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:bg-primary/85 disabled:opacity-50"
+                >
+                  {busy === "transfer" ? "Transferring…" : "Confirm transfer"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreflight(null)}
+                  disabled={busy !== null}
+                  className="inline-flex h-11 items-center rounded-full border border-border px-4 text-sm font-semibold text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                >
+                  Back
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => void onCheckTransfer()}
+              disabled={busy !== null}
+              className="h-11 w-full rounded-full border border-border bg-surface px-4 text-sm font-bold text-foreground transition hover:border-primary disabled:opacity-50"
+            >
+              {busy === "transfer-check"
+                ? "Checking ownership…"
+                : authenticated
+                  ? "Check & review transfer"
+                  : "Sign in to transfer"}
+            </button>
+          )}
+
           <p className="text-[11px] text-muted-foreground">
             Gas is paid in USDC on Arc, so no ETH is needed for any of these steps.
           </p>
+
         </div>
       </div>
 
