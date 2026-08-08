@@ -347,6 +347,16 @@ function SlideLive() {
             addr: "0x0519c703cde7cbff6829fdfdcfe8c9a4c7aac327",
             note: "ERC-1271 authorization · owner is the treasury wallet",
           },
+          {
+            name: "MoveMarket.sol",
+            addr: "0xe692d23b253c5ff52369bf950ed8bc6aa90b97e5",
+            note: "Non-custodial resale · USDC · EURC · cirBTC",
+          },
+          {
+            name: "Move Rights (ERC-721)",
+            addr: "0x84546970f5265f31ae1523a1e3bf18938670702f",
+            note: "Circle SCP template · clip evidence on IPFS",
+          },
         ].map((c) => (
           <div key={c.name} className="rounded-xl border border-border bg-background p-3 sm:p-5">
             <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
@@ -358,7 +368,7 @@ function SlideLive() {
         ))}
       </div>
       <p className="mt-3 text-[11px] text-muted-foreground sm:text-sm">
-        Both verified on Arcscan. Live wallet balances, agent discovery and payout receipts read
+        All three verified on Arcscan. Live wallet balances, agent discovery and payout receipts read
         straight off Arc — nothing in the demo is mocked.
       </p>
     </Slide>
@@ -702,12 +712,13 @@ function SlideRoadmap() {
     "Mobile-tuned end to end",
     "On-chain claim offers (A2H)",
     "Treasury balance panel + low-gas warning",
+    "Move Rights NFTs + IPFS clip evidence",
+    "MoveMarket.sol resale, verified on Arcscan",
   ];
   const next = [
     "Encode Club Demo Day — 9 Aug 2026",
     "Rights Agent GA — Gemini + Agent Stack",
     "Nanopayment royalty streams (per-play)",
-    "ERC-721 receipt NFT per logged move",
     "Crew treasuries + on-chain cosigns",
   ];
   return (
