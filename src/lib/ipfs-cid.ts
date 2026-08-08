@@ -210,18 +210,18 @@ export async function computeUnixfsCid(
   const total = file.size;
   const leaves: Node[] = [];
 
-  // Empty file: a single empty UnixFS file node.
+  // Empty file: a single empty UnixFS file node (no Data field).
   if (total === 0) {
     const block = pbNode([], unixfsLeafData(new Uint8Array(0)));
-    const node = await makeNode(block, 0, 0);
     return {
       cid: encodeCidV1(0x70, await sha256(block)),
       chunks: 1,
       chunkBytes: CHUNK_BYTES,
       maxLinks: MAX_LINKS,
-      bytes: node.fileSize,
+      bytes: 0,
     };
   }
+
 
   for (let offset = 0; offset < total; offset += CHUNK_BYTES) {
     const slice = file.slice(offset, Math.min(offset + CHUNK_BYTES, total));
