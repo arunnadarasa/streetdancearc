@@ -113,6 +113,7 @@ export function MoveMarketPanel() {
   const [busy, setBusy] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
 
   const [sellToken, setSellToken] = useState<string>("");
@@ -120,6 +121,9 @@ export function MoveMarketPanel() {
   const [price, setPrice] = useState("5");
   const [transferTo, setTransferTo] = useState("");
   const [transferToken, setTransferToken] = useState<string>("");
+  const [preflight, setPreflight] = useState<TransferPreflight | null>(null);
+  const [staleListing, setStaleListing] = useState<string | null>(null);
+
 
   const address = (wallets.find((w) => w.walletClientType === "privy")?.address ?? wallets[0]?.address ?? "") as string;
 
