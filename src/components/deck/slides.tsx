@@ -368,7 +368,7 @@ function SlideLive() {
         ))}
       </div>
       <p className="mt-3 text-[11px] text-muted-foreground sm:text-sm">
-        All four verified on Arcscan. Live wallet balances, agent discovery and payout receipts read
+        Custom contracts verified on Arcscan. Live wallet balances, agent discovery and payout receipts read
         straight off Arc — nothing in the demo is mocked.
       </p>
     </Slide>
