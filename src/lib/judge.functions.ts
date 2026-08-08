@@ -45,9 +45,9 @@ export const fetchX402Challenge = createServerFn({ method: "POST" })
       };
     }
 
-    let payload: unknown = null;
+    let payload: Record<string, unknown> | null = null;
     try {
-      payload = await res.json();
+      payload = (await res.json()) as Record<string, unknown>;
     } catch {
       /* keep null */
     }
