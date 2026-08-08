@@ -52,6 +52,7 @@ The **Treasury Panel** in the A2H inbox surfaces the treasury address and its li
 The `/moves` page is now a full registry console:
 
 - **Metadata preview step.** Before logging a move, dancers fill move name, discipline, rights holder and license, then preview the exact JSON and the IPFS CIDv1 it hashes to. Logging is blocked until the CID is confirmed, so the on-chain record matches the off-chain metadata.
+- **Clip preview before pinning.** A picked clip is staged locally first: inline playback, file size, duration, intrinsic dimensions and MIME type, plus a CIDv1 (raw / sha2-256) content hash computed in the browser before any upload. Pinning is an explicit step, and afterwards the UI reports whether the pinned CID matches the local hash — it does for single-block files (≤256 KB); larger files are chunked by IPFS, so the local hash stands as an integrity proof of the exact bytes uploaded.
 - **Clip evidence pinned to IPFS.** With a `PINATA_JWT` configured, the metadata step accepts an optional move clip (MP4/MOV/WebM or image, max 25 MB). The clip is pinned through `POST /api/public/pin` (size cap and MIME allowlist enforced server-side), the metadata JSON gains a `media` block plus ERC-721 display fields (`name`, `description`, `animation_url`), and the JSON itself is pinned so the CID actually resolves. Without the key the field is hidden and the locally computed CID preview still works.
 - **Move NFTs.** Logging a move also mints an ERC-721 "StreetRail Move Rights" token to the dancer's wallet, agent-side from the treasury, so the dancer pays no gas and sees no extra prompt. `MoveNftGallery` lists the tokens held by the connected wallet with clip playback, discipline, licence and an Arcscan link.
 - **Receipt history panel.** Every `log()` call is listed newest-first with kind classification (move log, A2H payout, offer claim, nanopayment batch), formatted token amount, block number, success/failure status, and a clickable Arcscan link. History is read with a chunked, rate-limit-aware log sweep and cached for 45 seconds so public RPC limits don't break the UI.
@@ -130,6 +131,16 @@ Circle's pre-audited ERC-721 SCP template (`76b83278-50e2-4006-8b63-5b1a2a814533
 - **Mint:** `mintTo(address,string)` executed from the treasury via Circle `contractExecution`, with an `ipfs://<cid>` token URI.
 - **Deploy script:** `node scripts/deploy-nft-arc.mjs` (writes `src/data/move-nft.json`).
 
+### Move Rights marketplace (MoveMarket.sol)
+
+`contracts/MoveMarket.sol` is a non-custodial secondary market for Move Rights NFTs: the seller keeps the token and only grants an approval, so nothing is escrowed.
+
+- **Deployed:** [`0xe692d23b253c5ff52369bf950ed8bc6aa90b97e5`](https://testnet.arcscan.app/address/0xe692d23b253c5ff52369bf950ed8bc6aa90b97e5) — verified on Arcscan.
+- **Flow:** `list(tokenId, payToken, price)` → `buy(tokenId)` moves the payment token to the seller and the NFT to the buyer in one call; `cancel(tokenId)` pulls the listing. Direct transfers are also supported from the UI.
+- **Settlement:** any Arc stablecoin — USDC, EURC or cirBTC — with gas paid in USDC.
+- **Discovery:** `activeCount()` / `listingAt(index)` enumerate live listings on-chain; the server cross-checks current ERC-721 ownership and filters stale listings.
+- **UI:** `/market` (linked in the header and the mobile drawer) shows listings with pinned clip media, plus list / cancel / buy / transfer actions.
+
 ### Treasury authorization (ERC-1271)
 
 `contracts/StreetRailAuthorizer.sol` is a lightweight ERC-1271 authorizer for the treasury/agent wallet, so Gateway actions can be authorized without an EOA delegate.
@@ -167,6 +178,7 @@ Testnet tokens have no financial value.
 | `/shop`              | Full catalog grid                                                  |
 | `/product/$handle`   | Product detail, quantity stepper, add to cart, live Arc total      |
 | `/moves`             | On-chain move registry: preview metadata, log a CID, receipt history |
+| `/market`            | Move Rights secondary market — list, buy, cancel, transfer on Arc  |
 | `/agent-negotiation` | AIsa-powered buyer/seller negotiation transcript                   |
 | `/markets`           | FX-volatility research — why stablecoin rails matter in NGN/ARS/PHP markets |
 | `/primer`            | Web3 for dancers — concept cards + interactive glossary            |
