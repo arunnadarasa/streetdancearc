@@ -27,8 +27,8 @@ export function MoveRegistry({
           </div>
         </div>
       </Reveal>
-      <Reveal delay={120}>
-        <div className="space-y-6">
+      <Reveal delay={120} className="min-w-0">
+        <div className="min-w-0 space-y-6">
           <MintForm />
           <MoveNftGallery />
           <ReceiptHistoryPanel />
