@@ -282,6 +282,15 @@ export function MobileDrawer({
           <FileCode2 className="h-3.5 w-3.5 shrink-0" /> StreetRailAuthorizer on Arcscan
           <ExternalLink className="ml-auto h-3 w-3 shrink-0" />
         </a>
+        <a
+          href={`${ARC_EXPLORER}/address/${MARKET_ADDRESS}`}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-2 rounded-xl px-2 py-2 text-[11px] font-semibold text-muted-foreground hover:text-foreground"
+        >
+          <FileCode2 className="h-3.5 w-3.5 shrink-0" /> MoveMarket on Arcscan
+          <ExternalLink className="ml-auto h-3 w-3 shrink-0" />
+        </a>
         <p className="px-2 pt-1 text-[10px] text-muted-foreground">Arc Testnet · chain 5042002</p>
       </div>
     </div>
