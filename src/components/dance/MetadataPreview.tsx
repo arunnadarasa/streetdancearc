@@ -77,7 +77,7 @@ export function MetadataPreview({
   const confirmed = Boolean(cid && preview && cid === preview.cid);
 
   return (
-    <div className="space-y-3 rounded-xl border border-border bg-background/40 p-4">
+    <div className="min-w-0 space-y-3 overflow-hidden rounded-xl border border-border bg-background/40 p-4">
       <div className="flex items-center gap-2">
         <FileJson className="h-4 w-4 text-glow" aria-hidden />
         <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
