@@ -21,3 +21,13 @@ export const listMarketListings = createServerFn({ method: "GET" }).handler(asyn
   const { listMarket } = await import("@/lib/market.server");
   return listMarket();
 });
+
+export const listMarketActivity = createServerFn({ method: "GET" })
+  .inputValidator((input?: { limit?: number }) =>
+    z.object({ limit: z.number().int().min(1).max(60).optional() }).parse(input ?? {}),
+  )
+  .handler(async ({ data }) => {
+    const { readMarketActivity } = await import("@/lib/market-activity.server");
+    return readMarketActivity(data.limit ?? 30);
+  });
+
