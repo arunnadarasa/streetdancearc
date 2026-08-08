@@ -178,6 +178,15 @@ function Index() {
               </div>
             </Section>
 
+            {/* WHY ARC */}
+            <Section tone="deep" lines>
+              <Reveal>
+                <WhyArc />
+              </Reveal>
+            </Section>
+
+
+
             {/* PRIMER TEASER */}
             <Section tone="deep" innerClassName="py-10 sm:py-14">
               <Reveal>
