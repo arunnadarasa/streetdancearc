@@ -135,7 +135,10 @@ function ActivityRow({ event, me }: { event: MarketActivityEvent; me: string }) 
           {event.label}
         </span>
         <StatusPill status={event.status} />
-        <span className="text-[11px] text-muted-foreground">Block {event.blockNumber}</span>
+        <span className="text-[11px] text-muted-foreground">
+          Block {event.blockNumber}
+          {event.atSeconds > 0 ? ` · ${timeAgo(event.atSeconds)}` : ""}
+        </span>
       </div>
 
       <p className="mt-2 min-w-0 break-words text-sm font-semibold text-foreground">{summarise(event, me)}</p>
