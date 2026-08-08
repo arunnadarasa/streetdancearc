@@ -637,6 +637,7 @@ function SlideMarketplace() {
   const rows: [string, string][] = [
     ["List", "Owner approves the market and sets a price in USDC, EURC or cirBTC."],
     ["Hold", "Non-custodial — the token never leaves the dancer's wallet."],
+    ["Browse", "Search, discipline and licence filters, token filter, sort by newest or price."],
     ["Buy", "One call moves payment to the seller and the NFT to the buyer."],
     ["Gas", "Paid in USDC, so no second asset is ever needed."],
   ];
