@@ -284,6 +284,15 @@ export function MobileDrawer({
           <ExternalLink className="ml-auto h-3 w-3 shrink-0" />
         </a>
         <a
+          href={`${ARC_EXPLORER}/address/${MOVE_NFT_ADDRESS}`}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-2 rounded-xl px-2 py-2 text-[11px] font-semibold text-muted-foreground hover:text-foreground"
+        >
+          <FileCode2 className="h-3.5 w-3.5 shrink-0" /> Move Rights NFT on Arcscan
+          <ExternalLink className="ml-auto h-3 w-3 shrink-0" />
+        </a>
+        <a
           href={`${ARC_EXPLORER}/address/${MARKET_ADDRESS}`}
           target="_blank"
           rel="noreferrer"
