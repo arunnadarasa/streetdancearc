@@ -583,10 +583,50 @@ function SlideClaimOffers() {
   );
 }
 
-// 9
-function SlideDefi() {
+// 13
+function SlideMarketplace() {
+  const rows: [string, string][] = [
+    ["List", "Owner approves the market and sets a price in USDC, EURC or cirBTC."],
+    ["Hold", "Non-custodial — the token never leaves the dancer's wallet."],
+    ["Buy", "One call moves payment to the seller and the NFT to the buyer."],
+    ["Gas", "Paid in USDC, so no second asset is ever needed."],
+  ];
   return (
     <Slide n={13}>
+      <Kicker>Secondary market</Kicker>
+      <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
+        Move rights that <span style={{ color: GREEN }}>resell themselves.</span>
+      </h3>
+      <div className="mt-3 grid flex-1 content-start gap-1.5 overflow-y-auto pr-1 sm:mt-5 sm:gap-2">
+        {rows.map(([k, v], i) => (
+          <div
+            key={k}
+            className="grid grid-cols-[minmax(0,0.35fr)_minmax(0,1.65fr)] items-center gap-3 rounded-lg border border-border p-2 sm:p-3"
+          >
+            <div className="text-xs font-black sm:text-base" style={{ color: GREEN }}>
+              {String(i + 1).padStart(2, "0")} {k}
+            </div>
+            <div className="text-[11px] text-muted-foreground sm:text-sm">{v}</div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 rounded-xl border border-border bg-background p-3 sm:p-4">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
+          MoveMarket.sol · verified on Arcscan
+        </div>
+        <div className="mt-1 break-all font-mono text-[11px] sm:text-sm">0xe692d23b253c5ff52369bf950ed8bc6aa90b97e5</div>
+      </div>
+      <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
+        Live at /market — list, cancel, buy and transfer, all settled on Arc.
+      </p>
+    </Slide>
+  );
+}
+
+// 14
+function SlideDefi() {
+  return (
+    <Slide n={14}>
       <Kicker>Track 2 · DeFi</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
         Programmable money <span style={{ color: GREEN }}>for the culture.</span>
@@ -624,7 +664,7 @@ function SlideCriteria() {
     ["Verifiable authorization", "ERC-1271 contract returns 0x1626ba7e for an approved mandate digest"],
   ];
   return (
-    <Slide n={14}>
+    <Slide n={15}>
       <Kicker>How we map to the criteria</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Every judging bullet has a feature behind it.
@@ -671,7 +711,7 @@ function SlideRoadmap() {
     "Crew treasuries + on-chain cosigns",
   ];
   return (
-    <Slide n={15}>
+    <Slide n={16}>
       <Kicker>Traction & Roadmap</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Working today. Shipping through <span style={{ color: GREEN }}>Demo Day.</span>
@@ -707,7 +747,7 @@ function SlideRoadmap() {
 // 12
 function SlideMarkets() {
   return (
-    <Slide n={16}>
+    <Slide n={17}>
       <Kicker>Market opportunity</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-[0.95] tracking-tight sm:text-4xl md:text-5xl">
         Street dance travels
@@ -755,7 +795,7 @@ function SlideMarkets() {
 // 13
 function SlideClose() {
   return (
-    <Slide n={17} bg="bg-background">
+    <Slide n={18} bg="bg-background">
       <div className="flex h-full flex-col justify-between">
         <Kicker>Built for Encode Club · Programmable Money Hackathon</Kicker>
         <h2 className="text-4xl font-black leading-[0.9] tracking-tight sm:text-6xl md:text-7xl">
@@ -786,6 +826,7 @@ export const slides: Array<{ id: string; render: () => ReactNode }> = [
   { id: "circle", render: () => <SlideCircleStack /> },
   { id: "onchain-auth", render: () => <SlideOnChainAuth /> },
   { id: "claim-offers", render: () => <SlideClaimOffers /> },
+  { id: "marketplace", render: () => <SlideMarketplace /> },
   { id: "defi", render: () => <SlideDefi /> },
   { id: "criteria", render: () => <SlideCriteria /> },
   { id: "roadmap", render: () => <SlideRoadmap /> },
