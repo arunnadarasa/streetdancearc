@@ -1,6 +1,9 @@
 // Thin server-function wrappers for the Move Rights marketplace.
 
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+
+
 
 export const getMarketConfig = createServerFn({ method: "GET" }).handler(async () => {
   const { MARKET_ADDRESS, MARKET_ABI, marketConfigured } = await import("@/lib/market.server");
