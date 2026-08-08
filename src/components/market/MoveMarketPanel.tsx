@@ -208,6 +208,7 @@ export function MoveMarketPanel() {
   const clearFilters = useCallback(() => {
     void navigate({ search: (prev) => ({ ...prev, ...DEFAULT_FILTERS }), replace: true });
   }, [navigate]);
+  const PLACEHOLDER_FILTER_MEMOS = null;
   const [listRoyalty, setListRoyalty] = useState<{ royalty: string; net: string; percent: number } | null>(null);
 
 
