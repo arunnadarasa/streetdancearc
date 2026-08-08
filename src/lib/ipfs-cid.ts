@@ -147,31 +147,37 @@ interface Node {
 }
 
 /** UnixFS Data message for a leaf: Type=File(2), Data=bytes, filesize. */
-function unixfsLeafData(chunk: Uint8Array): number[] {
-  return [...varintField(1, 2), ...field(2, 2, chunk), ...varintField(3, chunk.length)];
+function unixfsLeafData(chunk: Uint8Array): Uint8Array {
+  const s = new Sink();
+  s.varField(1, 2);
+  s.lenField(2, chunk);
+  s.varField(3, chunk.length);
+  return s.take();
 }
 
 /** UnixFS Data message for an internal node: Type=File(2), filesize, blocksizes[]. */
-function unixfsBranchData(fileSize: number, blockSizes: number[]): number[] {
-  const out = [...varintField(1, 2), ...varintField(3, fileSize)];
-  for (const size of blockSizes) out.push(...varintField(4, size));
-  return out;
+function unixfsBranchData(fileSize: number, blockSizes: number[]): Uint8Array {
+  const s = new Sink();
+  s.varField(1, 2);
+  s.varField(3, fileSize);
+  for (const size of blockSizes) s.varField(4, size);
+  return s.take();
 }
 
 /** dag-pb PBNode: repeated PBLink links = 2, bytes Data = 1 (links first). */
-function pbNode(links: Node[], data: number[]): Uint8Array {
-  const out: number[] = [];
+function pbNode(links: Node[], data: Uint8Array): Uint8Array {
+  const s = new Sink();
   for (const link of links) {
-    const linkBody = [
-      ...field(1, 2, link.cid), // Hash
-      ...field(2, 2, []), // Name (empty)
-      ...varintField(3, link.tsize), // Tsize
-    ];
-    out.push(...field(2, 2, linkBody));
+    const l = new Sink();
+    l.lenField(1, link.cid); // Hash
+    l.lenField(2, new Uint8Array(0)); // Name (empty)
+    l.varField(3, link.tsize); // Tsize
+    s.lenField(2, l.take());
   }
-  out.push(...field(1, 2, data));
-  return new Uint8Array(out);
+  s.lenField(1, data);
+  return s.take();
 }
+
 
 async function makeNode(block: Uint8Array, fileSize: number, childTsize: number): Promise<Node> {
   return {
