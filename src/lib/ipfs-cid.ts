@@ -55,38 +55,65 @@ function base58Decode(input: string): Uint8Array | null {
 }
 
 // ---------------------------------------------------------------- protobuf
+//
+// A growable byte sink; chunks are up to 256 KiB, so nothing here may use
+// spread (`push(...bytes)`) — that overflows the argument stack.
 
-function varint(value: number): number[] {
-  const out: number[] = [];
-  let v = value;
-  while (v >= 0x80) {
-    out.push((v & 0x7f) | 0x80);
-    v = Math.floor(v / 128);
+class Sink {
+  private buf = new Uint8Array(1024);
+  private len = 0;
+
+  private ensure(extra: number) {
+    if (this.len + extra <= this.buf.length) return;
+    let size = this.buf.length * 2;
+    while (size < this.len + extra) size *= 2;
+    const next = new Uint8Array(size);
+    next.set(this.buf.subarray(0, this.len));
+    this.buf = next;
   }
-  out.push(v);
-  return out;
-}
 
-function varintLen(value: number): number {
-  let n = 1;
-  let v = value;
-  while (v >= 0x80) {
-    n++;
-    v = Math.floor(v / 128);
+  byte(value: number) {
+    this.ensure(1);
+    this.buf[this.len++] = value & 0xff;
   }
-  return n;
+
+  varint(value: number) {
+    let v = value;
+    while (v >= 0x80) {
+      this.byte((v & 0x7f) | 0x80);
+      v = Math.floor(v / 128);
+    }
+    this.byte(v);
+  }
+
+  bytes(src: Uint8Array) {
+    this.ensure(src.length);
+    this.buf.set(src, this.len);
+    this.len += src.length;
+  }
+
+  /** Length-delimited field (wire type 2). */
+  lenField(tag: number, payload: Uint8Array) {
+    this.varint((tag << 3) | 2);
+    this.varint(payload.length);
+    this.bytes(payload);
+  }
+
+  /** Varint field (wire type 0). */
+  varField(tag: number, value: number) {
+    this.varint((tag << 3) | 0);
+    this.varint(value);
+  }
+
+  get size() {
+    return this.len;
+  }
+
+  take(): Uint8Array {
+    return this.buf.slice(0, this.len);
+  }
 }
 
-function field(tag: number, wire: number, payload: number[] | Uint8Array): number[] {
-  const out = varint((tag << 3) | wire);
-  if (wire === 2) out.push(...varint(payload.length));
-  out.push(...(payload as ArrayLike<number> as number[]));
-  return out;
-}
-
-function varintField(tag: number, value: number): number[] {
-  return [...varint((tag << 3) | 0), ...varint(value)];
-}
 
 // -------------------------------------------------------------- primitives
 
