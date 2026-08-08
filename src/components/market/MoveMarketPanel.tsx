@@ -177,7 +177,9 @@ export function MoveMarketPanel() {
     setErrorDetail(null);
     setStatus(null);
     setTxHash(null);
+    setStaleListing(null);
   }
+
 
   function fail(e: unknown, context?: { tokenId?: string }) {
     const friendly = mapChainError(e, context);
