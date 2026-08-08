@@ -632,10 +632,26 @@ export function MoveMarketPanel() {
         </div>
       </div>
 
-      {(status || error || txHash) && (
-        <div className="rounded-xl border border-border bg-surface p-4 text-sm">
+      {(status || error || txHash || staleListing) && (
+        <div className="min-w-0 rounded-xl border border-border bg-surface p-4 text-sm">
           {status && <p className="text-foreground">{status}</p>}
-          {error && <p className="text-red-400">{error}</p>}
+          {error && <p className="break-words text-red-400">{error}</p>}
+          {errorDetail && (
+            <details className="mt-1">
+              <summary className="cursor-pointer text-[11px] uppercase tracking-widest text-muted-foreground">
+                Details
+              </summary>
+              <pre className="mt-1 max-h-40 overflow-y-auto whitespace-pre-wrap break-all text-[11px] text-muted-foreground">
+                {errorDetail}
+              </pre>
+            </details>
+          )}
+          {staleListing && (
+            <p className="mt-1 text-[11px] text-amber-400">
+              Move #{staleListing} was still listed when it moved. The listing is now stale — only the new owner can settle
+              or cancel it.
+            </p>
+          )}
           {txHash && (
             <a href={`${explorer}/tx/${txHash}`} target="_blank" rel="noreferrer" className="mt-1 block break-all text-xs text-glow hover:underline">
               View receipt on Arcscan →
@@ -643,6 +659,7 @@ export function MoveMarketPanel() {
           )}
         </div>
       )}
+
 
       {cfg?.market && (
         <p className="break-all text-[11px] text-muted-foreground">
