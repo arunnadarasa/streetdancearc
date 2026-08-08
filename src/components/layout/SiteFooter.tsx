@@ -24,6 +24,7 @@ export function SiteFooter() {
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold text-muted-foreground">
             <a href="/shop" className="hover:text-foreground">Shop</a>
             <a href="/markets" className="hover:text-foreground">Markets</a>
+            <a href="/judge" className="hover:text-foreground">Judge run</a>
             <a href="/deck" className="hover:text-foreground">Deck</a>
             <a
               href="https://github.com/arunnadarasa/streetdancearc"
