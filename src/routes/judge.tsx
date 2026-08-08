@@ -117,7 +117,13 @@ function JudgePage() {
     setA2aError(null);
     try {
       const res = await runChallenge({ data: { token: payToken } });
-      setA2aResult(res.challenge ?? res);
+      let parsed: unknown = null;
+      try {
+        parsed = res.challengeJson ? JSON.parse(res.challengeJson) : null;
+      } catch {
+        parsed = res.challengeJson;
+      }
+      setA2aResult(parsed ?? { status: res.status, detail: res.detail });
       if (res.ok) setA2aState("done");
       else {
         setA2aState("failed");
@@ -170,7 +176,7 @@ function JudgePage() {
           <SectionHead
             eyebrow="For judges"
             title="Four modes, one run"
-            copy="Merch commerce first, agent rails underneath. Steps 1 and 2 are signed by your own wallet. Steps 3 and 4 run agent-side against Arc Testnet right here — no wallet needed."
+            blurb="Merch commerce first, agent rails underneath. Steps 1 and 2 are signed by your own wallet. Steps 3 and 4 run agent-side against Arc Testnet right here — no wallet needed."
           />
 
           <div className="mt-8 space-y-4">

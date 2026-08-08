@@ -41,13 +41,13 @@ export const fetchX402Challenge = createServerFn({ method: "POST" })
         status: 0,
         detail: e instanceof Error ? e.message : "The merchant endpoint did not respond.",
         request: body,
-        challenge: null,
+        challengeJson: null as string | null,
       };
     }
 
-    let payload: Record<string, unknown> | null = null;
+    let payloadText: string | null = null;
     try {
-      payload = (await res.json()) as Record<string, unknown>;
+      payloadText = await res.text();
     } catch {
       /* keep null */
     }
@@ -60,6 +60,6 @@ export const fetchX402Challenge = createServerFn({ method: "POST" })
           ? null
           : `Expected a 402 payment challenge, got ${res.status}.`,
       request: body,
-      challenge: payload,
+      challengeJson: payloadText,
     };
   });
