@@ -11,6 +11,8 @@ import {
 } from "viem";
 import { ArrowLeftRight, RefreshCw, ShoppingBag, Store, Tag } from "lucide-react";
 import { arcTestnet } from "@/lib/arc-chain";
+import { mapChainError } from "@/lib/chain-errors";
+
 import { useWallet } from "@/lib/wallet-context";
 import { TOKENS, type TokenKey } from "@/lib/tokens";
 import { TokenSwitcher } from "@/components/dance/TokenSwitcher";
