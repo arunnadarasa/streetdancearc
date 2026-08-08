@@ -637,6 +637,7 @@ function SlideMarketplace() {
   const rows: [string, string][] = [
     ["List", "Owner approves the market and sets a price in USDC, EURC or cirBTC."],
     ["Hold", "Non-custodial — the token never leaves the dancer's wallet."],
+    ["Browse", "Search, discipline and licence filters, token filter, sort by newest or price."],
     ["Buy", "One call moves payment to the seller and the NFT to the buyer."],
     ["Gas", "Paid in USDC, so no second asset is ever needed."],
   ];
@@ -668,7 +669,7 @@ function SlideMarketplace() {
       <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
         Live at /market — list, cancel, buy and transfer, all settled on Arc. Every buy
         carves out the creator's 5% ERC-2981 royalty and pays it in the same stablecoin,
-        in the same transaction.
+        in the same transaction. Filters live in the URL, so a filtered view is shareable.
       </p>
     </Slide>
   );
