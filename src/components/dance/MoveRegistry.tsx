@@ -18,17 +18,17 @@ export function MoveRegistry({
   blurb?: string;
 }) {
   return (
-    <div className="grid gap-10 lg:grid-cols-[0.85fr_1fr] lg:items-start">
-      <Reveal>
-        <div className="lg:sticky lg:top-28">
+    <div className="grid min-w-0 gap-10 lg:grid-cols-[0.85fr_1fr] lg:items-start">
+      <Reveal className="min-w-0">
+        <div className="min-w-0 lg:sticky lg:top-28">
           <SectionHead eyebrow={eyebrow} title={title} blurb={blurb} />
           <div className="mt-8">
             <TreasuryCard address={treasuryAddress} />
           </div>
         </div>
       </Reveal>
-      <Reveal delay={120}>
-        <div className="space-y-6">
+      <Reveal delay={120} className="min-w-0">
+        <div className="min-w-0 space-y-6">
           <MintForm />
           <MoveNftGallery />
           <ReceiptHistoryPanel />

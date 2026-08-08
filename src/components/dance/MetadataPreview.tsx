@@ -77,7 +77,7 @@ export function MetadataPreview({
   const confirmed = Boolean(cid && preview && cid === preview.cid);
 
   return (
-    <div className="space-y-3 rounded-xl border border-border bg-background/40 p-4">
+    <div className="min-w-0 space-y-3 overflow-hidden rounded-xl border border-border bg-background/40 p-4">
       <div className="flex items-center gap-2">
         <FileJson className="h-4 w-4 text-glow" aria-hidden />
         <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
@@ -146,11 +146,14 @@ export function MetadataPreview({
 
 
       {preview ? (
-        <div className="space-y-3">
-          <pre className="max-h-64 overflow-auto rounded-lg border border-border/60 bg-surface p-3 text-[11px] leading-relaxed text-muted-foreground">
-            {preview.json}
-          </pre>
-          <div className="rounded-lg border border-border/60 bg-surface px-3 py-2">
+        <div className="min-w-0 space-y-3">
+          <div className="min-w-0 max-w-full overflow-hidden rounded-lg border border-border/60 bg-surface">
+            <pre className="max-h-64 w-full max-w-full overflow-auto overscroll-x-contain p-3 text-[11px] leading-relaxed text-muted-foreground">
+              {preview.json}
+            </pre>
+          </div>
+          <p className="text-[11px] text-muted-foreground">Swipe the block above to read long lines.</p>
+          <div className="min-w-0 rounded-lg border border-border/60 bg-surface px-3 py-2">
             <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
               {preview.pinned ? "Pinned IPFS CID" : "Computed IPFS CID (not pinned)"}
             </p>
