@@ -130,10 +130,11 @@ export async function computeCid(json: string): Promise<string> {
 }
 
 /**
- * Content hash for arbitrary bytes (a move clip), as a CIDv1/raw/sha2-256.
- * For files under the 256 KiB IPFS block size this is byte-identical to the
- * pinned CID; above it, IPFS chunks the file, so treat this as a local
- * integrity hash and compare it with the CID Pinata returns.
+ * Content hash for arbitrary bytes as a CIDv1/raw/sha2-256.
+ *
+ * Superseded for clip uploads: clips are hashed with the real UnixFS chunked
+ * algorithm in `@/lib/ipfs-cid` so the result is directly comparable to the
+ * pinned CID. This raw variant remains for small in-memory payloads.
  */
 export async function computeBytesCid(bytes: Uint8Array): Promise<string> {
   const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes as BufferSource));
@@ -146,8 +147,9 @@ export async function computeBytesCid(bytes: Uint8Array): Promise<string> {
   return `b${base32(out)}`;
 }
 
-/** Single-block threshold: below it our local CID matches the pinned CID. */
+/** IPFS block size used when chunking files (see `@/lib/ipfs-cid`). */
 export const IPFS_BLOCK_BYTES = 256 * 1024;
+
 
 
 export function serializeMetadata(meta: MoveMetadata): string {
