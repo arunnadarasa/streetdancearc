@@ -82,6 +82,10 @@ export interface MarketListing {
   sellerNet: string;
   /** Royalty as a percentage of the price, e.g. 5 for 5%. */
   royaltyPercent: number;
+  /** Block number of the most recent `Listed` event for this token, when known. */
+  listedAt: string | null;
+  /** Position in the contract's active-listing array (fallback ordering). */
+  listedIndex: number;
 }
 
 function formatUnits(atomic: bigint, decimals: number): string {
@@ -135,7 +139,7 @@ export async function listMarket(max = 24): Promise<{
   const items = await Promise.all(
     raw
       .filter((r): r is readonly [bigint, Address, Address, bigint] => r !== null)
-      .map(async ([tokenId, seller, payToken, priceAtomic]): Promise<MarketListing | null> => {
+      .map(async ([tokenId, seller, payToken, priceAtomic], listedIndex): Promise<MarketListing | null> => {
         // Drop stale listings where the seller no longer holds the token.
         try {
           const owner = (await pub.readContract({
@@ -228,6 +232,8 @@ export async function listMarket(max = 24): Promise<{
           sellerNet: formatUnits(sellerNetAtomic, decimals),
           royaltyPercent:
             priceAtomic > 0n ? Number((royaltyAtomic * 10000n) / priceAtomic) / 100 : 0,
+          listedAt: null,
+          listedIndex,
         } satisfies MarketListing;
       }),
   );
