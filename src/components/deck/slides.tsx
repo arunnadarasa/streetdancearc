@@ -4,7 +4,7 @@ import { launchMarkets, sizing } from "@/data/markets";
 const GREEN = "#4f46e5";
 const CHERRY = "#E63946";
 
-function Chrome({ n, total = 18 }: { n: number; total?: number }) {
+function Chrome({ n, total = 19 }: { n: number; total?: number }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden items-center justify-between px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground sm:flex sm:px-6 sm:py-3 sm:text-xs">
       <span>StreetRail · Arc Testnet</span>
@@ -67,7 +67,9 @@ function SlideTitle() {
             <span style={{ color: GREEN }}>Rail.</span>
           </h2>
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:mt-5 sm:text-lg">
-            Streetwear + onchain move rights, settled in stablecoins on Circle's Arc.
+            Streetwear checkout and dance-move royalties, settled in stablecoins on Circle's Arc —
+            where a $0.001 payment is worth making because gas is a rounding error and paid in the
+            same asset.
           </p>
 
         </div>
@@ -161,9 +163,46 @@ function SlideInsight() {
 }
 
 // 4
-function SlideWhatWeBuilt() {
+function SlideWhyArc() {
+  const rows: Array<{ rail: string; gas: string; verdict: string; color: string }> = [
+    { rail: "Ethereum L1", gas: "~$1\u20135", verdict: "Fee is 1,000\u20135,000\u00d7 the payment. Impossible.", color: CHERRY },
+    { rail: "Typical L2", gas: "~$0.005\u20130.05", verdict: "Fee still exceeds the payment. Needs batching plus a separate gas asset.", color: "#f59e0b" },
+    { rail: "Arc Testnet", gas: "Fractions of a cent, in USDC", verdict: "Fee is a slice of the payment, in the same asset.", color: GREEN },
+  ];
   return (
     <Slide n={4}>
+      <Kicker>Why Arc</Kicker>
+      <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
+        A $0.001 royalty only works where
+        <br />
+        <span style={{ color: GREEN }}>gas is a rounding error.</span>
+      </h3>
+      <p className="mt-3 max-w-3xl text-xs text-muted-foreground sm:text-sm">
+        StreetRail pays choreographers $0.001 per play and batches accruals off-chain until they
+        clear $0.50. That unit economics only survives where the fee is a fraction of the payment —
+        and the same asset as the payment.
+      </p>
+      <div className="mt-auto divide-y divide-border rounded-xl border border-border">
+        {rows.map((r) => (
+          <div key={r.rail} className="grid gap-1 p-3 sm:grid-cols-[10rem_13rem_1fr] sm:items-center sm:gap-4 sm:p-4">
+            <p className="text-xs font-black sm:text-sm">{r.rail}</p>
+            <p className="text-xs font-bold sm:text-sm" style={{ color: r.color }}>{r.gas}</p>
+            <p className="text-[11px] text-muted-foreground sm:text-sm">{r.verdict}</p>
+          </div>
+        ))}
+      </div>
+      <p className="mt-3 text-[10px] text-muted-foreground sm:text-xs">
+        Gas figures are illustrative orders of magnitude from public fee trackers, not measured
+        benchmarks. On Arc, USDC is the gas token — no second asset to bridge or top up.
+      </p>
+    </Slide>
+  );
+}
+
+// 5
+function SlideWhatWeBuilt() {
+  return (
+    <Slide n={5}>
       <Kicker>What We Built</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
         Two products. One repo. Same wallet.
@@ -227,7 +266,7 @@ function SlideInterfaces() {
     },
   ];
   return (
-    <Slide n={5}>
+    <Slide n={6}>
       <Kicker>Interfaces</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
         Four interfaces, <span style={{ color: GREEN }}>one rail.</span>
@@ -271,7 +310,7 @@ function SlideA2h() {
     { tag: "A2H", who: "Agent → Human", body: "The agent initiates. Royalties are pushed, approvals requested." },
   ];
   return (
-    <Slide n={6}>
+    <Slide n={7}>
       <Kicker>A2H · The missing direction</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Nobody builds agent-to-human,{" "}
@@ -320,7 +359,7 @@ function SlideLive() {
     { k: "6", v: "decimals — USDC is gas" },
   ];
   return (
-    <Slide n={7}>
+    <Slide n={8}>
       <Kicker>Live on Arc</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
         Shipped. Deployed. <span style={{ color: GREEN }}>Verified.</span>
@@ -385,7 +424,7 @@ function SlideAgent() {
     ["Ledger", "Every step logged, Arcscan tx as the receipt."],
   ];
   return (
-    <Slide n={8}>
+    <Slide n={9}>
       <Kicker>H2A · Human to agent</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         You set the policy. <span style={{ color: GREEN }}>The agent spends inside it.</span>
@@ -423,7 +462,7 @@ function SlideProtocolStack() {
     ["Arc Testnet", "USDC settlement, real tx hash on Arcscan"],
   ];
   return (
-    <Slide n={9}>
+    <Slide n={10}>
       <Kicker>A2A · Agent to agent</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         A standards stack, <span style={{ color: GREEN }}>not a custom flow.</span>
@@ -464,7 +503,7 @@ function SlideCircleStack() {
     ["ERC-1271 authorizer", "Treasury-owned contract signs for the agent — Gateway actions need no EOA delegate"],
   ];
   return (
-    <Slide n={10}>
+    <Slide n={11}>
       <Kicker>Built on Circle, end to end</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Six Circle products, <span style={{ color: GREEN }}>one rail.</span>
@@ -503,7 +542,7 @@ function SlideOnChainAuth() {
     ],
   ];
   return (
-    <Slide n={11}>
+    <Slide n={12}>
       <Kicker>On-chain authorization</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         The treasury signs for the agent — <span style={{ color: GREEN }}>no EOA delegate.</span>
@@ -554,7 +593,7 @@ function SlideClaimOffers() {
     ["Checkout", "Discount is applied when the user pays in USDC / EURC / cirBTC."],
   ];
   return (
-    <Slide n={12}>
+    <Slide n={13}>
       <Kicker>A2H · On-chain claim offers</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Agent-to-human offers, <span style={{ color: GREEN }}>logged on Arc.</span>
@@ -602,7 +641,7 @@ function SlideMarketplace() {
     ["Gas", "Paid in USDC, so no second asset is ever needed."],
   ];
   return (
-    <Slide n={13}>
+    <Slide n={14}>
       <Kicker>Secondary market</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Move rights that <span style={{ color: GREEN }}>resell themselves.</span>
@@ -636,7 +675,7 @@ function SlideMarketplace() {
 // 14
 function SlideDefi() {
   return (
-    <Slide n={14}>
+    <Slide n={15}>
       <Kicker>Track 2 · DeFi</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
         Programmable money <span style={{ color: GREEN }}>for the culture.</span>
@@ -674,7 +713,7 @@ function SlideCriteria() {
     ["Verifiable authorization", "ERC-1271 contract returns 0x1626ba7e for an approved mandate digest"],
   ];
   return (
-    <Slide n={15}>
+    <Slide n={16}>
       <Kicker>How we map to the criteria</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Every judging bullet has a feature behind it.
@@ -722,7 +761,7 @@ function SlideRoadmap() {
     "Crew treasuries + on-chain cosigns",
   ];
   return (
-    <Slide n={16}>
+    <Slide n={17}>
       <Kicker>Traction & Roadmap</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
         Working today. Shipping through <span style={{ color: GREEN }}>Demo Day.</span>
@@ -758,7 +797,7 @@ function SlideRoadmap() {
 // 12
 function SlideMarkets() {
   return (
-    <Slide n={17}>
+    <Slide n={18}>
       <Kicker>Market opportunity</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-[0.95] tracking-tight sm:text-4xl md:text-5xl">
         Street dance travels
@@ -806,7 +845,7 @@ function SlideMarkets() {
 // 13
 function SlideClose() {
   return (
-    <Slide n={18} bg="bg-background">
+    <Slide n={19} bg="bg-background">
       <div className="flex h-full flex-col justify-between">
         <Kicker>Built for Encode Club · Programmable Money Hackathon</Kicker>
         <h2 className="text-4xl font-black leading-[0.9] tracking-tight sm:text-6xl md:text-7xl">
@@ -828,6 +867,7 @@ export const slides: Array<{ id: string; render: () => ReactNode }> = [
   { id: "title", render: () => <SlideTitle /> },
   { id: "problem", render: () => <SlideProblem /> },
   { id: "insight", render: () => <SlideInsight /> },
+  { id: "why-arc", render: () => <SlideWhyArc /> },
   { id: "built", render: () => <SlideWhatWeBuilt /> },
   { id: "interfaces", render: () => <SlideInterfaces /> },
   { id: "a2h", render: () => <SlideA2h /> },

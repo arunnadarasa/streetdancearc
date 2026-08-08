@@ -14,6 +14,7 @@ import { Route as PrimerRouteImport } from './routes/primer'
 import { Route as MovesRouteImport } from './routes/moves'
 import { Route as MarketsRouteImport } from './routes/markets'
 import { Route as MarketRouteImport } from './routes/market'
+import { Route as JudgeRouteImport } from './routes/judge'
 import { Route as DeckRouteImport } from './routes/deck'
 import { Route as AgentNegotiationRouteImport } from './routes/agent-negotiation'
 import { Route as IndexRouteImport } from './routes/index'
@@ -53,6 +54,11 @@ const MarketsRoute = MarketsRouteImport.update({
 const MarketRoute = MarketRouteImport.update({
   id: '/market',
   path: '/market',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JudgeRoute = JudgeRouteImport.update({
+  id: '/judge',
+  path: '/judge',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeckRoute = DeckRouteImport.update({
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agent-negotiation': typeof AgentNegotiationRoute
   '/deck': typeof DeckRoute
+  '/judge': typeof JudgeRoute
   '/market': typeof MarketRoute
   '/markets': typeof MarketsRoute
   '/moves': typeof MovesRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agent-negotiation': typeof AgentNegotiationRoute
   '/deck': typeof DeckRoute
+  '/judge': typeof JudgeRoute
   '/market': typeof MarketRoute
   '/markets': typeof MarketsRoute
   '/moves': typeof MovesRoute
@@ -181,6 +189,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/agent-negotiation': typeof AgentNegotiationRoute
   '/deck': typeof DeckRoute
+  '/judge': typeof JudgeRoute
   '/market': typeof MarketRoute
   '/markets': typeof MarketsRoute
   '/moves': typeof MovesRoute
@@ -205,6 +214,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agent-negotiation'
     | '/deck'
+    | '/judge'
     | '/market'
     | '/markets'
     | '/moves'
@@ -227,6 +237,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agent-negotiation'
     | '/deck'
+    | '/judge'
     | '/market'
     | '/markets'
     | '/moves'
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agent-negotiation'
     | '/deck'
+    | '/judge'
     | '/market'
     | '/markets'
     | '/moves'
@@ -272,6 +284,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgentNegotiationRoute: typeof AgentNegotiationRoute
   DeckRoute: typeof DeckRoute
+  JudgeRoute: typeof JudgeRoute
   MarketRoute: typeof MarketRoute
   MarketsRoute: typeof MarketsRoute
   MovesRoute: typeof MovesRoute
@@ -326,6 +339,13 @@ declare module '@tanstack/react-router' {
       path: '/market'
       fullPath: '/market'
       preLoaderRoute: typeof MarketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/judge': {
+      id: '/judge'
+      path: '/judge'
+      fullPath: '/judge'
+      preLoaderRoute: typeof JudgeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/deck': {
@@ -440,6 +460,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentNegotiationRoute: AgentNegotiationRoute,
   DeckRoute: DeckRoute,
+  JudgeRoute: JudgeRoute,
   MarketRoute: MarketRoute,
   MarketsRoute: MarketsRoute,
   MovesRoute: MovesRoute,
@@ -461,13 +482,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
