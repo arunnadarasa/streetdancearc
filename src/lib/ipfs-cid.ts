@@ -146,14 +146,18 @@ interface Node {
   fileSize: number;
 }
 
-/** UnixFS Data message for a leaf: Type=File(2), Data=bytes, filesize. */
+/**
+ * UnixFS Data message for a leaf: Type=File(2), Data=bytes, filesize.
+ * An empty file omits the Data field entirely, matching Kubo.
+ */
 function unixfsLeafData(chunk: Uint8Array): Uint8Array {
   const s = new Sink();
   s.varField(1, 2);
-  s.lenField(2, chunk);
+  if (chunk.length > 0) s.lenField(2, chunk);
   s.varField(3, chunk.length);
   return s.take();
 }
+
 
 /** UnixFS Data message for an internal node: Type=File(2), filesize, blocksizes[]. */
 function unixfsBranchData(fileSize: number, blockSizes: number[]): Uint8Array {
