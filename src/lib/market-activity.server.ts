@@ -3,8 +3,12 @@
 // Four things can happen to a move: it gets listed, the listing gets
 // cancelled, someone buys it, or the owner hands it to another wallet.
 // Three of those are MoveMarket events; the fourth is a plain ERC-721
-// Transfer. This module sweeps all of them, resolves each move's metadata
-// CID, and returns one flat, newest-first feed for the UI.
+// Transfer.
+//
+// Primary source is Arcscan (Blockscout), which indexes the full history —
+// the raw RPC caps log queries at a few tens of thousands of blocks, far
+// short of the collection's first mint. If the explorer is unreachable we
+// fall back to a chunked RPC sweep over the recent window.
 
 import { createPublicClient, http, parseAbiItem, type Address } from "viem";
 import { arcTestnet } from "@/lib/arc-chain";
@@ -16,6 +20,7 @@ const ZERO = "0x0000000000000000000000000000000000000000";
 
 const MARKET_ADDRESS = market.address as Address;
 const NFT_ADDRESS = nft.address as Address;
+const EXPLORER = nft.explorer.replace(/\/+$/, "");
 
 const LISTED = parseAbiItem(
   "event Listed(uint256 indexed tokenId, address indexed seller, address payToken, uint256 price)",
@@ -59,6 +64,7 @@ export interface MarketActivityEvent {
   txHash: string;
   blockNumber: string;
   logIndex: number;
+  atSeconds: number;
   status: "success" | "failed" | "unknown";
   explorerUrl: string;
   tokenUrl: string;
@@ -69,6 +75,7 @@ export interface MarketActivity {
   market: string;
   nft: string;
   configured: boolean;
+  source: "explorer" | "rpc" | "none";
   degraded: boolean;
   detail: string | null;
   scannedBlocks: number;
@@ -88,7 +95,9 @@ export function activityConfigured(): boolean {
 
 function tokenKeyFor(address: string): TokenKey | null {
   const lower = address.toLowerCase();
-  return (Object.keys(TOKENS) as TokenKey[]).find((k) => TOKENS[k].address.toLowerCase() === lower) ?? null;
+  return (
+    (Object.keys(TOKENS) as TokenKey[]).find((k) => TOKENS[k].address.toLowerCase() === lower) ?? null
+  );
 }
 
 function formatUnits(atomic: bigint, decimals: number): string {
@@ -96,6 +105,18 @@ function formatUnits(atomic: bigint, decimals: number): string {
   const whole = s.slice(0, -decimals);
   const frac = s.slice(-decimals).replace(/0+$/, "");
   return frac ? `${whole}.${frac}` : whole;
+}
+
+function priceFields(payToken: string, atomic: bigint) {
+  const key = tokenKeyFor(payToken);
+  const decimals = key ? TOKENS[key].decimals : 6;
+  return {
+    priceAtomic: atomic.toString(),
+    price: formatUnits(atomic, decimals),
+    tokenKey: key,
+    symbol: key ? TOKENS[key].symbol : "token",
+    payToken,
+  };
 }
 
 function cidFromUri(uri: string): string | null {
@@ -113,6 +134,27 @@ function gatewayFor(cid: string): string {
   return `${base}/${cid}`;
 }
 
+function secondsFrom(iso: string | null | undefined): number {
+  if (!iso) return 0;
+  const t = Date.parse(iso);
+  return Number.isFinite(t) ? Math.floor(t / 1000) : 0;
+}
+
+function urls(tokenId: string, txHash: string) {
+  return {
+    explorerUrl: `${EXPLORER}/tx/${txHash}`,
+    tokenUrl: `${EXPLORER}/token/${NFT_ADDRESS}/instance/${tokenId}`,
+  };
+}
+
+const EMPTY_PRICE = {
+  priceAtomic: null,
+  price: null,
+  tokenKey: null,
+  symbol: null,
+  payToken: null,
+} as const;
+
 function errText(e: unknown) {
   return (e instanceof Error ? e.message : String(e)).toLowerCase();
 }
@@ -125,7 +167,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 function humanReason(e: unknown): string {
   if (isRateLimited(e)) return "The Arc RPC is rate-limiting history reads right now.";
   if (isRange(e)) return "The RPC provider limits how far back log queries can reach.";
-  return "Marketplace history could not be read from the RPC provider.";
+  return "Marketplace history could not be read right now.";
 }
 
 let cache: { at: number; value: MarketActivity } | null = null;
@@ -134,13 +176,166 @@ const CACHE_TTL_MS = 45_000;
 const MIN_WINDOW = 500n;
 const MAX_CALLS = 12;
 const MAX_RECEIPT_LOOKUPS = 24;
-const MAX_URI_LOOKUPS = 16;
+const MAX_URI_LOOKUPS = 12;
+
+// ---------------------------------------------------------------- explorer
+
+interface DecodedParam {
+  name: string;
+  value: unknown;
+}
+interface ExplorerLog {
+  block_number?: number;
+  block_timestamp?: string;
+  index?: number;
+  transaction_hash?: string;
+  decoded?: { method_call?: string; parameters?: DecodedParam[] } | null;
+}
+interface ExplorerTransfer {
+  block_number?: number;
+  timestamp?: string;
+  log_index?: number;
+  method?: string | null;
+  transaction_hash?: string;
+  from?: { hash?: string };
+  to?: { hash?: string };
+  total?: { token_id?: string };
+}
+
+async function getJson<T>(url: string): Promise<T | null> {
+  try {
+    const res = await fetch(url, {
+      headers: { accept: "application/json" },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
+}
+
+function paramOf(log: ExplorerLog, name: string): string | null {
+  const hit = log.decoded?.parameters?.find((p) => p.name === name);
+  return hit ? String(hit.value ?? "") : null;
+}
+
+/** Read the whole indexed history from Arcscan. Returns null if unavailable. */
+async function readViaExplorer(): Promise<MarketActivityEvent[] | null> {
+  const [marketLogs, transfers, nftLogs] = await Promise.all([
+    getJson<{ items?: ExplorerLog[] }>(`${EXPLORER}/api/v2/addresses/${MARKET_ADDRESS}/logs`),
+    getJson<{ items?: ExplorerTransfer[] }>(`${EXPLORER}/api/v2/tokens/${NFT_ADDRESS}/transfers`),
+    getJson<{ items?: ExplorerLog[] }>(`${EXPLORER}/api/v2/addresses/${NFT_ADDRESS}/logs`),
+  ]);
+
+  if (!marketLogs && !transfers) return null;
+
+  // TokensMinted carries the metadata URI, so no extra RPC call is needed.
+  const uriByToken = new Map<string, string>();
+  for (const log of nftLogs?.items ?? []) {
+    if (!log.decoded?.method_call?.startsWith("TokensMinted")) continue;
+    const id = paramOf(log, "tokenIdMinted");
+    const uri = paramOf(log, "uri");
+    if (id && uri) uriByToken.set(id, uri);
+  }
+
+  const events: MarketActivityEvent[] = [];
+  const soldKeys = new Set<string>();
+
+  for (const log of marketLogs?.items ?? []) {
+    const call = log.decoded?.method_call ?? "";
+    const txHash = log.transaction_hash ?? "";
+    const tokenId = paramOf(log, "tokenId") ?? "";
+    const seller = paramOf(log, "seller");
+    const common = {
+      id: `${txHash}:${log.index ?? 0}`,
+      tokenId,
+      cid: null,
+      cidUrl: null,
+      txHash,
+      blockNumber: String(log.block_number ?? 0),
+      logIndex: Number(log.index ?? 0),
+      atSeconds: secondsFrom(log.block_timestamp),
+      status: "success" as const,
+      ...urls(tokenId, txHash),
+    };
+
+    if (call.startsWith("Sold")) {
+      soldKeys.add(`${txHash}:${tokenId}`);
+      events.push({
+        ...common,
+        kind: "sold",
+        label: "Sold",
+        from: seller,
+        to: paramOf(log, "buyer"),
+        ...priceFields(paramOf(log, "payToken") ?? "", BigInt(paramOf(log, "price") ?? "0")),
+      });
+    } else if (call.startsWith("Listed")) {
+      events.push({
+        ...common,
+        kind: "listed",
+        label: "Listed",
+        from: seller,
+        to: null,
+        ...priceFields(paramOf(log, "payToken") ?? "", BigInt(paramOf(log, "price") ?? "0")),
+      });
+    } else if (call.startsWith("Cancelled")) {
+      events.push({
+        ...common,
+        kind: "cancelled",
+        label: "Listing cancelled",
+        from: seller,
+        to: null,
+        ...EMPTY_PRICE,
+      });
+    }
+  }
+
+  for (const t of transfers?.items ?? []) {
+    const tokenId = t.total?.token_id ?? "";
+    const txHash = t.transaction_hash ?? "";
+    // The settlement leg of a purchase is already covered by the Sold row.
+    if (soldKeys.has(`${txHash}:${tokenId}`)) continue;
+    const from = t.from?.hash ?? "";
+    const to = t.to?.hash ?? "";
+    const isMint = from.toLowerCase() === ZERO;
+    events.push({
+      id: `${txHash}:${t.log_index ?? 0}`,
+      kind: isMint ? "mint" : "transfer",
+      label: isMint ? "Minted" : "Transferred",
+      tokenId,
+      from: isMint ? null : from,
+      to,
+      ...EMPTY_PRICE,
+      cid: null,
+      cidUrl: null,
+      txHash,
+      blockNumber: String(t.block_number ?? 0),
+      logIndex: Number(t.log_index ?? 0),
+      atSeconds: secondsFrom(t.timestamp),
+      status: "success",
+      ...urls(tokenId, txHash),
+    });
+  }
+
+  for (const e of events) {
+    const uri = uriByToken.get(e.tokenId);
+    const cid = uri ? cidFromUri(uri) : null;
+    if (cid) {
+      e.cid = cid;
+      e.cidUrl = gatewayFor(cid);
+    }
+  }
+
+  return events;
+}
+
+// --------------------------------------------------------------------- rpc
 
 interface RawLog {
   transactionHash?: string | null;
   blockNumber?: bigint | null;
   logIndex?: number | null;
-  address?: string;
   args: Record<string, unknown>;
 }
 
@@ -202,155 +397,93 @@ async function sweep(
   return { market: marketLogs, nft: nftLogs, read, error, floor };
 }
 
-/** Read recent marketplace + transfer activity. Never throws. */
-export async function readMarketActivity(limit = 30, lookback = 5_000n): Promise<MarketActivity> {
-  const base = {
-    market: MARKET_ADDRESS,
-    nft: NFT_ADDRESS,
-    configured: activityConfigured(),
-  };
-
-  if (!activityConfigured()) {
-    return {
-      ...base,
-      events: [],
-      degraded: false,
-      detail: "The marketplace contract is not deployed yet.",
-      scannedBlocks: 0,
-    };
-  }
-
-  if (cache && Date.now() - cache.at < CACHE_TTL_MS) {
-    return { ...cache.value, events: cache.value.events.slice(0, limit) };
-  }
-
+async function readViaRpc(lookback: bigint): Promise<{
+  events: MarketActivityEvent[];
+  read: boolean;
+  error: unknown;
+  scannedBlocks: number;
+}> {
   const client = pub();
   let head: bigint;
   try {
     head = await client.getBlockNumber();
   } catch (e) {
-    return { ...base, events: [], degraded: true, detail: humanReason(e), scannedBlocks: 0 };
+    return { events: [], read: false, error: e, scannedBlocks: 0 };
   }
 
   const swept = await sweep(client, head, lookback);
-  const explorer = nft.explorer;
 
-  const mk = (
-    log: RawLog,
-    fields: Pick<
-      MarketActivityEvent,
-      "kind" | "label" | "tokenId" | "from" | "to" | "priceAtomic" | "price" | "tokenKey" | "symbol" | "payToken"
-    >,
-  ): MarketActivityEvent => {
+  const mk = (log: RawLog, tokenId: string) => {
     const txHash = log.transactionHash ?? "";
-    const logIndex = Number(log.logIndex ?? 0);
     return {
-      ...fields,
-      id: `${txHash}:${logIndex}`,
+      id: `${txHash}:${Number(log.logIndex ?? 0)}`,
+      tokenId,
       cid: null,
       cidUrl: null,
       txHash,
       blockNumber: (log.blockNumber ?? 0n).toString(),
-      logIndex,
-      status: "unknown",
-      explorerUrl: `${explorer}/tx/${txHash}`,
-      tokenUrl: `${explorer}/token/${NFT_ADDRESS}/instance/${fields.tokenId}`,
-    };
-  };
-
-  const priceFields = (payToken: string, atomic: bigint) => {
-    const key = tokenKeyFor(payToken);
-    const decimals = key ? TOKENS[key].decimals : 6;
-    return {
-      priceAtomic: atomic.toString(),
-      price: formatUnits(atomic, decimals),
-      tokenKey: key,
-      symbol: key ? TOKENS[key].symbol : "token",
-      payToken,
+      logIndex: Number(log.logIndex ?? 0),
+      atSeconds: 0,
+      status: "unknown" as const,
+      ...urls(tokenId, txHash),
     };
   };
 
   const events: MarketActivityEvent[] = [];
-  /** Purchases move the NFT too — remember those txs so the leg isn't doubled. */
-  const soldTx = new Set<string>();
+  const soldKeys = new Set<string>();
 
   for (const log of swept.market) {
     const tokenId = String(log.args["tokenId"] ?? "");
     const seller = (log.args["seller"] as string | undefined) ?? null;
 
     if (log.args["buyer"] !== undefined) {
-      soldTx.add(`${log.transactionHash ?? ""}:${tokenId}`);
-      events.push(
-        mk(log, {
-          kind: "sold",
-          label: "Sold",
-          tokenId,
-          from: seller,
-          to: (log.args["buyer"] as string) ?? null,
-          ...priceFields(String(log.args["payToken"] ?? ""), (log.args["price"] as bigint) ?? 0n),
-        }),
-      );
-      continue;
-    }
-
-    if (log.args["payToken"] !== undefined) {
-      events.push(
-        mk(log, {
-          kind: "listed",
-          label: "Listed",
-          tokenId,
-          from: seller,
-          to: null,
-          ...priceFields(String(log.args["payToken"] ?? ""), (log.args["price"] as bigint) ?? 0n),
-        }),
-      );
-      continue;
-    }
-
-    events.push(
-      mk(log, {
-        kind: "cancelled",
-        label: "Listing cancelled",
-        tokenId,
+      soldKeys.add(`${log.transactionHash ?? ""}:${tokenId}`);
+      events.push({
+        ...mk(log, tokenId),
+        kind: "sold",
+        label: "Sold",
+        from: seller,
+        to: (log.args["buyer"] as string) ?? null,
+        ...priceFields(String(log.args["payToken"] ?? ""), (log.args["price"] as bigint) ?? 0n),
+      });
+    } else if (log.args["payToken"] !== undefined) {
+      events.push({
+        ...mk(log, tokenId),
+        kind: "listed",
+        label: "Listed",
         from: seller,
         to: null,
-        priceAtomic: null,
-        price: null,
-        tokenKey: null,
-        symbol: null,
-        payToken: null,
-      }),
-    );
+        ...priceFields(String(log.args["payToken"] ?? ""), (log.args["price"] as bigint) ?? 0n),
+      });
+    } else {
+      events.push({
+        ...mk(log, tokenId),
+        kind: "cancelled",
+        label: "Listing cancelled",
+        from: seller,
+        to: null,
+        ...EMPTY_PRICE,
+      });
+    }
   }
 
   for (const log of swept.nft) {
     const tokenId = String(log.args["tokenId"] ?? "");
     const from = String(log.args["from"] ?? "");
-    const to = String(log.args["to"] ?? "");
-    // The settlement leg of a purchase is already covered by the Sold row.
-    if (soldTx.has(`${log.transactionHash ?? ""}:${tokenId}`)) continue;
+    if (soldKeys.has(`${log.transactionHash ?? ""}:${tokenId}`)) continue;
     const isMint = from.toLowerCase() === ZERO;
-    events.push(
-      mk(log, {
-        kind: isMint ? "mint" : "transfer",
-        label: isMint ? "Minted" : "Transferred",
-        tokenId,
-        from: isMint ? null : from,
-        to,
-        priceAtomic: null,
-        price: null,
-        tokenKey: null,
-        symbol: null,
-        payToken: null,
-      }),
-    );
+    events.push({
+      ...mk(log, tokenId),
+      kind: isMint ? "mint" : "transfer",
+      label: isMint ? "Minted" : "Transferred",
+      from: isMint ? null : from,
+      to: String(log.args["to"] ?? ""),
+      ...EMPTY_PRICE,
+    });
   }
 
-  events.sort(
-    (a, b) => Number(b.blockNumber) - Number(a.blockNumber) || b.logIndex - a.logIndex,
-  );
-
-  const trimmed = events.slice(0, Math.max(limit, MAX_RECEIPT_LOOKUPS));
+  events.sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber) || b.logIndex - a.logIndex);
+  const trimmed = events.slice(0, Math.max(MAX_RECEIPT_LOOKUPS, 30));
 
   // Resolve each distinct move's metadata CID once, newest tokens first.
   const uniqueTokens: string[] = [];
@@ -358,7 +491,6 @@ export async function readMarketActivity(limit = 30, lookback = 5_000n): Promise
     if (e.tokenId && !uniqueTokens.includes(e.tokenId)) uniqueTokens.push(e.tokenId);
     if (uniqueTokens.length >= MAX_URI_LOOKUPS) break;
   }
-
   const cidByToken = new Map<string, string>();
   await Promise.all(
     uniqueTokens.map(async (tokenId) => {
@@ -377,15 +509,7 @@ export async function readMarketActivity(limit = 30, lookback = 5_000n): Promise
     }),
   );
 
-  for (const e of trimmed) {
-    const cid = cidByToken.get(e.tokenId);
-    if (cid) {
-      e.cid = cid;
-      e.cidUrl = gatewayFor(cid);
-    }
-  }
-
-  // Status for the newest rows only — one receipt call each.
+  // Status for the newest rows only — one receipt call per distinct tx.
   const seenTx = new Map<string, "success" | "failed" | "unknown">();
   await Promise.all(
     trimmed.slice(0, MAX_RECEIPT_LOOKUPS).map(async (e) => {
@@ -399,17 +523,75 @@ export async function readMarketActivity(limit = 30, lookback = 5_000n): Promise
       }
     }),
   );
-  for (const e of trimmed) e.status = seenTx.get(e.txHash) ?? "unknown";
 
-  const empty = trimmed.length === 0;
-  const value: MarketActivity = {
-    ...base,
+  for (const e of trimmed) {
+    const cid = cidByToken.get(e.tokenId);
+    if (cid) {
+      e.cid = cid;
+      e.cidUrl = gatewayFor(cid);
+    }
+    e.status = seenTx.get(e.txHash) ?? "unknown";
+  }
+
+  return {
     events: trimmed,
-    degraded: !swept.read && empty,
-    detail: !swept.read && empty ? humanReason(swept.error) : null,
+    read: swept.read,
+    error: swept.error,
     scannedBlocks: Number(head - swept.floor),
   };
+}
 
-  if (swept.read) cache = { at: Date.now(), value };
+// ------------------------------------------------------------------ public
+
+/** Read recent marketplace + transfer activity. Never throws. */
+export async function readMarketActivity(limit = 30, lookback = 5_000n): Promise<MarketActivity> {
+  const base = { market: MARKET_ADDRESS, nft: NFT_ADDRESS, configured: activityConfigured() };
+
+  if (!activityConfigured()) {
+    return {
+      ...base,
+      events: [],
+      source: "none",
+      degraded: false,
+      detail: "The marketplace contract is not deployed yet.",
+      scannedBlocks: 0,
+    };
+  }
+
+  if (cache && Date.now() - cache.at < CACHE_TTL_MS) {
+    return { ...cache.value, events: cache.value.events.slice(0, limit) };
+  }
+
+  const indexed = await readViaExplorer();
+  if (indexed) {
+    indexed.sort(
+      (a, b) =>
+        Number(b.blockNumber) - Number(a.blockNumber) ||
+        b.logIndex - a.logIndex ||
+        b.atSeconds - a.atSeconds,
+    );
+    const value: MarketActivity = {
+      ...base,
+      events: indexed,
+      source: "explorer",
+      degraded: false,
+      detail: null,
+      scannedBlocks: 0,
+    };
+    cache = { at: Date.now(), value };
+    return { ...value, events: value.events.slice(0, limit) };
+  }
+
+  const fallback = await readViaRpc(lookback);
+  const empty = fallback.events.length === 0;
+  const value: MarketActivity = {
+    ...base,
+    events: fallback.events,
+    source: "rpc",
+    degraded: !fallback.read && empty,
+    detail: !fallback.read && empty ? humanReason(fallback.error) : null,
+    scannedBlocks: fallback.scannedBlocks,
+  };
+  if (fallback.read) cache = { at: Date.now(), value };
   return { ...value, events: value.events.slice(0, limit) };
 }
