@@ -669,7 +669,7 @@ function SlideMarketplace() {
       <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
         Live at /market — list, cancel, buy and transfer, all settled on Arc. Every buy
         carves out the creator's 5% ERC-2981 royalty and pays it in the same stablecoin,
-        in the same transaction.
+        in the same transaction. Filters live in the URL, so a filtered view is shareable.
       </p>
     </Slide>
   );
