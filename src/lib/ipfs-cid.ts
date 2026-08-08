@@ -1,0 +1,289 @@
+// Dependency-free UnixFS CID computation, browser-safe.
+//
+// Reproduces the CID that Kubo (and pinning services built on it) produce for
+// a file added with default settings: 262144-byte fixed-size chunks, a
+// balanced DAG with at most 174 links per parent, dag-pb + UnixFS framing,
+// sha2-256 multihash, emitted as CIDv1 base32.
+//
+// Everything is streamed with File.slice(), so a 25 MB clip never lands in
+// memory in one piece.
+
+/** Kubo default chunk size. */
+export const CHUNK_BYTES = 262144;
+/** Kubo default balanced-DAG fan-out. */
+export const MAX_LINKS = 174;
+
+const B32 = "abcdefghijklmnopqrstuvwxyz234567";
+
+function base32(bytes: Uint8Array): string {
+  let bits = 0;
+  let value = 0;
+  let out = "";
+  for (const byte of bytes) {
+    value = (value << 8) | byte;
+    bits += 8;
+    while (bits >= 5) {
+      out += B32[(value >>> (bits - 5)) & 31];
+      bits -= 5;
+    }
+  }
+  if (bits > 0) out += B32[(value << (5 - bits)) & 31];
+  return out;
+}
+
+const B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+/** Decodes a base58btc string (CIDv0 / Qm…) into bytes. Returns null if invalid. */
+function base58Decode(input: string): Uint8Array | null {
+  const bytes: number[] = [0];
+  for (const ch of input) {
+    const value = B58.indexOf(ch);
+    if (value < 0) return null;
+    let carry = value;
+    for (let i = 0; i < bytes.length; i++) {
+      carry += bytes[i]! * 58;
+      bytes[i] = carry & 0xff;
+      carry >>= 8;
+    }
+    while (carry > 0) {
+      bytes.push(carry & 0xff);
+      carry >>= 8;
+    }
+  }
+  for (let i = 0; i < input.length && input[i] === "1"; i++) bytes.push(0);
+  return new Uint8Array(bytes.reverse());
+}
+
+// ---------------------------------------------------------------- protobuf
+
+function varint(value: number): number[] {
+  const out: number[] = [];
+  let v = value;
+  while (v >= 0x80) {
+    out.push((v & 0x7f) | 0x80);
+    v = Math.floor(v / 128);
+  }
+  out.push(v);
+  return out;
+}
+
+function varintLen(value: number): number {
+  let n = 1;
+  let v = value;
+  while (v >= 0x80) {
+    n++;
+    v = Math.floor(v / 128);
+  }
+  return n;
+}
+
+function field(tag: number, wire: number, payload: number[] | Uint8Array): number[] {
+  const out = varint((tag << 3) | wire);
+  if (wire === 2) out.push(...varint(payload.length));
+  out.push(...(payload as ArrayLike<number> as number[]));
+  return out;
+}
+
+function varintField(tag: number, value: number): number[] {
+  return [...varint((tag << 3) | 0), ...varint(value)];
+}
+
+// -------------------------------------------------------------- primitives
+
+async function sha256(bytes: Uint8Array): Promise<Uint8Array> {
+  if (!globalThis.crypto?.subtle) throw new Error("no_subtle_crypto");
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", bytes as BufferSource));
+}
+
+/** Binary CID: <version 0x01><codec><multihash>. */
+function cidBytes(codec: number, digest: Uint8Array): Uint8Array {
+  const out = new Uint8Array(4 + digest.length);
+  out[0] = 0x01;
+  out[1] = codec;
+  out[2] = 0x12; // sha2-256
+  out[3] = 0x20; // 32 bytes
+  out.set(digest, 4);
+  return out;
+}
+
+export function encodeCidV1(codec: number, digest: Uint8Array): string {
+  return `b${base32(cidBytes(codec, digest))}`;
+}
+
+interface Node {
+  /** Binary CID of this node, used as a dag-pb link hash. */
+  cid: Uint8Array;
+  /** Total size of the encoded block plus all descendants (dag-pb Tsize). */
+  tsize: number;
+  /** Payload bytes represented by this subtree (UnixFS filesize). */
+  fileSize: number;
+}
+
+/** UnixFS Data message for a leaf: Type=File(2), Data=bytes, filesize. */
+function unixfsLeafData(chunk: Uint8Array): number[] {
+  return [...varintField(1, 2), ...field(2, 2, chunk), ...varintField(3, chunk.length)];
+}
+
+/** UnixFS Data message for an internal node: Type=File(2), filesize, blocksizes[]. */
+function unixfsBranchData(fileSize: number, blockSizes: number[]): number[] {
+  const out = [...varintField(1, 2), ...varintField(3, fileSize)];
+  for (const size of blockSizes) out.push(...varintField(4, size));
+  return out;
+}
+
+/** dag-pb PBNode: repeated PBLink links = 2, bytes Data = 1 (links first). */
+function pbNode(links: Node[], data: number[]): Uint8Array {
+  const out: number[] = [];
+  for (const link of links) {
+    const linkBody = [
+      ...field(1, 2, link.cid), // Hash
+      ...field(2, 2, []), // Name (empty)
+      ...varintField(3, link.tsize), // Tsize
+    ];
+    out.push(...field(2, 2, linkBody));
+  }
+  out.push(...field(1, 2, data));
+  return new Uint8Array(out);
+}
+
+async function makeNode(block: Uint8Array, fileSize: number, childTsize: number): Promise<Node> {
+  return {
+    cid: cidBytes(0x70, await sha256(block)),
+    tsize: block.length + childTsize,
+    fileSize,
+  };
+}
+
+// ------------------------------------------------------------------- public
+
+export interface UnixfsCidResult {
+  /** CIDv1, dag-pb, base32 — directly comparable to a pinned CIDv1. */
+  cid: string;
+  /** Number of 256 KiB leaves the file was chunked into. */
+  chunks: number;
+  chunkBytes: number;
+  maxLinks: number;
+  bytes: number;
+}
+
+/**
+ * Computes the UnixFS CID for a Blob/File by streaming it in chunks.
+ * `onProgress` receives 0..1 as the leaves are hashed.
+ */
+export async function computeUnixfsCid(
+  file: Blob,
+  onProgress?: (fraction: number) => void,
+): Promise<UnixfsCidResult> {
+  const total = file.size;
+  const leaves: Node[] = [];
+
+  // Empty file: a single empty UnixFS file node.
+  if (total === 0) {
+    const block = pbNode([], unixfsLeafData(new Uint8Array(0)));
+    const node = await makeNode(block, 0, 0);
+    return {
+      cid: encodeCidV1(0x70, await sha256(block)),
+      chunks: 1,
+      chunkBytes: CHUNK_BYTES,
+      maxLinks: MAX_LINKS,
+      bytes: node.fileSize,
+    };
+  }
+
+  for (let offset = 0; offset < total; offset += CHUNK_BYTES) {
+    const slice = file.slice(offset, Math.min(offset + CHUNK_BYTES, total));
+    const chunk = new Uint8Array(await slice.arrayBuffer());
+    const block = pbNode([], unixfsLeafData(chunk));
+    leaves.push(await makeNode(block, chunk.length, 0));
+    onProgress?.(Math.min(1, (offset + chunk.length) / total));
+  }
+
+  // Single chunk: the leaf is the root.
+  if (leaves.length === 1) {
+    const only = leaves[0]!;
+    return {
+      cid: `b${base32(only.cid)}`,
+      chunks: 1,
+      chunkBytes: CHUNK_BYTES,
+      maxLinks: MAX_LINKS,
+      bytes: total,
+    };
+  }
+
+  // Balanced DAG: fold levels of up to MAX_LINKS children until one root left.
+  let level = leaves;
+  while (level.length > 1) {
+    const next: Node[] = [];
+    for (let i = 0; i < level.length; i += MAX_LINKS) {
+      const group = level.slice(i, i + MAX_LINKS);
+      const fileSize = group.reduce((sum, n) => sum + n.fileSize, 0);
+      const childTsize = group.reduce((sum, n) => sum + n.tsize, 0);
+      const block = pbNode(group, unixfsBranchData(fileSize, group.map((n) => n.fileSize)));
+      next.push(await makeNode(block, fileSize, childTsize));
+    }
+    level = next;
+  }
+
+  return {
+    cid: `b${base32(level[0]!.cid)}`,
+    chunks: leaves.length,
+    chunkBytes: CHUNK_BYTES,
+    maxLinks: MAX_LINKS,
+    bytes: total,
+  };
+}
+
+/**
+ * Normalises a CID for comparison: CIDv0 (`Qm…` base58 dag-pb) is re-encoded
+ * as CIDv1 base32 so a version difference is not reported as a mismatch.
+ * Returns null when the CID uses a form we cannot normalise.
+ */
+export function normalizeCid(cid: string): string | null {
+  const value = cid.trim();
+  if (!value) return null;
+  if (value.startsWith("Qm")) {
+    const raw = base58Decode(value);
+    if (!raw || raw.length !== 34 || raw[0] !== 0x12 || raw[1] !== 0x20) return null;
+    return encodeCidV1(0x70, raw.slice(2));
+  }
+  if (/^b[a-z2-7]+$/.test(value)) return value;
+  return null;
+}
+
+/** True when `crypto.subtle` is available (absent on insecure origins). */
+export function hashingAvailable(): boolean {
+  return Boolean(globalThis.crypto?.subtle);
+}
+
+export type VerificationState = "verified" | "mismatch" | "unverifiable";
+
+export interface Verification {
+  state: VerificationState;
+  reason?: string;
+}
+
+/** Compares a pinned CID against the locally computed UnixFS CID. */
+export function verifyPinnedCid(localCid: string | null, pinnedCid: string): Verification {
+  if (!localCid) {
+    return { state: "unverifiable", reason: "No local hash was computed for this clip." };
+  }
+  const pinned = normalizeCid(pinnedCid);
+  if (!pinned) {
+    return {
+      state: "unverifiable",
+      reason: "The pinning service returned a CID in a format this browser can't re-derive.",
+    };
+  }
+  const local = normalizeCid(localCid);
+  if (!local) {
+    return { state: "unverifiable", reason: "The local hash could not be normalised for comparison." };
+  }
+  if (local === pinned) return { state: "verified" };
+  return {
+    state: "mismatch",
+    reason:
+      "The stored content hash differs from the one computed in your browser. This usually means the service chunked the file with different settings — but it can also mean the bytes stored are not the bytes you previewed.",
+  };
+}
+
+export { varintLen };
