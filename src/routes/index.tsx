@@ -15,6 +15,9 @@ import { useGxMode } from "@/lib/gx-mode";
 import { H2aHome } from "@/components/h2a/H2aHome";
 import { A2hHome } from "@/components/a2h/A2hHome";
 import { getPublicConfig } from "@/lib/config.functions";
+import { LiveMetrics } from "@/components/home/LiveMetrics";
+import { WhyArc } from "@/components/home/WhyArc";
+
 
 export const Route = createFileRoute("/")({
   loader: () => getPublicConfig(),
@@ -39,12 +42,10 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const STATS = [
-  { k: "7", v: "Pieces in the current drop" },
-  { k: "3", v: "Stablecoins accepted at checkout" },
-  { k: "x402", v: "Agent checkout, no card needed" },
-  { k: "On-chain", v: "Rights records for every move" },
-];
+const THESIS =
+  "Streetwear checkout and dance-move royalties, settled in stablecoins on Circle's Arc — where a $0.001 payment is worth making because gas is a rounding error and paid in the same asset.";
+
+
 
 const STEPS = [
   {
@@ -84,6 +85,12 @@ function Index() {
                     <Reveal>
                       <p className="eyebrow">Streetwear &middot; Street dance &middot; Stablecoins</p>
                     </Reveal>
+                    <Reveal delay={40}>
+                      <p className="mt-3 max-w-xl text-sm font-semibold leading-relaxed text-glow sm:text-base">
+                        {THESIS}
+                      </p>
+                    </Reveal>
+
                     <Reveal delay={90}>
                       <h1 className="display mt-4 text-[clamp(2.25rem,9vw,3.25rem)] leading-[0.92] sm:mt-5 sm:text-7xl sm:leading-[0.88] lg:text-[4.75rem] xl:text-[5.5rem]">
                         <span className="block text-foreground">Wear the</span>
@@ -107,6 +114,12 @@ function Index() {
                           Shop the drop
                         </Link>
                         <Link
+                          to="/judge"
+                          className="lift rounded-full border border-glow/40 bg-glow/10 px-7 py-3.5 text-center text-sm font-bold text-foreground backdrop-blur"
+                        >
+                          Judge run: all four modes →
+                        </Link>
+                        <Link
                           to="/moves"
                           className="lift rounded-full border border-border bg-surface/60 px-7 py-3.5 text-center text-sm font-bold text-foreground backdrop-blur"
                         >
@@ -117,22 +130,9 @@ function Index() {
                   </div>
 
                   <Reveal delay={340}>
-                    <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border/60 lg:grid-cols-2">
-                      {STATS.map((s) => (
-                        <div
-                          key={s.k}
-                          className="bg-surface-2/90 px-3.5 py-4 backdrop-blur sm:px-6 sm:py-6 lg:px-7 lg:py-8"
-                        >
-                          <dt className="display text-lg text-foreground sm:text-2xl lg:text-3xl">
-                            {s.k}
-                          </dt>
-                          <dd className="mt-1 text-[11px] leading-snug text-muted-foreground sm:text-xs lg:text-sm">
-                            {s.v}
-                          </dd>
-                        </div>
-                      ))}
-                    </dl>
+                    <LiveMetrics />
                   </Reveal>
+
                 </div>
               </div>
 
