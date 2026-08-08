@@ -318,5 +318,3 @@ export function verifyPinnedCid(localCid: string | null, pinnedCid: string): Ver
       "The stored content hash differs from the one computed in your browser. This usually means the service chunked the file with different settings — but it can also mean the bytes stored are not the bytes you previewed.",
   };
 }
-
-export { varintLen };
