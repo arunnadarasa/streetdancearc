@@ -294,12 +294,69 @@ export function MoveMarketPanel() {
     }
   }
 
-  async function onTransfer() {
-    begin("transfer");
+  /** Reads ownership + approval state on Arc before anything is signed. */
+  async function onCheckTransfer() {
+    begin("transfer-check");
+    setPreflight(null);
     try {
       if (!cfg?.configured) throw new Error("Marketplace contract is not deployed.");
       if (!transferToken) throw new Error("Pick one of your move NFTs first.");
-      if (!/^0x[0-9a-fA-F]{40}$/.test(transferTo.trim())) throw new Error("Enter a valid Arc address.");
+      const to = transferTo.trim();
+      if (!/^0x[0-9a-fA-F]{40}$/.test(to)) throw new Error("Enter a valid Arc address (0x followed by 40 hex characters).");
+
+      const { from, pub } = await clients();
+      setStatus("Checking ownership and approvals on Arc…");
+
+      const tokenId = BigInt(transferToken);
+      const nft = cfg.nft as Address;
+      const [owner, approvedOperator, marketApprovedForAll] = await Promise.all([
+        pub.readContract({ address: nft, abi: ERC721_ABI, functionName: "ownerOf", args: [tokenId] }) as Promise<string>,
+        pub
+          .readContract({ address: nft, abi: ERC721_ABI, functionName: "getApproved", args: [tokenId] })
+          .then((v) => v as string)
+          .catch(() => ZERO),
+        cfg.market
+          ? (pub.readContract({
+              address: nft,
+              abi: ERC721_ABI,
+              functionName: "isApprovedForAll",
+              args: [from, cfg.market as Address],
+            }) as Promise<boolean>)
+          : Promise.resolve(false),
+      ]);
+
+      const isOwner = owner.toLowerCase() === from.toLowerCase();
+      setPreflight({
+        tokenId: transferToken,
+        to,
+        owner,
+        isOwner,
+        approvedOperator: approvedOperator && approvedOperator !== ZERO ? approvedOperator : null,
+        marketApprovedForAll,
+        listed: listings.some((l) => l.tokenId === transferToken),
+        selfSend: to.toLowerCase() === from.toLowerCase(),
+      });
+      setStatus(
+        isOwner
+          ? null
+          : `Move #${transferToken} is held by ${short(owner)}, not your wallet. Only the current owner can transfer it.`,
+      );
+      if (!isOwner) {
+        setStatus(null);
+        setError(`Move #${transferToken} is held by ${short(owner)}, not your wallet. Only the current owner can transfer it.`);
+      }
+    } catch (e) {
+      fail(e, { tokenId: transferToken });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function onConfirmTransfer() {
+    if (!preflight || !preflight.isOwner) return;
+    begin("transfer");
+    try {
+      if (!cfg?.configured) throw new Error("Marketplace contract is not deployed.");
       const { from, wallet, pub } = await clients();
       setStatus("Transferring the rights token…");
       const hash = await wallet.sendTransaction({
@@ -307,21 +364,24 @@ export function MoveMarketPanel() {
         data: encodeFunctionData({
           abi: ERC721_ABI,
           functionName: "safeTransferFrom",
-          args: [from, transferTo.trim() as Address, BigInt(transferToken)],
+          args: [from, preflight.to as Address, BigInt(preflight.tokenId)],
         }),
         chain: arcTestnet,
       });
       await pub.waitForTransactionReceipt({ hash });
       setTxHash(hash);
-      setStatus(`Move #${transferToken} sent to ${short(transferTo.trim())}`);
+      setStatus(`Move #${preflight.tokenId} sent to ${short(preflight.to)}`);
+      setStaleListing(preflight.listed ? preflight.tokenId : null);
       setTransferTo("");
+      setPreflight(null);
       await refresh();
     } catch (e) {
-      fail(e);
+      fail(e, { tokenId: preflight.tokenId });
     } finally {
       setBusy(null);
     }
   }
+
 
   const explorer = cfg?.explorer ?? "https://testnet.arcscan.app";
 
