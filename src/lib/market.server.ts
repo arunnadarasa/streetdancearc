@@ -82,6 +82,10 @@ export interface MarketListing {
   sellerNet: string;
   /** Royalty as a percentage of the price, e.g. 5 for 5%. */
   royaltyPercent: number;
+  /** Block number of the most recent `Listed` event for this token, when known. */
+  listedAt: string | null;
+  /** Position in the contract's active-listing array (fallback ordering). */
+  listedIndex: number;
 }
 
 function formatUnits(atomic: bigint, decimals: number): string {
@@ -135,7 +139,7 @@ export async function listMarket(max = 24): Promise<{
   const items = await Promise.all(
     raw
       .filter((r): r is readonly [bigint, Address, Address, bigint] => r !== null)
-      .map(async ([tokenId, seller, payToken, priceAtomic]): Promise<MarketListing | null> => {
+      .map(async ([tokenId, seller, payToken, priceAtomic], listedIndex): Promise<MarketListing | null> => {
         // Drop stale listings where the seller no longer holds the token.
         try {
           const owner = (await pub.readContract({
@@ -228,9 +232,32 @@ export async function listMarket(max = 24): Promise<{
           sellerNet: formatUnits(sellerNetAtomic, decimals),
           royaltyPercent:
             priceAtomic > 0n ? Number((royaltyAtomic * 10000n) / priceAtomic) / 100 : 0,
+          listedAt: null,
+          listedIndex,
         } satisfies MarketListing;
       }),
   );
 
-  return { ...base, items: items.filter((i): i is MarketListing => i !== null), detail: null };
+  const live = items.filter((i): i is MarketListing => i !== null);
+
+  // Join the on-chain `Listed` events so "newest first" is real, not a guess.
+  // A failed join is fine: listedIndex / tokenId still give a stable order.
+  try {
+    const { readMarketActivity } = await import("@/lib/market-activity.server");
+    const activity = await readMarketActivity(200);
+    const newest = new Map<string, string>();
+    for (const ev of activity.events) {
+      if (ev.kind !== "listed") continue;
+      const prev = newest.get(ev.tokenId);
+      if (!prev || Number(ev.blockNumber) > Number(prev)) newest.set(ev.tokenId, ev.blockNumber);
+    }
+    for (const item of live) {
+      item.listedAt = newest.get(item.tokenId) ?? null;
+    }
+  } catch {
+    /* activity unavailable — keep listedAt null */
+  }
+
+  return { ...base, items: live, detail: null };
 }
+

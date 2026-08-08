@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
   createPublicClient,
@@ -18,6 +19,7 @@ import { TOKENS, type TokenKey } from "@/lib/tokens";
 import { TokenSwitcher } from "@/components/dance/TokenSwitcher";
 import { getMarketConfig, listMarketListings } from "@/lib/market.functions";
 import { listMoveNfts } from "@/lib/nft.functions";
+import { MarketFilters, type MarketFilterValues } from "@/components/market/MarketFilters";
 
 type Listing = Awaited<ReturnType<typeof listMarketListings>>["items"][number];
 type Owned = Awaited<ReturnType<typeof listMoveNfts>>["items"][number];
@@ -108,6 +110,45 @@ function formatAtomic(atomic: bigint, decimals: number): string {
   return frac ? `${whole}.${frac}` : whole;
 }
 
+const DEFAULT_FILTERS: MarketFilterValues = { q: "", cat: "all", license: "all", tok: "all", sort: "newest" };
+
+function norm(v: string): string {
+  return v.trim().toLowerCase().replace(/^0x/, "");
+}
+
+function matchesQuery(item: Listing, query: string): boolean {
+  const q = norm(query);
+  if (!q) return true;
+  const hay = [
+    item.name ?? "",
+    `#${item.tokenId}`,
+    item.tokenId,
+    item.discipline ?? "",
+    item.license ?? "",
+    item.symbol,
+    item.seller,
+  ]
+    .join(" ")
+    .toLowerCase()
+    .replace(/0x/g, "");
+  return hay.includes(q);
+}
+
+function sortListings(items: Listing[], sort: string): Listing[] {
+  const out = [...items];
+  const priceOf = (l: Listing) => Number(l.priceAtomic) / 10 ** l.decimals;
+  const recency = (l: Listing) => (l.listedAt ? Number(l.listedAt) : 0);
+  if (sort === "price-asc") out.sort((a, b) => priceOf(a) - priceOf(b) || Number(a.tokenId) - Number(b.tokenId));
+  else if (sort === "price-desc") out.sort((a, b) => priceOf(b) - priceOf(a) || Number(b.tokenId) - Number(a.tokenId));
+  else if (sort === "token") out.sort((a, b) => a.symbol.localeCompare(b.symbol) || priceOf(a) - priceOf(b));
+  else
+    out.sort(
+      (a, b) =>
+        recency(b) - recency(a) || b.listedIndex - a.listedIndex || Number(b.tokenId) - Number(a.tokenId),
+    );
+  return out;
+}
+
 interface TransferPreflight {
   tokenId: string;
   to: string;
@@ -149,6 +190,53 @@ export function MoveMarketPanel() {
   const [preflight, setPreflight] = useState<TransferPreflight | null>(null);
   const [staleListing, setStaleListing] = useState<string | null>(null);
   const [buyConfirm, setBuyConfirm] = useState<Listing | null>(null);
+  const search = useSearch({ from: "/market" });
+  const navigate = useNavigate({ from: "/market" });
+  const filters: MarketFilterValues = {
+    q: search.q,
+    cat: search.cat,
+    license: search.license,
+    tok: search.tok,
+    sort: search.sort,
+  };
+  const setFilters = useCallback(
+    (patch: Partial<MarketFilterValues>) => {
+      void navigate({
+        search: (prev: MarketFilterValues) => ({ ...prev, ...patch }),
+        replace: true,
+      });
+    },
+    [navigate],
+  );
+  const clearFilters = useCallback(() => {
+    void navigate({
+      search: (prev: MarketFilterValues) => ({ ...prev, ...DEFAULT_FILTERS }),
+      replace: true,
+    });
+  }, [navigate]);
+
+  const disciplines = useMemo(
+    () => Array.from(new Set(listings.map((l) => l.discipline).filter((d): d is string => Boolean(d)))).sort(),
+    [listings],
+  );
+  const licenses = useMemo(
+    () => Array.from(new Set(listings.map((l) => l.license).filter((l): l is string => Boolean(l)))).sort(),
+    [listings],
+  );
+  const payTokens = useMemo(
+    () => Array.from(new Set(listings.map((l) => l.symbol))).sort(),
+    [listings],
+  );
+  const visible = useMemo(() => {
+    const filtered = listings.filter((l) => {
+      if (filters.cat !== "all" && (l.discipline ?? "") !== filters.cat) return false;
+      if (filters.license !== "all" && (l.license ?? "") !== filters.license) return false;
+      if (filters.tok !== "all" && l.symbol !== filters.tok) return false;
+      return matchesQuery(l, filters.q);
+    });
+    return sortListings(filtered, filters.sort);
+  }, [listings, filters.cat, filters.license, filters.tok, filters.q, filters.sort]);
+
   const [listRoyalty, setListRoyalty] = useState<{ royalty: string; net: string; percent: number } | null>(null);
 
 
@@ -470,13 +558,38 @@ export function MoveMarketPanel() {
           </button>
         </div>
 
+        {listings.length > 0 && (
+          <div className="mt-4">
+            <MarketFilters
+              values={filters}
+              disciplines={disciplines}
+              licenses={licenses}
+              tokens={payTokens}
+              shown={visible.length}
+              total={listings.length}
+              onChange={setFilters}
+              onClear={clearFilters}
+            />
+          </div>
+        )}
+
         {listings.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
             {detail ?? "No moves are listed yet. List one of yours below and it appears here for anyone to buy."}
           </p>
+        ) : visible.length === 0 ? (
+          <div className="mt-4 rounded-xl border border-border/60 bg-surface p-4">
+            <p className="text-sm text-muted-foreground">
+              No listings match these filters.{" "}
+              <button type="button" onClick={clearFilters} className="font-bold text-glow hover:underline">
+                Clear filters
+              </button>{" "}
+              to see all {listings.length}.
+            </p>
+          </div>
         ) : (
           <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-            {listings.map((item) => {
+            {visible.map((item) => {
               const mine = address && item.seller.toLowerCase() === address.toLowerCase();
               return (
                 <li key={item.tokenId} className="rounded-xl border border-border/60 bg-surface p-3">

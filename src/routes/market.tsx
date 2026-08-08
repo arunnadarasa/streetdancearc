@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import { PrivyRoot } from "@/components/PrivyRoot";
 import { Header } from "@/components/dance/Header";
 import { Section, SectionHead } from "@/components/layout/Section";
@@ -8,7 +10,16 @@ import { MarketActivityPanel } from "@/components/market/MarketActivityPanel";
 
 import { getPublicConfig } from "@/lib/config.functions";
 
+const marketSearchSchema = z.object({
+  q: fallback(z.string(), "").default(""),
+  cat: fallback(z.string(), "all").default("all"),
+  license: fallback(z.string(), "all").default("all"),
+  tok: fallback(z.string(), "all").default("all"),
+  sort: fallback(z.string(), "newest").default("newest"),
+});
+
 export const Route = createFileRoute("/market")({
+  validateSearch: zodValidator(marketSearchSchema),
   loader: () => getPublicConfig(),
   head: () => ({
     meta: [
