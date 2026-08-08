@@ -225,6 +225,7 @@ export function MarketActivityPanel({ className = "" }: { className?: string }) 
         market: "",
         nft: "",
         configured: true,
+        source: "none",
         degraded: true,
         detail: "Marketplace activity could not be loaded right now.",
         scannedBlocks: 0,
