@@ -208,7 +208,30 @@ export function MoveMarketPanel() {
   const clearFilters = useCallback(() => {
     void navigate({ search: (prev) => ({ ...prev, ...DEFAULT_FILTERS }), replace: true });
   }, [navigate]);
-  const PLACEHOLDER_FILTER_MEMOS = null;
+
+  const disciplines = useMemo(
+    () => Array.from(new Set(listings.map((l) => l.discipline).filter((d): d is string => Boolean(d)))).sort(),
+    [listings],
+  );
+  const licenses = useMemo(
+    () => Array.from(new Set(listings.map((l) => l.license).filter((l): l is string => Boolean(l)))).sort(),
+    [listings],
+  );
+  const payTokens = useMemo(
+    () => Array.from(new Set(listings.map((l) => l.symbol))).sort(),
+    [listings],
+  );
+  const visible = useMemo(() => {
+    const filtered = listings.filter((l) => {
+      if (filters.cat !== "all" && (l.discipline ?? "") !== filters.cat) return false;
+      if (filters.license !== "all" && (l.license ?? "") !== filters.license) return false;
+      if (filters.tok !== "all" && l.symbol !== filters.tok) return false;
+      return matchesQuery(l, filters.q);
+    });
+    return sortListings(filtered, filters.sort);
+  }, [listings, filters.cat, filters.license, filters.tok, filters.q, filters.sort]);
+  const filtersActive =
+    filters.q.trim() !== "" || filters.cat !== "all" || filters.license !== "all" || filters.tok !== "all";
   const [listRoyalty, setListRoyalty] = useState<{ royalty: string; net: string; percent: number } | null>(null);
 
 
@@ -530,13 +553,38 @@ export function MoveMarketPanel() {
           </button>
         </div>
 
+        {listings.length > 0 && (
+          <div className="mt-4">
+            <MarketFilters
+              values={filters}
+              disciplines={disciplines}
+              licenses={licenses}
+              tokens={payTokens}
+              shown={visible.length}
+              total={listings.length}
+              onChange={setFilters}
+              onClear={clearFilters}
+            />
+          </div>
+        )}
+
         {listings.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
             {detail ?? "No moves are listed yet. List one of yours below and it appears here for anyone to buy."}
           </p>
+        ) : visible.length === 0 ? (
+          <div className="mt-4 rounded-xl border border-border/60 bg-surface p-4">
+            <p className="text-sm text-muted-foreground">
+              No listings match these filters.{" "}
+              <button type="button" onClick={clearFilters} className="font-bold text-glow hover:underline">
+                Clear filters
+              </button>{" "}
+              to see all {listings.length}.
+            </p>
+          </div>
         ) : (
           <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-            {listings.map((item) => {
+            {visible.map((item) => {
               const mine = address && item.seller.toLowerCase() === address.toLowerCase();
               return (
                 <li key={item.tokenId} className="rounded-xl border border-border/60 bg-surface p-3">
