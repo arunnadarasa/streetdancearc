@@ -238,5 +238,26 @@ export async function listMarket(max = 24): Promise<{
       }),
   );
 
-  return { ...base, items: items.filter((i): i is MarketListing => i !== null), detail: null };
+  const live = items.filter((i): i is MarketListing => i !== null);
+
+  // Join the on-chain `Listed` events so "newest first" is real, not a guess.
+  // A failed join is fine: listedIndex / tokenId still give a stable order.
+  try {
+    const { readMarketActivity } = await import("@/lib/market-activity.server");
+    const activity = await readMarketActivity(200);
+    const newest = new Map<string, string>();
+    for (const ev of activity.events) {
+      if (ev.kind !== "listed") continue;
+      const prev = newest.get(ev.tokenId);
+      if (!prev || Number(ev.blockNumber) > Number(prev)) newest.set(ev.tokenId, ev.blockNumber);
+    }
+    for (const item of live) {
+      item.listedAt = newest.get(item.tokenId) ?? null;
+    }
+  } catch {
+    /* activity unavailable — keep listedAt null */
+  }
+
+  return { ...base, items: live, detail: null };
 }
+
