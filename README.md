@@ -141,6 +141,7 @@ Circle's pre-audited ERC-721 SCP template (`76b83278-50e2-4006-8b63-5b1a2a814533
 - **Settlement:** any Arc stablecoin — USDC, EURC or cirBTC — with gas paid in USDC.
 - **Discovery:** `activeCount()` / `listingAt(index)` enumerate live listings on-chain; the server cross-checks current ERC-721 ownership and filters stale listings.
 - **UI:** `/market` (linked in the header and the mobile drawer) shows listings with pinned clip media, plus list / cancel / buy / transfer actions.
+- **Browse:** the grid has search (name, token ID, discipline, license, seller address), discipline chips, a license filter, a payment-token filter and sorting (newest, price low→high, price high→low, by payment token). All of it lives in the URL (`/market?q=krump&tok=EURC&sort=price-asc`), so a filtered view is shareable. "Newest" uses the on-chain `Listed` event block, falling back to listing order when the indexer is unavailable.
 
 ### Treasury authorization (ERC-1271)
 
