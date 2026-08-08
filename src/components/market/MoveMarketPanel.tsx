@@ -336,15 +336,11 @@ export function MoveMarketPanel() {
         listed: listings.some((l) => l.tokenId === transferToken),
         selfSend: to.toLowerCase() === from.toLowerCase(),
       });
-      setStatus(
-        isOwner
-          ? null
-          : `Move #${transferToken} is held by ${short(owner)}, not your wallet. Only the current owner can transfer it.`,
-      );
+      setStatus(null);
       if (!isOwner) {
-        setStatus(null);
         setError(`Move #${transferToken} is held by ${short(owner)}, not your wallet. Only the current owner can transfer it.`);
       }
+
     } catch (e) {
       fail(e, { tokenId: transferToken });
     } finally {
