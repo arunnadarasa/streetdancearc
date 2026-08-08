@@ -44,6 +44,10 @@ function MarketPage() {
           <div className="mt-8">
             <MoveMarketPanel />
           </div>
+          <div className="mt-6">
+            <MarketActivityPanel />
+          </div>
+
         </Section>
         <SiteFooter />
       </div>
