@@ -13,7 +13,7 @@ export function QuickContractLinks({
     .filter(Boolean);
 
   return (
-    <div className={`hidden md:flex md:items-center md:gap-1.5 ${className}`}>
+    <div className={`hidden xl:flex xl:items-center xl:gap-1.5 ${className}`}>
       {items.map((c) => (
         <a
           key={c!.key}
