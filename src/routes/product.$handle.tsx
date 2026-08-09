@@ -10,7 +10,6 @@ import { useCartStore } from "@/stores/cartStore";
 import { useCartSync } from "@/hooks/useCartSync";
 import { Button } from "@/components/ui/button";
 import { Loader2, Minus, Plus } from "lucide-react";
-import { PrivyRoot } from "@/components/PrivyRoot";
 import { Header } from "@/components/dance/Header";
 import { Section } from "@/components/layout/Section";
 import { Reveal } from "@/components/layout/Reveal";
@@ -20,18 +19,15 @@ import { LiveTotalCalculator } from "@/components/fx/LiveTotalCalculator";
 import { GxOffer } from "@/components/gx/GxOffer";
 import { useGxMode } from "@/lib/gx-mode";
 import { ModeSurface } from "@/components/gx/ModeSurface";
-import { getPublicConfig } from "@/lib/config.functions";
 import { DEMO_SCALE } from "@/lib/agent-card";
 
 export const Route = createFileRoute("/product/$handle")({
-  loader: () => getPublicConfig(),
   component: ProductPage,
 });
 
 function ProductPage() {
   useCartSync();
   const { handle } = Route.useParams();
-  const { privyAppId } = Route.useLoaderData();
   const [mode] = useGxMode();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -97,7 +93,7 @@ function ProductPage() {
 
   if (mode !== "h2h") {
     return (
-      <PrivyRoot appId={privyAppId}>
+      <>
         <div className="min-h-screen bg-background text-foreground">
           <Header />
           <ModeSurface mode={mode} agent={<GxOffer product={product} />}>
@@ -106,12 +102,12 @@ function ProductPage() {
 
           <SiteFooter />
         </div>
-      </PrivyRoot>
+      </>
     );
   }
 
   return (
-    <PrivyRoot appId={privyAppId}>
+    <>
       <div className="min-h-screen bg-background text-foreground">
         <Header extra={<CartDrawer />} />
 
@@ -233,7 +229,7 @@ function ProductPage() {
 
         <SiteFooter />
       </div>
-    </PrivyRoot>
+    </>
   );
 }
 

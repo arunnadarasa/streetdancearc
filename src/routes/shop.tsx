@@ -5,7 +5,6 @@ import { ProductCard } from "@/components/shop/ProductCard";
 import { CartDrawer } from "@/components/shop/CartDrawer";
 import { useCartSync } from "@/hooks/useCartSync";
 import { Loader2 } from "lucide-react";
-import { PrivyRoot } from "@/components/PrivyRoot";
 import { Header } from "@/components/dance/Header";
 import { Section, SectionHead } from "@/components/layout/Section";
 import { Reveal } from "@/components/layout/Reveal";
@@ -14,11 +13,9 @@ import { GxShop } from "@/components/gx/GxShop";
 import { ModeSurface } from "@/components/gx/ModeSurface";
 import { useGxMode } from "@/lib/gx-mode";
 import { H2aHome } from "@/components/h2a/H2aHome";
-import { getPublicConfig } from "@/lib/config.functions";
 
 
 export const Route = createFileRoute("/shop")({
-  loader: () => getPublicConfig(),
 
   head: () => ({
     meta: [
@@ -40,7 +37,6 @@ export const Route = createFileRoute("/shop")({
 
 function ShopPage() {
   useCartSync();
-  const { privyAppId } = Route.useLoaderData();
   const [mode] = useGxMode();
   const [products, setProducts] = useState<ShopifyProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +55,7 @@ function ShopPage() {
   }, []);
 
   return (
-    <PrivyRoot appId={privyAppId}>
+    <>
       <div className="min-h-screen bg-background text-foreground">
         <Header extra={mode === "h2h" ? <CartDrawer /> : undefined} />
 
@@ -123,7 +119,7 @@ function ShopPage() {
 
         <SiteFooter />
       </div>
-    </PrivyRoot>
+    </>
   );
 }
 

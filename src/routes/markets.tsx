@@ -6,17 +6,14 @@ import {
   sizing,
   watchlist,
 } from "@/data/markets";
-import { PrivyRoot } from "@/components/PrivyRoot";
 import { Header } from "@/components/dance/Header";
 import { ModeSurface } from "@/components/gx/ModeSurface";
 import { useGxMode } from "@/lib/gx-mode";
 import { Reveal } from "@/components/layout/Reveal";
 import { SiteFooter } from "@/components/layout/SiteFooter";
-import { getPublicConfig } from "@/lib/config.functions";
 
 
 export const Route = createFileRoute("/markets")({
-  loader: () => getPublicConfig(),
   head: () => ({
     meta: [
       { title: "Target Markets — Why USDC-First for Street Dance Commerce" },
@@ -43,11 +40,10 @@ export const Route = createFileRoute("/markets")({
 const GREEN = "var(--glow)";
 
 function MarketsPage() {
-  const { privyAppId } = Route.useLoaderData();
   const [mode] = useGxMode();
 
   return (
-    <PrivyRoot appId={privyAppId}>
+    <>
     <div className="min-h-screen bg-background text-foreground">
     <Header />
     <ModeSurface mode={mode}>
@@ -251,7 +247,7 @@ function MarketsPage() {
     </ModeSurface>
     <SiteFooter />
     </div>
-    </PrivyRoot>
+    </>
   );
 }
 
