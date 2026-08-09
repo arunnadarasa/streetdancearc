@@ -116,7 +116,7 @@ export function CartDrawer() {
         mode: "H2H",
         label:
           items.length === 1 && items[0]
-            ? `${items[0].title} ×${items[0].quantity}`
+            ? `${items[0].product.node.title} ×${items[0].quantity}`
             : `Cart checkout · ${totalItems} item${totalItems === 1 ? "" : "s"}`,
         token: payToken,
         atomic: res.atomic,
