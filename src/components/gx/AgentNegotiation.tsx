@@ -91,6 +91,8 @@ export function AgentNegotiation() {
 
   const [settling, setSettling] = useState(false);
   const [receipt, setReceipt] = useState<Record<string, unknown> | null>(null);
+  const [rawReceipt, setRawReceipt] = useState(false);
+  const dealRef = useRef<HTMLElement | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fx, setFx] = useState<FxRates | null>(null);
   const [nanoNote, setNanoNote] = useState<string | null>(null);
