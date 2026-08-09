@@ -35,7 +35,7 @@ A browser-side settlement ledger captures every Arc transfer so judges can see t
 - **A2A** negotiation → recorded once the buyer agent signs and posts the x402 payment.
 - **A2H** payout or claim → recorded when the treasury pushes the on-chain transfer.
 
-The ledger is surfaced on `/judge` ("Everything that settled"), in the cart drawer, and on `/shop`. Each row shows the mode chip, relative time, item label, token amount, and a clickable Arcscan link. Pending rows are polled against Arcscan via `fetchTxStatuses` and updated to confirmed or failed. A copy-hash button and a clear action are included for repeat demos.
+The ledger is surfaced on `/judge` ("Everything that settled") and on `/shop`. The cart drawer links to `/judge` instead of duplicating the list, so checkout stays focused. Each row shows the mode chip, relative time, item label, token amount, and a clickable Arcscan link. Pending rows are polled against Arcscan via `fetchTxStatuses` and updated to confirmed or failed. A copy-hash button and a clear action are included for repeat demos.
 
 ### Demo UX
 
@@ -293,6 +293,7 @@ A short, polished post-mortem covering both the hackathon sprint and the product
 - **Treat testnet like mainnet.** Decimals, gas limits, and receipts deserve the same rigor even when the tokens have no financial value.
 - **Keep the contract small.** `DanceMoveTokens.sol` stays under 100 lines, which makes verification, auditing, and explaining it to judges easier.
 - **Demo UX should be prose-first, JSON-second.** Judges are not parsers. Collapsing raw payloads behind toggles and leading with the Arcscan receipt made agent runs dramatically easier to follow.
+- **Keep the cart drawer focused on checkout.** Inlining the full transaction history pushed the checkout button below the fold and cluttered the UX. A compact "Recent settlements →" link to a dedicated `/judge` history page keeps the drawer scannable while the authoritative ledger lives on its own surface.
 
 ### What we would do differently next time
 
