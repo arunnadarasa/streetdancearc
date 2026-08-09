@@ -306,16 +306,15 @@ function JudgePage() {
           </div>
         </Section>
 
-        <Section tone="muted">
+        <Section tone="raised">
           <SectionHead
             eyebrow="Verify"
             title="The four deployed contracts"
             blurb="Every address below is live on Arc Testnet and verified on Arcscan."
           />
-          <div className="mt-6 grid gap-3 md:grid-cols-2">
-            <ContractsPanel className="contents" />
-          </div>
+          <ContractsPanel className="mt-6 md:grid md:grid-cols-2 md:gap-3 md:space-y-0" />
         </Section>
+
       </main>
 
       <SiteFooter />
