@@ -245,9 +245,11 @@ export function Header({
         </div>
       </div>
 
-      <div className="rail pb-2 pt-0.5 xl:hidden">
-        <ModeToggle full />
-      </div>
+      {showModeToggle ? (
+        <div className="rail pb-2 pt-0.5 xl:hidden">
+          <ModeToggle full />
+        </div>
+      ) : null}
     </header>
 
   );
