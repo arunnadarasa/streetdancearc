@@ -73,7 +73,10 @@ function Index() {
   return (
     <PrivyRoot appId={privyAppId}>
       <div className="min-h-screen bg-background text-foreground">
-        <Header extra={mode === "h2h" ? <CartDrawer /> : undefined} />
+        <Header
+          extra={mode === "h2h" ? <CartDrawer /> : undefined}
+          quickContracts
+        />
 
         <ModeSurface mode={mode} agent={<GxHome />}>
           <>

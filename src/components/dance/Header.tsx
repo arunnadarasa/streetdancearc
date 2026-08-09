@@ -13,7 +13,7 @@ import { PayTokenToggle } from "@/components/gx/PayTokenToggle";
 import { BalancePanel } from "@/components/wallet/BalancePanel";
 import { MobileDrawer } from "@/components/dance/MobileDrawer";
 import { ContractsSheet } from "@/components/dance/ContractsSheet";
-
+import { QuickContractLinks } from "@/components/dance/QuickContractLinks";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
@@ -35,7 +35,13 @@ const PRIMARY_NAV = NAV.slice(0, 4);
 const MORE_NAV = NAV.slice(4);
 
 
-export function Header({ extra }: { extra?: React.ReactNode }) {
+export function Header({
+  extra,
+  quickContracts,
+}: {
+  extra?: React.ReactNode;
+  quickContracts?: boolean;
+}) {
   const { authenticated, login, logout, user, ready, available } = useWallet();
 
   const addr = user?.wallet?.address;
@@ -159,6 +165,9 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
           <span className="hidden md:inline-flex">
             <ContractsSheet />
           </span>
+          {quickContracts ? (
+            <QuickContractLinks keys={["moveNft", "market"]} />
+          ) : null}
 
           <span className="hidden sm:inline-flex 2xl:hidden">
             <PayTokenToggle compact />

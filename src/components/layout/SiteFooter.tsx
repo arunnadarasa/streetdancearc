@@ -1,5 +1,6 @@
 import { FxPriceWidget } from "@/components/fx/FxPriceWidget";
 import { openContractsDrawer } from "@/components/dance/ContractsSheet";
+import { CONTRACTS } from "@/lib/contracts";
 
 
 export function SiteFooter() {
@@ -35,6 +36,22 @@ export function SiteFooter() {
             >
               Contracts
             </button>
+            <a
+              href={CONTRACTS.find((c) => c.key === "moveNft")?.explorerUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground"
+            >
+              Move Rights NFT
+            </a>
+            <a
+              href={CONTRACTS.find((c) => c.key === "market")?.explorerUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground"
+            >
+              MoveMarket v2
+            </a>
 
             <a
               href="https://github.com/arunnadarasa/streetdancearc"
