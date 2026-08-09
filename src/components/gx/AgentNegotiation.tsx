@@ -268,6 +268,10 @@ export function AgentNegotiation() {
       const receiptJson = await paidRes.json();
       if (!paidRes.ok) throw new Error(`Settlement verification failed: ${JSON.stringify(receiptJson)}`);
       setReceipt(receiptJson);
+      window.setTimeout(
+        () => dealRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }),
+        80,
+      );
       toast.success("Agent deal settled on Arc", { description: receiptJson.order_id });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
