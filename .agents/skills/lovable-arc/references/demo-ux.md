@@ -83,3 +83,16 @@ Pass `modal={false}` on every menu that is *not* a real overlay (nav "More",
 currency toggle, filters). Behaviour and keyboard a11y are unchanged; the body
 scroll lock goes away. Verify with Playwright: scroll ~1200px, open the menu,
 assert the header's bounding box is still `y == 0`.
+
+## 5. Cart drawer = checkout only
+
+A cart drawer is not a dashboard. Inlining a "Recent settlements" panel pushes
+line items, totals, and the primary pay button below the fold and duplicates a
+surface that already exists elsewhere.
+
+- Keep the cart footer to: total, live token equivalent, pay button, optional
+  Shopify checkout, and a single compact link to the settlement history page.
+- Use a `Link` from the router (not an external `<a>`) so the drawer closes and
+  the user lands on the authoritative history surface.
+- Render the full settlement list on a dedicated route (`/judge` is the
+  StreetRail convention) or on the shop page, never inside the drawer.
