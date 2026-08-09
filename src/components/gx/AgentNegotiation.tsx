@@ -113,6 +113,21 @@ export function AgentNegotiation() {
     [products, fx],
   );
 
+  const recommendedBudget = useMemo(
+    () => (catalog.length > 0 ? deriveBudget(catalog, SPEND_POLICY) : null),
+    [catalog],
+  );
+  const suggestedGoal = useMemo(
+    () => (catalog.length > 0 ? recommendedGoal(catalog, SPEND_POLICY) : null),
+    [catalog],
+  );
+
+  // Prefill the goal with the catalog-derived budget until the user edits it.
+  useEffect(() => {
+    if (!suggestedGoal || goalDirty.current) return;
+    setGoal(suggestedGoal);
+  }, [suggestedGoal]);
+
   async function onRun() {
     setRunning(true);
     setError(null);
@@ -125,16 +140,11 @@ export function AgentNegotiation() {
         data: {
           goal,
           catalog,
-          policy: {
-            agentId: "stylist-agent-01",
-            maxPerItemUsdc: 0.25,
-            dailyCapUsdc: 1.0,
-            confirmAboveUsdc: 0.05,
-            allowedCategories: ["sneakers", "headwear", "outerwear", "tops", "bottoms", "accessories"],
-          },
+          policy: SPEND_POLICY,
           turns: 5,
         },
       });
+
       setTranscript(result.transcript as ChatTurn[]);
       setFinalQuote(result.finalQuote);
       setNoDealReason(result.reason ?? "");
