@@ -49,10 +49,8 @@ export function AgentRunPanel({
         />
       )}
 
-      <div className="space-y-2">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Run ledger</p>
-        <RunLedger steps={steps} />
-      </div>
+      <RunLedger steps={steps} />
+
     </div>
   );
 }
