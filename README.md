@@ -293,6 +293,7 @@ A short, polished post-mortem covering both the hackathon sprint and the product
 - **Treat testnet like mainnet.** Decimals, gas limits, and receipts deserve the same rigor even when the tokens have no financial value.
 - **Keep the contract small.** `DanceMoveTokens.sol` stays under 100 lines, which makes verification, auditing, and explaining it to judges easier.
 - **Demo UX should be prose-first, JSON-second.** Judges are not parsers. Collapsing raw payloads behind toggles and leading with the Arcscan receipt made agent runs dramatically easier to follow.
+- **Keep the cart drawer focused on checkout.** Inlining the full transaction history pushed the checkout button below the fold and cluttered the UX. A compact "Recent settlements →" link to a dedicated `/judge` history page keeps the drawer scannable while the authoritative ledger lives on its own surface.
 
 ### What we would do differently next time
 
