@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useWallet } from "@/lib/wallet-context";
 import type { Address } from "viem";
 import { toast } from "sonner";
-import { Sparkles, Loader2, ShoppingCart, Send, RotateCcw } from "lucide-react";
+import { Sparkles, Loader2, ShoppingCart, Send, RotateCcw, Braces, ChevronRight } from "lucide-react";
 import { runNegotiation, type NegotiationTurn } from "@/lib/agent-negotiation.functions";
 import { AgentChatBubble, type ChatTurn } from "./AgentChatBubble";
 import { JsonBlock } from "./JsonBlock";
