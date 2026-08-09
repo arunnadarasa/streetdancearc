@@ -7,8 +7,6 @@ import {
   watchlist,
 } from "@/data/markets";
 import { Header } from "@/components/dance/Header";
-import { ModeSurface } from "@/components/gx/ModeSurface";
-import { useGxMode } from "@/lib/gx-mode";
 import { Reveal } from "@/components/layout/Reveal";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
