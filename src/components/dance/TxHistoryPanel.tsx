@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { CheckCircle2, Clock, Copy, ExternalLink, RefreshCw, Trash2, XCircle } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, Clock, Copy, ExternalLink, RefreshCw, Trash2, XCircle } from "lucide-react";
 import { formatAmount, TOKENS } from "@/lib/tokens";
 import { fetchTxStatuses } from "@/lib/tx-status.functions";
 import { setSettlementStatus, useTxLog, type TxEntry, type TxMode } from "@/lib/tx-log";
+
+const PAGE_SIZE = 10;
 
 const MODE_TINT: Record<TxMode, string> = {
   H2H: "border-primary/40 bg-primary/10 text-foreground",
@@ -70,8 +72,22 @@ export function TxHistoryPanel({
   const getStatuses = useServerFn(fetchTxStatuses);
   const [checking, setChecking] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
-  const rows = limit ? entries.slice(0, limit) : entries;
+  const totalPages = Math.max(1, Math.ceil(entries.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * PAGE_SIZE;
+  const end = start + PAGE_SIZE;
+
+  const rows = useMemo(() => {
+    if (limit) return entries.slice(0, limit);
+    return entries.slice(start, end);
+  }, [entries, limit, start, end]);
+
+  // Reset to first page when the data set shrinks or the filter changes.
+  useEffect(() => {
+    setPage(1);
+  }, [mode, entries.length]);
 
   const sync = useCallback(async () => {
     const pending = entries.filter((e) => e.status === "pending").map((e) => e.hash);
@@ -141,56 +157,96 @@ export function TxHistoryPanel({
           No settlements yet — buy something in the shop or run a mode.
         </p>
       ) : (
-        <ul className="mt-5 space-y-2.5">
-          {rows.map((e) => (
-            <li
-              key={e.hash}
-              className="min-w-0 rounded-2xl border border-border bg-background/50 p-3 sm:p-4"
-            >
-              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                <span
-                  className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black tracking-[0.14em] ${MODE_TINT[e.mode]}`}
-                >
-                  {e.mode}
-                </span>
-                <StatusChip status={e.status} />
-                <span className="text-[10px] text-muted-foreground">{ago(e.at)}</span>
-              </div>
+        <>
+          <ul className="mt-5 space-y-2.5">
+            {rows.map((e) => (
+              <li
+                key={e.hash}
+                className="min-w-0 rounded-2xl border border-border bg-background/50 p-3 sm:p-4"
+              >
+                <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                  <span
+                    className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black tracking-[0.14em] ${MODE_TINT[e.mode]}`}
+                  >
+                    {e.mode}
+                  </span>
+                  <StatusChip status={e.status} />
+                  <span className="text-[10px] text-muted-foreground">{ago(e.at)}</span>
+                </div>
 
-              <div className="mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-bold text-foreground">{e.label}</p>
-                  <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
-                    to {short(e.to)} · {short(e.hash)}
+                <div className="mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-foreground">{e.label}</p>
+                    <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
+                      to {short(e.to)} · {short(e.hash)}
+                    </p>
+                  </div>
+                  <p className="shrink-0 font-mono text-sm font-black text-foreground sm:text-right">
+                    {amountOf(e)}
                   </p>
                 </div>
-                <p className="shrink-0 font-mono text-sm font-black text-foreground sm:text-right">
-                  {amountOf(e)}
-                </p>
-              </div>
 
-              <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                <a
-                  href={e.explorer}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-foreground transition hover:bg-primary/20"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  Arcscan
-                </a>
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  <a
+                    href={e.explorer}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-foreground transition hover:bg-primary/20"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Arcscan
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => void copy(e.hash)}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-3 py-1.5 text-[11px] font-bold text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                    {copied === e.hash ? "Copied" : "Copy hash"}
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {!limit && totalPages > 1 && (
+            <div className="mt-5 flex flex-col items-center justify-between gap-3 sm:flex-row">
+              <p className="text-xs text-muted-foreground">
+                Showing {start + 1}–{Math.min(end, entries.length)} of {entries.length}
+              </p>
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
-                  onClick={() => void copy(e.hash)}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-3 py-1.5 text-[11px] font-bold text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={safePage <= 1}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background/60 text-foreground transition hover:bg-secondary disabled:opacity-40"
+                  aria-label="Previous page"
                 >
-                  <Copy className="h-3.5 w-3.5" />
-                  {copied === e.hash ? "Copied" : "Copy hash"}
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPage(p)}
+                    className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-bold transition ${p === safePage ? "bg-primary text-primary-foreground" : "border border-border bg-background/60 text-foreground hover:bg-secondary"}`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={safePage >= totalPages}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background/60 text-foreground transition hover:bg-secondary disabled:opacity-40"
+                  aria-label="Next page"
+                >
+                  <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
-            </li>
-          ))}
-        </ul>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
