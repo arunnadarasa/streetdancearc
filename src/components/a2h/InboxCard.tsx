@@ -285,18 +285,18 @@ export function InboxCard({
           {renewed?.onChainAuth ? <OnChainAuthRow auth={renewed.onChainAuth} /> : null}
           {claimed?.onChainAuth ? <OnChainAuthRow auth={claimed.onChainAuth} /> : null}
 
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {receipt && (
-              <a
+          {receipt && (
+            <div className="mt-3">
+              <ReceiptButton
                 href={receipt}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-foreground hover:bg-primary/20"
-              >
-                <BadgeCheck className="h-3.5 w-3.5 text-glow" />
-                {claimed ? "View claim on Arcscan" : "View receipt on Arcscan"}
-              </a>
-            )}
+                label={claimed ? "View claim on Arcscan" : "View receipt on Arcscan"}
+              />
+            </div>
+          )}
+
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+
+
 
             {msg.registryUrl && (
               <a
