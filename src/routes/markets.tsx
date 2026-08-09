@@ -237,8 +237,6 @@ function MarketsPage() {
         </Link>
       </div>
     </main>
-    </>
-    </ModeSurface>
     <SiteFooter />
     </div>
     </>
