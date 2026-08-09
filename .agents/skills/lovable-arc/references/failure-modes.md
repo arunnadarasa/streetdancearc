@@ -32,3 +32,8 @@
 | Seller agent refuses instead of countering | Prompt only gave it a list price | Render `listUsd` + `floorUsd` and forbid flat refusals — discount or substitute |
 | Quote total off by ~1e6 | LLM returned minor units, not decimals | Normalise + clamp in code; re-derive the charged total from the catalog |
 | Run ends with no quote and no explanation | No-deal outcome not modelled | Return `{ accepted: false, reason }` and render the reason next to the transcript |
+| Sticky header vanishes when a dropdown opens mid-scroll | Radix menus default to `modal`, setting `overflow:hidden` + `position:relative` on `<body>`, which breaks the sticky containing block | `modal={false}` on non-overlay menus (nav "More", currency toggle) |
+| Prefilled agent goal fails against live prices | Budget hardcoded in the goal string | Derive it from the catalog; dirty-flag the input so edits stick |
+| Run ledger reads as a wall of code | Every payload rendered expanded | Collapsible payloads + a summary bar with the receipt button |
+| Judges ask "did anything actually settle?" | No cross-mode transaction list | One shared client ledger written by every settlement path |
+

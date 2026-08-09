@@ -95,6 +95,13 @@ as a rounding error.
 12. **Any price an LLM emits is untrusted input.** Normalise minor-units vs
     decimals, clamp to `[floor, list]`, and re-derive the charged total from
     the catalog before it reaches a settlement path.
+13. **`modal={false}` on every Radix menu near sticky chrome.** Modal mode locks
+    `<body>` scroll and breaks a `sticky` header the moment the menu opens
+    mid-scroll. See `references/demo-ux.md`.
+14. **Every settlement path writes to one shared client ledger.** Add the
+    `record()` call in the same edit as the settlement itself. A judge needs one
+    list — across H2H/H2A/A2A/A2H — proving money moved, with Arcscan links and
+    confirmed/pending status from the Arcscan v2 API.
 
 ## Reference index
 
@@ -105,7 +112,9 @@ as a rounding error.
 | `references/contracts-and-verify.md` | solc pinning, Blockscout verify recipe, ERC-721 / ERC-2981 / ERC-1271 on Arc |
 | `references/payments-ux.md` | USDC/EURC/cirBTC toggle, decimals, FX, Privy approval-modal gotchas, treasury panel |
 | `references/agent-negotiation.md` | Two-agent buyer/seller loops that close: derived budgets, seller floors, final-turn rules, deterministic fallback, quote sanitising |
+| `references/demo-ux.md` | Judge-facing layer: collapsible run ledgers, cross-mode settlement list, catalog-derived prefills, Radix scroll-lock |
 | `references/failure-modes.md` | Full symptom → cause → fix table |
+
 
 
 ## What worked well (reuse these)
@@ -126,6 +135,11 @@ as a rounding error.
   content hash and can verify the pin matched.
 - **A human-readable error mapper** (`mapChainError`) between chain/Circle
   errors and UI copy. Retrofitting this late was the single biggest time sink.
+- **Run ledger = summary bar + collapsed payloads.** State chip, `n/total`
+  steps, one big "View receipt on Arcscan" button, payloads behind a
+  `payload · N fields` disclosure that auto-opens only on failures.
+- **A single cross-mode settlement list.** H2H, H2A, A2A and A2H all write to
+  one persisted client ledger; judges stop asking whether anything settled.
 
 ## What I'd do differently next time
 
@@ -140,6 +154,10 @@ as a rounding error.
 5. Build the **deterministic negotiation fallback before tuning any prompt**.
    Days went into prompt wording for a two-agent demo that a 15-line
    best-in-policy promotion fixed outright.
+6. Ship the **shared settlement ledger with the first settlement path**, not
+   after a reviewer asks where the transactions are. Retrofitting it meant
+   touching every mode's success handler at once.
+
 
 
 ## Success checkpoints
