@@ -282,6 +282,15 @@ export function CartDrawer() {
                     Settled {arcState.amount} — view receipt on Arcscan
                   </a>
                 )}
+
+                {settlements.length > 0 && (
+                  <TxHistoryPanel
+                    mode="H2H"
+                    limit={3}
+                    title="Recent Arc settlements"
+                    blurb="Your last shop payments on Arc Testnet."
+                  />
+                )}
                 {arcState.phase === "error" && (
                   <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-foreground">
                     {arcState.message}
