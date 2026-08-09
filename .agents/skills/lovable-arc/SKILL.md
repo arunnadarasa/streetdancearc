@@ -102,6 +102,11 @@ as a rounding error.
     `record()` call in the same edit as the settlement itself. A judge needs one
     list — across H2H/H2A/A2A/A2H — proving money moved, with Arcscan links and
     confirmed/pending status from the Arcscan v2 API.
+15. **Keep the cart drawer focused on checkout.** Do not inline transaction
+    history, settlement lists, or mode-switching chrome inside a cart drawer.
+    A compact link to the dedicated settlement surface (`/judge`, `/shop`, or a
+    standalone history page) keeps the checkout path short and the receipt
+    surface authoritative.
 
 ## Reference index
 
