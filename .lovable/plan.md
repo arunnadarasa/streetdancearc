@@ -1,10 +1,14 @@
 # Final submission copy
 
-The submission text is ready to paste into the Encode Club form. No app code changes are needed.
+The submission text is split into the two fields the form asks for. No app code changes are needed.
 
-## Submission Details
+## Project Description (short field)
 
-> StreetRail is a streetwear marketplace and dance-move rights registry built entirely on Circle's Arc Testnet, where USDC is the native gas token.
+> A streetwear marketplace and dance-move rights registry for street-dance culture. Dancers log original moves on-chain and buy physical merch — sneakers, jackets, caps — paid in USDC, EURC, or cirBTC on Circle's Arc Testnet.
+
+## Submission Details (long field)
+
+> StreetRail is built entirely on Circle's Arc Testnet, where USDC is the native gas token.
 >
 > **What we built.** Dancers log original moves on-chain (clip pinned to IPFS, CIDv1 computed client-side and verified before pinning), mint them as ERC-721 "Move Rights" with ERC-2981 royalties, and list them on a marketplace where royalties are paid atomically inside `buy()`. Alongside that, a physical merch shop (sneakers, snapbacks, jackets, caps) settles in USDC, EURC, or cirBTC via a global currency toggle backed by a live FX feed.
 >
@@ -21,7 +25,8 @@ The submission text is ready to paste into the Encode Club form. No app code cha
 ## Form fields
 
 - **Project Name:** DanceMove Tokens
-- **Project Description:** paste the block above
+- **Project Description:** paste the short block above
+- **Submission Details:** paste the long block above
 - **Project Image:** the existing StreetRail banner already uploaded
 - **Link to Code:** https://github.com/arunnadarasa/streetdancearc
 - **Live URL:** https://streetrail.lovable.app
@@ -31,4 +36,5 @@ The submission text is ready to paste into the Encode Club form. No app code cha
 ## Notes
 
 - No app code changes. Just copy/paste into the form.
+
 
