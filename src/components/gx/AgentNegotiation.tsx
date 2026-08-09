@@ -109,6 +109,7 @@ export function AgentNegotiation() {
     setReceipt(null);
     setTranscript([]);
     setFinalQuote(null);
+    setNoDealReason("");
     try {
       const result = await negotiate({
         data: {
@@ -121,11 +122,13 @@ export function AgentNegotiation() {
             confirmAboveUsdc: 0.05,
             allowedCategories: ["sneakers", "headwear", "outerwear", "tops", "bottoms", "accessories"],
           },
-          turns: 4,
+          turns: 5,
         },
       });
       setTranscript(result.transcript as ChatTurn[]);
       setFinalQuote(result.finalQuote);
+      setNoDealReason(result.reason ?? "");
+
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
