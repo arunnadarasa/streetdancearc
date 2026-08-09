@@ -40,12 +40,14 @@ export function AgentNegotiation() {
   const { authenticated, login, wallets } = useWallet();
   const [payToken] = usePayToken();
 
-  const [goal, setGoal] = useState("Buy a snapback cap under 0.03 in the selected stablecoin for practice sessions");
+  const [goal, setGoal] = useState("Buy a snapback cap in the selected stablecoin for practice sessions");
   const [products, setProducts] = useState<any[]>([]);
   const [loadingCatalog, setLoadingCatalog] = useState(true);
   const [running, setRunning] = useState(false);
   const [transcript, setTranscript] = useState<ChatTurn[]>([]);
   const [finalQuote, setFinalQuote] = useState<NegotiationTurn["quote"]>(null);
+  const [noDealReason, setNoDealReason] = useState<string>("");
+
   const [settling, setSettling] = useState(false);
   const [receipt, setReceipt] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -107,6 +109,7 @@ export function AgentNegotiation() {
     setReceipt(null);
     setTranscript([]);
     setFinalQuote(null);
+    setNoDealReason("");
     try {
       const result = await negotiate({
         data: {
@@ -119,11 +122,13 @@ export function AgentNegotiation() {
             confirmAboveUsdc: 0.05,
             allowedCategories: ["sneakers", "headwear", "outerwear", "tops", "bottoms", "accessories"],
           },
-          turns: 4,
+          turns: 5,
         },
       });
       setTranscript(result.transcript as ChatTurn[]);
       setFinalQuote(result.finalQuote);
+      setNoDealReason(result.reason ?? "");
+
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -311,9 +316,10 @@ export function AgentNegotiation() {
 
               {!finalQuote && (
                 <p className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-300">
-                  The agents did not reach a deal. Try a different goal or budget.
+                  No deal. {noDealReason || "Try a different goal or budget."}
                 </p>
               )}
+
             </section>
           )}
         </div>
