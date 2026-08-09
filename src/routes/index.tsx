@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
-import { PrivyRoot } from "@/components/PrivyRoot";
 import { Header } from "@/components/dance/Header";
 import { MoveRegistry } from "@/components/dance/MoveRegistry";
 import { FeaturedMerch } from "@/components/shop/FeaturedMerch";
@@ -67,11 +66,11 @@ const STEPS = [
 
 function Index() {
   useCartSync();
-  const { privyAppId, treasuryAddress } = Route.useLoaderData();
+  const { treasuryAddress } = Route.useLoaderData();
   const [mode] = useGxMode();
 
   return (
-    <PrivyRoot appId={privyAppId}>
+    <>
       <div className="min-h-screen bg-background text-foreground">
         <Header
           extra={mode === "h2h" ? <CartDrawer /> : undefined}
@@ -223,6 +222,6 @@ function Index() {
 
         <SiteFooter />
       </div>
-    </PrivyRoot>
+    </>
   );
 }

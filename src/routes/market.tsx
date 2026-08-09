@@ -1,14 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { PrivyRoot } from "@/components/PrivyRoot";
 import { Header } from "@/components/dance/Header";
 import { Section, SectionHead } from "@/components/layout/Section";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { MoveMarketPanel } from "@/components/market/MoveMarketPanel";
 import { MarketActivityPanel } from "@/components/market/MarketActivityPanel";
 
-import { getPublicConfig } from "@/lib/config.functions";
 
 const marketSearchSchema = z.object({
   q: fallback(z.string(), "").default(""),
@@ -20,7 +18,6 @@ const marketSearchSchema = z.object({
 
 export const Route = createFileRoute("/market")({
   validateSearch: zodValidator(marketSearchSchema),
-  loader: () => getPublicConfig(),
   head: () => ({
     meta: [
       { title: "Move Rights Market — Buy & Sell Choreography NFTs on Arc" },
@@ -42,10 +39,9 @@ export const Route = createFileRoute("/market")({
 });
 
 function MarketPage() {
-  const { privyAppId } = Route.useLoaderData();
 
   return (
-    <PrivyRoot appId={privyAppId}>
+    <>
       <div className="min-h-screen bg-background text-foreground">
         <Header />
         <Section tone="base" lines>
@@ -64,6 +60,6 @@ function MarketPage() {
         </Section>
         <SiteFooter />
       </div>
-    </PrivyRoot>
+    </>
   );
 }
