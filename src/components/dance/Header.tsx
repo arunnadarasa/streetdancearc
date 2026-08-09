@@ -13,7 +13,7 @@ import { PayTokenToggle } from "@/components/gx/PayTokenToggle";
 import { BalancePanel } from "@/components/wallet/BalancePanel";
 import { MobileDrawer } from "@/components/dance/MobileDrawer";
 import { ContractsSheet } from "@/components/dance/ContractsSheet";
-
+import { QuickContractLinks } from "@/components/dance/QuickContractLinks";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
