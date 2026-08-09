@@ -1,7 +1,13 @@
 import { lazy, Suspense, type ReactNode } from "react";
 import { ClientOnly } from "./ClientOnly";
 
-const PrivyClientEntry = lazy(() => import("./privy-client-entry"));
+const PrivyClientEntry = lazy(
+  () =>
+    import("./privy-client-entry").catch((err) => {
+      console.error("Failed to load Privy client entry; retrying once.", err);
+      return import("./privy-client-entry");
+    })
+);
 
 export function PrivyRoot({ children, appId }: { children: ReactNode; appId?: string }) {
   return (
@@ -12,3 +18,4 @@ export function PrivyRoot({ children, appId }: { children: ReactNode; appId?: st
     </ClientOnly>
   );
 }
+
