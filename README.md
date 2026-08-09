@@ -206,6 +206,7 @@ Testnet tokens have no financial value.
 | `/markets`           | FX-volatility research — why stablecoin rails matter in NGN/ARS/PHP markets |
 | `/primer`            | Web3 for dancers — concept cards + interactive glossary            |
 | `/deck`              | Interactive judges' slide deck (native React, mobile-friendly)     |
+| `/judge`             | Judge demo ledger — every Arc settlement across all four modes, with Arcscan links |
 
 ---
 
