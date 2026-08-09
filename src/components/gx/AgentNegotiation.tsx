@@ -380,29 +380,97 @@ export function AgentNegotiation() {
         </div>
 
         <div className="space-y-4 lg:sticky lg:top-28">
-          {finalQuote && (
-            <div className="rounded-2xl border border-primary/30 bg-primary/10 p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-stretch">
+          <section
+            ref={dealRef}
+            className={`space-y-3 rounded-2xl border p-5 ${
+              receipt
+                ? "border-green-500/40 bg-green-500/5"
+                : finalQuote
+                  ? "border-primary/30 bg-primary/10"
+                  : "border-dashed border-border bg-card/40"
+            }`}
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${
+                  receipt
+                    ? "border-green-500/50 bg-green-500/10 text-green-300"
+                    : finalQuote
+                      ? "border-primary/50 bg-primary/15 text-foreground"
+                      : running
+                        ? "border-glow/50 bg-glow/10 text-glow"
+                        : "border-border bg-background/60 text-muted-foreground"
+                }`}
+              >
+                {running && <Loader2 className="h-3 w-3 animate-spin" />}
+                {receipt
+                  ? "Settled on Arc"
+                  : finalQuote
+                    ? "Deal agreed"
+                    : running
+                      ? "Agents negotiating"
+                      : "No deal yet"}
+              </span>
+              {receipt && (
+                <button
+                  type="button"
+                  onClick={() => setRawReceipt((v) => !v)}
+                  aria-pressed={rawReceipt}
+                  className={`ml-auto inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${
+                    rawReceipt
+                      ? "border-glow/50 bg-glow/10 text-foreground"
+                      : "border-border bg-background/60 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  }`}
+                >
+                  <Braces className="h-3.5 w-3.5" />
+                  {rawReceipt ? "Hide raw JSON" : "Raw JSON"}
+                </button>
+              )}
+            </div>
+
+            {finalQuote ? (
+              <>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-glow">Final deal</p>
                   <p className="text-sm font-bold text-foreground">
-                    {finalQuote.quantity} × {finalQuote.title} @ {(finalQuote.unitPriceUsdc * getTokenUsdRate(payToken, fx)).toFixed(6)} {payToken}
+                    {finalQuote.quantity} × {finalQuote.title} @{" "}
+                    {(finalQuote.unitPriceUsdc * getTokenUsdRate(payToken, fx)).toFixed(6)} {payToken}
                   </p>
                   <p className="text-lg font-black text-foreground">
                     {(finalQuote.totalUsdc * getTokenUsdRate(payToken, fx)).toFixed(6)} {payToken}
                   </p>
                 </div>
-                <button
-                  onClick={onSettle}
-                  disabled={settling}
-                  className="lift flex items-center justify-center gap-2 rounded-full bg-glow px-6 py-3 text-sm font-black text-glow-foreground disabled:opacity-50"
-                >
-                  {settling ? <Loader2 className="animate-spin" size={16} /> : <ShoppingCart size={16} />}
-                  {settling ? "Settling on Arc…" : authenticated ? "Settle on Arc" : "Sign in to settle"}
-                </button>
+                {!receipt && (
+                  <button
+                    onClick={onSettle}
+                    disabled={settling}
+                    className="lift flex w-full items-center justify-center gap-2 rounded-full bg-glow px-6 py-3 text-sm font-black text-glow-foreground disabled:opacity-50"
+                  >
+                    {settling ? <Loader2 className="animate-spin" size={16} /> : <ShoppingCart size={16} />}
+                    {settling ? "Settling on Arc…" : authenticated ? "Settle on Arc" : "Sign in to settle"}
+                  </button>
+                )}
+              </>
+            ) : (
+              <p className="text-xs leading-relaxed text-muted-foreground/80">
+                Run the agents, then settle the deal — the Arc transaction receipt appears right here and
+                stays pinned while you scroll the transcript.
+              </p>
+            )}
+
+            {receipt && (
+              <div className="space-y-3">
+                {explorerUrl(receipt) && <ReceiptButton href={explorerUrl(receipt)!} />}
+                <JsonBlock
+                  key={rawReceipt ? "open" : "closed"}
+                  label="fulfilment object"
+                  value={receipt}
+                  tone="green"
+                  collapsible
+                  defaultOpen={rawReceipt}
+                />
               </div>
-            </div>
-          )}
+            )}
+          </section>
 
           {nanoNote && (
             <p className="rounded-xl border border-glow/30 bg-glow/5 px-4 py-3 text-[11px] leading-relaxed text-glow">
@@ -410,39 +478,19 @@ export function AgentNegotiation() {
             </p>
           )}
 
-          <DiscoveryPanel />
-
-          <CircleRailsPanel />
-
-
-
-          {receipt ? (
-            <section className="space-y-3 rounded-2xl border border-green-500/30 bg-green-500/5 p-5">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-green-400">On-chain receipt</p>
-              {explorerUrl(receipt) && (
-                <a
-                  href={explorerUrl(receipt)!}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="lift inline-flex items-center gap-2 rounded-full bg-glow px-5 py-2.5 text-xs font-black text-glow-foreground"
-                >
-                  View transaction on Arcscan →
-                </a>
-              )}
-              <JsonBlock label="fulfilment object" value={receipt} tone="green" />
-            </section>
-          ) : (
-            <section className="hidden rounded-2xl border border-dashed border-border bg-card/40 p-5 lg:block">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                On-chain receipt
-              </p>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground/80">
-                Run the agents, then settle the deal — the Arc transaction receipt appears here and stays
-                pinned while you scroll the transcript.
-              </p>
-            </section>
-          )}
+          <div className="space-y-3 rounded-2xl border border-border bg-card/50 p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">
+              Under the hood
+            </p>
+            <Disclosure label="Agent marketplace discovery" defaultOpen={!finalQuote && !receipt}>
+              <DiscoveryPanel />
+            </Disclosure>
+            <Disclosure label="Circle rails">
+              <CircleRailsPanel />
+            </Disclosure>
+          </div>
         </div>
+
       </div>
     </div>
   );
