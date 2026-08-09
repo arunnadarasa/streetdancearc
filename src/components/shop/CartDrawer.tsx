@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   Sheet,
   SheetContent,
@@ -9,7 +10,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Minus, Plus, Trash2, ExternalLink, Loader2, Zap } from "lucide-react";
+import { ShoppingCart, Minus, Plus, Trash2, ExternalLink, Loader2, Zap, History } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
 import { usePayToken } from "@/lib/pay-token";
 import { useWallet } from "@/lib/wallet-context";
@@ -21,8 +22,7 @@ import { getPublicConfig } from "@/lib/config.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchFxRates } from "@/lib/fx.functions";
 import { LiveTotalCalculator } from "@/components/fx/LiveTotalCalculator";
-import { recordSettlement, useTxLog } from "@/lib/tx-log";
-import { TxHistoryPanel } from "@/components/dance/TxHistoryPanel";
+import { recordSettlement } from "@/lib/tx-log";
 
 
 export function CartDrawer() {
