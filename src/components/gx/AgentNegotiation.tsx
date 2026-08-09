@@ -282,7 +282,10 @@ export function AgentNegotiation() {
               <div className="mt-2 flex gap-2">
                 <input
                   value={goal}
-                  onChange={(e) => setGoal(e.target.value)}
+                  onChange={(e) => {
+                    goalDirty.current = true;
+                    setGoal(e.target.value);
+                  }}
                   disabled={running}
                   className="flex-1 rounded-xl border border-border bg-background/60 px-4 py-3 text-sm text-foreground outline-none focus:border-primary"
                   placeholder="What should the buyer agent look for?"
@@ -296,7 +299,27 @@ export function AgentNegotiation() {
                   <span className="hidden sm:inline">{running ? "Negotiating…" : "Run agents"}</span>
                 </button>
               </div>
+              {recommendedBudget !== null && (
+                <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
+                  <span>
+                    Recommended budget {displayBudget(recommendedBudget)} USDC — derived from the live catalog
+                  </span>
+                  {suggestedGoal && goal !== suggestedGoal && !running && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        goalDirty.current = false;
+                        setGoal(suggestedGoal);
+                      }}
+                      className="font-bold text-primary underline underline-offset-2"
+                    >
+                      Reset to recommended
+                    </button>
+                  )}
+                </p>
+              )}
             </div>
+
 
             {loadingCatalog && (
               <p className="flex items-center gap-2 text-xs text-muted-foreground">
