@@ -131,7 +131,7 @@ export async function readOnChainMetrics(): Promise<OnChainMetrics> {
     },
     {
       key: "usdc",
-      value: usdcSettled === null ? null : `${usdcSettled.toFixed(4)}`,
+      value: usdcSettled === null ? null : `${usdcSettled.toFixed(2)}`,
       label: "USDC settled through the rail",
       href: `${EXPLORER}/address/${registry.address}`,
     },
