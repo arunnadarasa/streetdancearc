@@ -36,17 +36,27 @@ function categoryForTitle(title: string): string {
 
 }
 
+const SPEND_POLICY = {
+  agentId: "stylist-agent-01",
+  maxPerItemUsdc: 0.25,
+  dailyCapUsdc: 1.0,
+  confirmAboveUsdc: 0.05,
+  allowedCategories: ["sneakers", "headwear", "outerwear", "tops", "bottoms", "accessories"],
+};
+
 export function AgentNegotiation() {
   const { authenticated, login, wallets } = useWallet();
   const [payToken] = usePayToken();
 
   const [goal, setGoal] = useState("Buy a snapback cap in the selected stablecoin for practice sessions");
+  const goalDirty = useRef(false);
   const [products, setProducts] = useState<any[]>([]);
   const [loadingCatalog, setLoadingCatalog] = useState(true);
   const [running, setRunning] = useState(false);
   const [transcript, setTranscript] = useState<ChatTurn[]>([]);
   const [finalQuote, setFinalQuote] = useState<NegotiationTurn["quote"]>(null);
   const [noDealReason, setNoDealReason] = useState<string>("");
+
 
   const [settling, setSettling] = useState(false);
   const [receipt, setReceipt] = useState<Record<string, unknown> | null>(null);
