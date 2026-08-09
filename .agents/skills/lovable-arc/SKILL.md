@@ -137,6 +137,10 @@ as a rounding error.
    balance, and a `lowGas` warning. Payout failures otherwise look like bugs.
 4. Sketch the **multi-token decimal matrix** (6/6/8) once, in one `TOKENS`
    table, instead of discovering cirBTC's 8 decimals via a wrong balance.
+5. Build the **deterministic negotiation fallback before tuning any prompt**.
+   Days went into prompt wording for a two-agent demo that a 15-line
+   best-in-policy promotion fixed outright.
+
 
 ## Success checkpoints
 
