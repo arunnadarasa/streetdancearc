@@ -1,13 +1,9 @@
-// Server-only Circle developer-controlled wallet client.
-//
-// The Rights Agent uses this to move value from the funded Arc treasury wallet
-// WITHOUT the human signing anything — that is the whole point of A2H.
-//
-// Every request re-encrypts the entity secret against a freshly fetched Circle
-// public key; Circle rejects reused ciphertext.
+// Legacy Circle SCP client — StreetRail now settles on Midnight Undeployed.
+// Kept only so older A2H helpers can soft-fail with simulated: true envelopes
+// instead of crashing the Worker when Circle secrets are absent.
 
 const API = "https://api.circle.com/v1/w3s";
-const BLOCKCHAIN = "ARC-TESTNET";
+const BLOCKCHAIN = "DISABLED-MIDNIGHT-PIVOT";
 
 export interface CircleTx {
   id: string;
@@ -114,15 +110,27 @@ export async function waitForTx(id: string, timeoutMs = 90_000): Promise<CircleT
   throw new Error(`circle_tx_timeout:${last.state}`);
 }
 
+function circleConfigured(): boolean {
+  return Boolean(
+    process.env["CIRCLE_API_KEY"] &&
+      process.env["CIRCLE_ENTITY_SECRET"] &&
+      process.env["CIRCLE_TREASURY_WALLET_ID"],
+  );
+}
+
+const MIDNIGHT_SOFT =
+  "Arc/Circle treasury disabled — use Midnight MoveRegistry / mUSDC rails (append-entry, musdc-transfer).";
+
 /**
  * Send value from the treasury wallet.
- * `tokenAddress` is omitted for Arc's native gas token (USDC).
+ * Soft-fails when Circle secrets are absent (Midnight pivot).
  */
 export async function treasuryTransfer(params: {
   to: string;
   amount: string;
   tokenAddress?: string;
 }): Promise<CircleTx> {
+  if (!circleConfigured()) throw new Error(MIDNIGHT_SOFT);
   const body: Record<string, unknown> = {
     destinationAddress: params.to,
     amounts: [params.amount],
@@ -139,6 +147,7 @@ export async function treasuryContractCall(params: {
   abiFunctionSignature: string;
   abiParameters: unknown[];
 }): Promise<CircleTx> {
+  if (!circleConfigured()) throw new Error(MIDNIGHT_SOFT);
   const tx = await post("/developer/transactions/contractExecution", {
     contractAddress: params.contractAddress,
     abiFunctionSignature: params.abiFunctionSignature,

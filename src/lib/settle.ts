@@ -1,90 +1,62 @@
-import { createPublicClient, createWalletClient, custom, encodeFunctionData, http, type Address, type EIP1193Provider } from "viem";
-import { arcTestnet } from "@/lib/arc-chain";
-import { ARC_EXPLORER, TOKENS, type TokenKey } from "@/lib/tokens";
-
-const ERC20_TRANSFER_ABI = [
-  {
-    type: "function",
-    name: "transfer",
-    stateMutability: "nonpayable",
-    inputs: [
-      { name: "to", type: "address" },
-      { name: "value", type: "uint256" },
-    ],
-    outputs: [{ name: "", type: "bool" }],
-  },
-] as const;
+import type { TokenKey } from "@/lib/tokens";
+import { INDEXER_URL, txExplorerUrl } from "@/lib/tokens";
+import { settleViaX402Facilitator } from "@/lib/x402-client";
 
 export interface SettleResult {
-  hash: `0x${string}`;
-  from: Address;
-  to: Address;
+  hash: `0x${string}` | string;
+  from: string;
+  to: string;
   token: TokenKey;
   atomic: string;
   explorer: string;
+  simulated?: boolean;
+  network?: string;
+  /** Base64 x402 v2 PAYMENT-SIGNATURE used for the settle (for purchase retry). */
+  paymentSignature?: string;
+  nonce?: string;
 }
 
 interface EmbeddedWallet {
   address: string;
-  getEthereumProvider: () => Promise<unknown>;
-  switchChain: (id: number) => Promise<void>;
+  getEthereumProvider?: () => Promise<unknown>;
+  switchChain?: (id: number) => Promise<void>;
 }
 
 /**
- * One settlement path for H2H, H2A and A2A.
- *
- * USDC is Arc's gas token, so paying in USDC is a native value transfer.
- * EURC and cirBTC are ERC-20s, so those become a real transfer(to, amount)
- * call against the token contract. Both produce a real Arc transaction.
+ * Settle H2H / H2A / A2A on Midnight Undeployed via x402 facilitator
+ * (challenge → verify → settle / genesis server-append mUSDC).
  */
-export async function settleOnArc(
-  wallet: EmbeddedWallet,
+export async function settleOnMidnight(
+  wallet: EmbeddedWallet | null | undefined,
   token: TokenKey,
-  to: Address,
+  to: string,
   atomic: bigint,
+  memo?: string,
 ): Promise<SettleResult> {
-  const cfg = TOKENS[token];
-  const provider = (await wallet.getEthereumProvider()) as EIP1193Provider;
-  await wallet.switchChain(arcTestnet.id);
-  const from = wallet.address as Address;
-
-  const walletClient = createWalletClient({
-    account: from,
-    chain: arcTestnet,
-    transport: custom(provider),
+  const settled = await settleViaX402Facilitator({
+    amountAtomic: atomic,
+    payTo: to && to.length >= 64 && !to.includes(":") ? to : undefined,
+    memo: memo ?? `streetrail-settle:${token}`,
+    from: wallet?.address,
   });
-  const publicClient = createPublicClient({ chain: arcTestnet, transport: http() });
-
-  const hash = cfg.native
-    ? await walletClient.sendTransaction({ to, value: atomic, chain: arcTestnet })
-    : await walletClient.sendTransaction({
-        to: cfg.address as Address,
-        data: encodeFunctionData({
-          abi: ERC20_TRANSFER_ABI,
-          functionName: "transfer",
-          args: [to, atomic],
-        }),
-        chain: arcTestnet,
-      });
-
-  const receipt = await publicClient.waitForTransactionReceipt({ hash });
-  if (receipt.status !== "success") {
-    throw new Error(`Transfer reverted on Arc (${hash}).`);
-  }
 
   return {
-    hash,
-    from,
-    to,
+    hash: settled.hash,
+    from: settled.from,
+    to: settled.to,
     token,
-    atomic: atomic.toString(),
-    explorer: `${ARC_EXPLORER}/tx/${hash}`,
+    atomic: settled.atomic,
+    explorer: txExplorerUrl(settled.hash),
+    simulated: settled.simulated,
+    network: settled.network || "undeployed",
+    paymentSignature: settled.paymentSignature,
+    nonce: settled.nonce,
   };
 }
 
-/** How the settlement is described in receipts and step logs. */
+/** @deprecated alias — Arc settlement replaced by Midnight Undeployed mUSDC */
+export const settleOnArc = settleOnMidnight;
+
 export function settlementNote(token: TokenKey): string {
-  return TOKENS[token].native
-    ? "USDC is the gas token on Arc, so one native transfer settles the order."
-    : `${TOKENS[token].symbol} is an ERC-20 on Arc, so settlement is a transfer() call — gas is still paid in USDC.`;
+  return `Settles as experimental mUSDC on Midnight Undeployed (priced as ${token}). Indexer: ${INDEXER_URL}`;
 }

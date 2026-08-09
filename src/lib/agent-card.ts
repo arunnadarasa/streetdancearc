@@ -1,12 +1,19 @@
 // Shared A2A-style Agent Card for the StreetRail storefront agent.
-// Imported by the public discovery route (server) and the GX UI (client).
 
 export const AGENT_NAME = "streetrail-storefront";
-export const DEMO_SCALE = 0.001; // testnet settles 1/1000 of the listed price
+export const DEMO_SCALE = 0.001;
 
-export const ARC_CAIP2 = "eip155:5042002";
-export const USDC_ARC = "0x3600000000000000000000000000000000000000";
-export const RIGHTS_REGISTRY = "0x4d13b45f823f8944522890c20d8695b6005465f0";
+export const MIDNIGHT_NETWORK = "midnight:undeployed";
+export const MUSDC_ASSET = "midnight:musdc";
+export const RIGHTS_REGISTRY =
+  (typeof import.meta !== "undefined" &&
+    (import.meta as { env?: { VITE_DEFAULT_CONTRACT?: string } }).env?.VITE_DEFAULT_CONTRACT) ||
+  "undeployed-move-registry";
+
+/** @deprecated */
+export const ARC_CAIP2 = MIDNIGHT_NETWORK;
+/** @deprecated */
+export const USDC_ARC = MUSDC_ASSET;
 
 export interface AgentCard {
   protocolVersion: string;
@@ -45,14 +52,18 @@ export interface AgentCard {
 }
 
 export function buildAgentCard(origin: string, payTo: string): AgentCard {
+  const indexer =
+    (typeof import.meta !== "undefined" &&
+      (import.meta as { env?: { VITE_INDEXER_URL?: string } }).env?.VITE_INDEXER_URL) ||
+    "http://localhost:8088/api/v4/graphql";
   return {
     protocolVersion: "0.3.0",
     name: AGENT_NAME,
     description:
-      "Street dance streetwear storefront. Exposes the live catalog as typed offers and settles orders in USDC on Circle's Arc Testnet over an x402-style payment challenge. Every purchase can carry a pointer to the choreographer's on-chain move-rights record.",
+      "Street dance streetwear storefront on Midnight Local Undeployed. Settles experimental mUSDC via x402-style challenges and anchors move rights on a Compact MoveRegistry.",
     url: `${origin}/api/public/agent-card`,
     provider: { organization: "StreetKode Fam", url: origin },
-    version: "1.0.0",
+    version: "2.0.0-midnight",
     capabilities: { streaming: false, pushNotifications: false, stateTransitionHistory: true },
     defaultInputModes: ["application/json"],
     defaultOutputModes: ["application/json"],
@@ -69,7 +80,7 @@ export function buildAgentCard(origin: string, payTo: string): AgentCard {
         id: "quote",
         name: "Quote an order",
         description:
-          "Request a purchase without payment. Returns HTTP 402 carrying the payment requirement (amount, asset, payTo, chain, nonce).",
+          "Request a purchase without payment. Returns HTTP 402 carrying the midnight-mUSDC payment requirement.",
         tags: ["commerce", "x402", "quote"],
         endpoint: { method: "POST", path: "/api/public/purchase" },
       },
@@ -77,34 +88,34 @@ export function buildAgentCard(origin: string, payTo: string): AgentCard {
         id: "purchase",
         name: "Purchase",
         description:
-          "Re-send the order with an X-PAYMENT header carrying the Arc transaction hash. The server verifies the transfer on-chain before releasing the fulfilment object.",
-        tags: ["commerce", "x402", "settlement", "usdc"],
+          "Settle via POST /api/public/musdc-transfer (Undeployed server-append) and return fulfilment.",
+        tags: ["commerce", "x402", "settlement", "musdc", "midnight"],
         endpoint: { method: "POST", path: "/api/public/purchase" },
       },
     ],
     extensions: {
       payments: {
         protocol: "x402-style challenge/settle/verify",
-        schemes: ["exact"],
-        networks: [ARC_CAIP2],
+        schemes: ["midnight-mUSDC"],
+        networks: [MIDNIGHT_NETWORK],
         assets: [
           {
-            symbol: "USDC",
-            address: USDC_ARC,
+            symbol: "mUSDC",
+            address: MUSDC_ASSET,
             decimals: 6,
-            caip19: `${ARC_CAIP2}/slip44:60`,
+            caip19: `${MIDNIGHT_NETWORK}/musdc`,
           },
         ],
         payTo,
         demoScale: DEMO_SCALE,
-        gasToken: "USDC",
+        gasToken: "tDUST",
       },
       rights: {
         registry: RIGHTS_REGISTRY,
-        chain: ARC_CAIP2,
-        explorer: `https://testnet.arcscan.app/address/${RIGHTS_REGISTRY}`,
+        chain: MIDNIGHT_NETWORK,
+        explorer: indexer,
         description:
-          "DanceMoveTokens — the move-rights registry. An offer's provenance pointer resolves to a log() event naming the choreographer and the IPFS rights CID.",
+          "MoveRegistry Compact contract — appendEntry discloses a CID/message and author commitment.",
       },
     },
   };

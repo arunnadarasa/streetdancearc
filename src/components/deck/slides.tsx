@@ -7,7 +7,7 @@ const CHERRY = "#E63946";
 function Chrome({ n, total = 19 }: { n: number; total?: number }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden items-center justify-between px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground sm:flex sm:px-6 sm:py-3 sm:text-xs">
-      <span>StreetRail · Arc Testnet</span>
+      <span>StreetRail · Midnight Undeployed</span>
       <span>
         {n} / {total}
       </span>
@@ -51,14 +51,7 @@ function SlideTitle() {
     <Slide n={1} bg="bg-background">
       <div className="flex h-full flex-col justify-between">
         <Kicker>
-          <a
-            href="https://www.encodeclub.com/programmes/arc-hackathon"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:underline"
-          >
-            Encode Club · Programmable Money Hackathon · Build on Arc
-          </a>
+          Midnight Local Undeployed · Compact · experimental mUSDC
         </Kicker>
         <div>
           <h2 className="text-4xl font-black leading-[0.9] tracking-tight sm:text-6xl md:text-7xl">
@@ -67,14 +60,14 @@ function SlideTitle() {
             <span style={{ color: GREEN }}>Rail.</span>
           </h2>
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:mt-5 sm:text-lg">
-            Streetwear checkout and dance-move royalties, settled in stablecoins on Circle's Arc —
-            where a $0.001 payment is worth making because gas is a rounding error and paid in the
-            same asset.
+            Streetwear checkout and dance-move rights, settled with experimental mUSDC on Midnight
+            Local Undeployed — Compact circuits keep witnesses private, genesis server-append lands
+            real ledger txs, and the local indexer is the receipt.
           </p>
 
         </div>
         <div className="flex flex-wrap gap-1.5 text-[10px] font-bold sm:gap-2 sm:text-xs">
-          {["H2H · H2A · A2A", "USDC gas", "EURC + cirBTC", "Privy · Google login", "Verified on Arcscan"].map(
+          {["H2H · H2A · A2A · A2H", "mUSDC settle", "x402 · AP2 · UCP", "Lace / server-append", "Indexer receipt"].map(
             (t) => (
               <span
                 key={t}
@@ -154,7 +147,7 @@ function SlideInsight() {
             log(token, amount, cid)
           </p>
           <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-            One call. Immutable. Priced in USDC / EURC / cirBTC. Arcscan is the receipt.
+            One Compact call. Immutable. Priced in experimental mUSDC. The indexer is the receipt.
           </p>
         </div>
       </div>
@@ -163,24 +156,24 @@ function SlideInsight() {
 }
 
 // 4
-function SlideWhyArc() {
+function SlideWhyMidnight() {
   const rows: Array<{ rail: string; gas: string; verdict: string; color: string }> = [
-    { rail: "Ethereum L1", gas: "~$1\u20135", verdict: "Fee is 1,000\u20135,000\u00d7 the payment. Impossible.", color: CHERRY },
-    { rail: "Typical L2", gas: "~$0.005\u20130.05", verdict: "Fee still exceeds the payment. Needs batching plus a separate gas asset.", color: "#f59e0b" },
-    { rail: "Arc Testnet", gas: "Fractions of a cent, in USDC", verdict: "Fee is a slice of the payment, in the same asset.", color: GREEN },
+    { rail: "Public L1", gas: "Full disclosure", verdict: "Every CID, buyer, and mandate is public forever.", color: CHERRY },
+    { rail: "Typical L2 + escrow", gas: "Cheaper, transparent", verdict: "Agents still leak spend policy and identity on-chain.", color: "#f59e0b" },
+    { rail: "Midnight Undeployed", gas: "tDUST · ZK circuits", verdict: "Witnesses stay private; only disclose() lands on the ledger.", color: GREEN },
   ];
   return (
     <Slide n={4}>
-      <Kicker>Why Arc</Kicker>
+      <Kicker>Why Midnight</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
-        A $0.001 royalty only works where
+        Agentic commerce needs
         <br />
-        <span style={{ color: GREEN }}>gas is a rounding error.</span>
+        <span style={{ color: GREEN }}>privacy by default.</span>
       </h3>
       <p className="mt-3 max-w-3xl text-xs text-muted-foreground sm:text-sm">
-        StreetRail pays choreographers $0.001 per play and batches accruals off-chain until they
-        clear $0.50. That unit economics only survives where the fee is a fraction of the payment —
-        and the same asset as the payment.
+        StreetRail anchors move CIDs, AP2 mandates, UCP orders, and experimental mUSDC transfers on
+        Midnight Local Undeployed. Circuit inputs stay private unless Compact calls disclose() —
+        and Undeployed writes use the genesis wallet so demos don&apos;t depend on Lace signing.
       </p>
       <div className="mt-auto divide-y divide-border rounded-xl border border-border">
         {rows.map((r) => (
@@ -192,8 +185,8 @@ function SlideWhyArc() {
         ))}
       </div>
       <p className="mt-3 text-[10px] text-muted-foreground sm:text-xs">
-        Gas figures are illustrative orders of magnitude from public fee trackers, not measured
-        benchmarks. On Arc, USDC is the gas token — no second asset to bridge or top up.
+        Local stack: midnight-node 0.22.5 · indexer-standalone 4.0.2 · proof-server 8.0.3. Verify
+        anchors with GraphQL against the indexer — not a simulated tx hash.
       </p>
     </Slide>
   );
@@ -228,8 +221,8 @@ function SlideWhatWeBuilt() {
             Streetwear Shop
           </div>
           <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-            Sneakers, snapbacks, jackets. Checkout in USDC, EURC, or cirBTC via Circle
-            App Kits.
+            Sneakers, snapbacks, jackets. Checkout settles experimental mUSDC via the
+            x402 facilitator on Undeployed.
           </p>
         </div>
       </div>
@@ -244,7 +237,7 @@ function SlideInterfaces() {
       tag: "H2H",
       title: "Human to human",
       body: "The shop you already know.",
-      points: ["Browse, cart, checkout", "Privy Google login", "USDC / EURC / cirBTC pay"],
+      points: ["Browse, cart, checkout", "Connect Lace / server-append", "mUSDC x402 settle"],
     },
     {
       tag: "H2A",
@@ -294,7 +287,7 @@ function SlideInterfaces() {
       </div>
       <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
         All four are live in the app behind one toggle — H2H / H2A / A2A / A2H — and settle to the
-        same contract on Arc Testnet, in stablecoins.
+        same Compact MoveRegistry on Midnight Undeployed, in experimental mUSDC.
       </p>
 
     </Slide>
@@ -340,11 +333,10 @@ function SlideA2h() {
         })}
       </div>
       <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
-        In StreetRail the Rights Agent pays the choreographer in USDC the moment a move earns,
-        pauses when the payout breaks the AP2 mandate, and drops an Arcscan receipt in a payout
-        inbox. It also pushes limited-time merch offers that users can claim on-chain — agent-side
-        receipt, no user gas, discount applied at checkout. Every mandate carries an on-chain
-        authorization block; renewing it extends both the Ed25519 mandate and the contract approval.
+        In StreetRail the Rights Agent can pay when a move earns, pause when the payout breaks the
+        AP2 mandate, and drop an indexer-linked receipt in a payout inbox. Merch offers can still
+        be claimed with a signed mandate; settlement on Undeployed uses genesis server-append so the
+        demo doesn&apos;t depend on browser wallet signing for every write.
       </p>
     </Slide>
   );
@@ -354,15 +346,15 @@ function SlideA2h() {
 // 6
 function SlideLive() {
   const stats = [
-    { k: "5042002", v: "Arc Testnet chain id" },
-    { k: "0.8.24", v: "solc, verified on Arcscan" },
-    { k: "6", v: "decimals — USDC is gas" },
+    { k: "undeployed", v: "Midnight network id" },
+    { k: "0.23", v: "Compact language pragma" },
+    { k: "4", v: "Compact contracts deployed" },
   ];
   return (
     <Slide n={8}>
-      <Kicker>Live on Arc</Kicker>
+      <Kicker>Live on Midnight Undeployed</Kicker>
       <h3 className="mt-2 text-2xl font-black leading-tight sm:text-4xl md:text-5xl">
-        Shipped. Deployed. <span style={{ color: GREEN }}>Verified.</span>
+        Compiled. Deployed. <span style={{ color: GREEN }}>Indexed.</span>
       </h3>
       <div className="mt-4 grid gap-2 sm:mt-6 sm:grid-cols-3 sm:gap-4">
         {stats.map((s) => (
@@ -377,24 +369,24 @@ function SlideLive() {
       <div className="mt-auto grid gap-2 sm:grid-cols-2 sm:gap-4">
         {[
           {
-            name: "DanceMoveTokens.sol",
-            addr: "0x4d13b45f823f8944522890c20d8695b6005465f0",
-            note: "Move + purchase log · USDC · EURC · cirBTC",
+            name: "MoveRegistry.compact",
+            addr: "67656a55…64787",
+            note: "appendEntry · CID + author commitment",
           },
           {
-            name: "StreetRailAuthorizer.sol",
-            addr: "0x0519c703cde7cbff6829fdfdcfe8c9a4c7aac327",
-            note: "ERC-1271 authorization · owner is the treasury wallet",
+            name: "MandateVault.compact",
+            addr: "8e98a46e…64ab6",
+            note: "AP2 CartMandate anchors · ap2:buyer:v1",
           },
           {
-            name: "MoveMarket.sol",
-            addr: "0x5b00367612ef4533e89ed9547dd4c2f3080f783e",
-            note: "Non-custodial resale · ERC-2981 royalties · USDC · EURC · cirBTC",
+            name: "OrderLedger.compact",
+            addr: "0cbe58c9…bf786",
+            note: "UCP order recorder · merchant key fpr",
           },
           {
-            name: "Move Rights (ERC-721)",
-            addr: "0x84546970f5265f31ae1523a1e3bf18938670702f",
-            note: "Circle SCP template · clip evidence on IPFS",
+            name: "MidnightUSDC.compact",
+            addr: "7e520256…8c472",
+            note: "Experimental mUSDC · faucet + transfer + spent nonces",
           },
         ].map((c) => (
           <div key={c.name} className="rounded-xl border border-border bg-background p-3 sm:p-5">
@@ -407,8 +399,8 @@ function SlideLive() {
         ))}
       </div>
       <p className="mt-3 text-[11px] text-muted-foreground sm:text-sm">
-        Custom contracts verified on Arcscan. Live wallet balances, agent discovery and payout receipts read
-        straight off Arc — nothing in the demo is mocked.
+        Addresses refresh after each Undeployed redeploy. Verify with GraphQL against
+        localhost:8088 — real ContractCall rows, not simulated hashes.
       </p>
     </Slide>
   );
@@ -420,8 +412,8 @@ function SlideAgent() {
     ["Intent", '"Buy a size L snapback under 25 USDC."'],
     ["Policy", "Per-item cap, daily cap, confirm threshold."],
     ["Interrupt", "Above the threshold the human approves first."],
-    ["Pay", "Agent signs USDC / EURC / cirBTC from treasury."],
-    ["Ledger", "Every step logged, Arcscan tx as the receipt."],
+    ["Pay", "x402 facilitator settles experimental mUSDC (server-append)."],
+    ["Ledger", "Every step logged; indexer tx hash is the receipt."],
   ];
   return (
     <Slide n={9}>
@@ -446,7 +438,7 @@ function SlideAgent() {
         ))}
       </div>
       <p className="mt-auto text-xs text-muted-foreground sm:text-sm">
-        Autonomous spending in USDC · decision logic in the agent, not the UI.
+        Autonomous spending in experimental mUSDC · decision logic in the agent, not the UI.
       </p>
     </Slide>
   );
@@ -459,7 +451,7 @@ function SlideProtocolStack() {
     ["AP2", "Intent, cart, and payment mandates the buyer signs"],
     ["UCP", "Discovery, checkout, order + conformance self-test"],
     ["x402", "402 challenge, payment payload, verified receipt"],
-    ["Arc Testnet", "USDC settlement, real tx hash on Arcscan"],
+    ["Midnight Undeployed", "mUSDC settlement, real tx hash on the local indexer"],
   ];
   return (
     <Slide n={10}>
@@ -482,31 +474,30 @@ function SlideProtocolStack() {
         ))}
       </div>
       <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
-        Buyer and seller agents negotiate live in GX mode, then settle on-chain. In A2H the same
-        stack runs outbound: the AP2 mandate is the standing authorization, x402 settles, Arc is
-        the receipt — and the mandate digest is anchored on-chain, so a counterparty can verify it
-        without ever calling StreetRail.
+        Buyer and seller agents negotiate live in GX mode, then settle on Midnight. In A2H the same
+        stack runs outbound: the AP2 mandate is the standing authorization, x402 settles, and the
+        indexer hash is the receipt — MandateVault can still anchor digests for counterparties.
       </p>
     </Slide>
   );
 }
 
-// 9b — Circle product stack
-function SlideCircleStack() {
+// 9b — Midnight Undeployed stack
+function SlideMidnightStack() {
   const rows: [string, string][] = [
-    ["Circle Wallets", "Developer-controlled treasury EOA on Arc Testnet — the Rights Agent's own wallet"],
-    ["Circle Contracts (SCP)", "DanceMoveTokens deployed and verified on Arcscan, USDC-gas deploy, no EOA key"],
-    ["Nanopayments", "Gateway batching (@circle-fin/x402-batching) signs EIP-3009 for the A2A x402 loop"],
-    ["App Kits", "Unified Balance for spendable USDC, Swap Kit rates behind the USDC/EURC/cirBTC toggle"],
-    ["Gas Station", "Sponsors agent gas on Arc. Paymaster is intentionally unused — USDC is already the gas token"],
-    ["Agent Stack", "Buyer agent discovers payable services via Circle's x402 Marketplace Discovery API"],
-    ["ERC-1271 authorizer", "Treasury-owned contract signs for the agent — Gateway actions need no EOA delegate"],
+    ["Compact contracts", "MoveRegistry · MandateVault · OrderLedger · MidnightUSDC (pragma 0.23)"],
+    ["midnight-js 4.1.1", "CompiledContract + WalletFacade / wallet-sdk 1.2.0 against indexer 4.0.2"],
+    ["Genesis server-append", "Undeployed writes use seed …0002 — Lace is optional for connect UX"],
+    ["x402 facilitator", "challenge → verify → settle routes for midnight-mUSDC"],
+    ["Proof server", "Local proof-server:8.0.3 — cold proofs can take up to ~4 min"],
+    ["Indexer GraphQL", "localhost:8088/api/v4/graphql — source of truth for receipts"],
+    ["AIsa negotiation", "Buyer/seller agents negotiate natural language, then settle mUSDC"],
   ];
   return (
     <Slide n={11}>
-      <Kicker>Built on Circle, end to end</Kicker>
+      <Kicker>Built on Midnight Undeployed</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
-        Six Circle products, <span style={{ color: GREEN }}>one rail.</span>
+        One local stack, <span style={{ color: GREEN }}>real ledger writes.</span>
       </h3>
       <div className="mt-3 grid flex-1 content-start gap-1.5 overflow-y-auto pr-1 sm:mt-5 sm:gap-2">
         {rows.map(([k, v]) => (
@@ -522,30 +513,30 @@ function SlideCircleStack() {
         ))}
       </div>
       <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
-        Every rail degrades safely: if Gateway batching or a kit is unavailable on testnet, the
-        agent settles with a direct Arc transfer and says so in the receipt.
+        After midnight-standalone down/up, redeploy Compact contracts and restart Vite — chain state
+        and LevelDB private state must stay aligned or you get RpcError 117.
       </p>
     </Slide>
   );
 }
 
-// 9c — ERC-1271 on-chain authorization
+// 9c — Compact mandate authorization
 function SlideOnChainAuth() {
   const modes: [string, string][] = [
     [
-      "Approved digest",
-      "The treasury sends one transaction to approve a mandate digest. isValidSignature(digest, 0x) then returns the magic value. No delegate, no exported key.",
+      "Cart mandate",
+      "Buyer agent anchors an AP2 CartMandate digest in MandateVault. Counterparties verify the digest without reading private witnesses.",
     ],
     [
-      "Delegate signer",
-      "Optional: a time-boxed EOA may sign digests on the treasury's behalf. Revocable on-chain, expires by default.",
+      "Spend policy",
+      "Per-item and daily caps live in the signed mandate. Over-threshold spends interrupt for human confirm before x402 settle.",
     ],
   ];
   return (
     <Slide n={12}>
       <Kicker>On-chain authorization</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
-        The treasury signs for the agent — <span style={{ color: GREEN }}>no EOA delegate.</span>
+        Mandates anchor on Midnight — <span style={{ color: GREEN }}>witnesses stay private.</span>
       </h3>
       <div className="mt-3 grid gap-2 sm:mt-5 sm:grid-cols-2 sm:gap-4">
         {modes.map(([k, v]) => (
@@ -560,24 +551,24 @@ function SlideOnChainAuth() {
       <div className="mt-3 grid gap-2 sm:grid-cols-2 sm:gap-4">
         <div className="rounded-xl border border-border bg-background p-3 sm:p-4">
           <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
-            Approved digest
+            Contract
           </div>
           <div className="mt-1 font-mono text-sm font-black sm:text-lg" style={{ color: GREEN }}>
-            0x1626ba7e
+            MandateVault
           </div>
         </div>
         <div className="rounded-xl border border-border bg-background p-3 sm:p-4">
           <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
-            Unknown digest
+            Scheme
           </div>
-          <div className="mt-1 font-mono text-sm font-black sm:text-lg" style={{ color: CHERRY }}>
-            0xffffffff
+          <div className="mt-1 font-mono text-sm font-black sm:text-lg" style={{ color: GREEN }}>
+            ap2:buyer:v1
           </div>
         </div>
       </div>
       <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
-        StreetRailAuthorizer · 0x0519c703cde7cbff6829fdfdcfe8c9a4c7aac327 · verified on Arcscan.
-        Anyone can check a mandate at /api/public/erc1271/authorizer.
+        Digests can be checked via /api/public/ap2-anchor. Compact disclose() is the public surface —
+        private state never leaves the wallet / proof server.
       </p>
     </Slide>
   );
@@ -588,15 +579,15 @@ function SlideClaimOffers() {
   const steps: [string, string][] = [
     ["Offer", "Drop Agent pushes a limited-time merch discount to the inbox."],
     ["Claim", "User taps Claim — no wallet prompt, no user gas."],
-    ["Log", "Treasury logs srclaim:<id> to DanceMoveTokens via Circle SCP."],
-    ["Receipt", "Claim code + Arcscan tx + signed AP2 OfferClaim mandate."],
-    ["Checkout", "Discount is applied when the user pays in USDC / EURC / cirBTC."],
+    ["Log", "Offer claim can be anchored via Compact MoveRegistry / OrderLedger."],
+    ["Receipt", "Claim code + indexer tx + signed AP2 OfferClaim mandate."],
+    ["Checkout", "Discount applies when the user settles experimental mUSDC."],
   ];
   return (
     <Slide n={13}>
       <Kicker>A2H · On-chain claim offers</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
-        Agent-to-human offers, <span style={{ color: GREEN }}>logged on Arc.</span>
+        Agent-to-human offers, <span style={{ color: GREEN }}>anchored on Midnight.</span>
       </h3>
       <div className="mt-3 grid flex-1 content-start gap-1.5 overflow-y-auto pr-1 sm:mt-5 sm:gap-2">
         {steps.map(([k, v], i) => (
@@ -616,17 +607,17 @@ function SlideClaimOffers() {
           <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
             Registry
           </div>
-          <div className="mt-1 break-all font-mono text-[11px] sm:text-sm">0x4d13b45f823f8944522890c20d8695b6005465f0</div>
+          <div className="mt-1 break-all font-mono text-[11px] sm:text-sm">MoveRegistry · Compact</div>
         </div>
         <div className="rounded-xl border border-border bg-background p-3 sm:p-4">
           <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
-            Authorizer
+            Mandate vault
           </div>
-          <div className="mt-1 break-all font-mono text-[11px] sm:text-sm">0x0519c703cde7cbff6829fdfdcfe8c9a4c7aac327</div>
+          <div className="mt-1 break-all font-mono text-[11px] sm:text-sm">MandateVault · Compact</div>
         </div>
       </div>
       <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
-        Claims do not count against the payout cap and are audited on Arcscan.
+        Claims are audited via the local Midnight indexer GraphQL.
       </p>
     </Slide>
   );
@@ -635,17 +626,17 @@ function SlideClaimOffers() {
 // 13
 function SlideMarketplace() {
   const rows: [string, string][] = [
-    ["List", "Owner approves the market and sets a price in USDC, EURC or cirBTC."],
-    ["Hold", "Non-custodial — the token never leaves the dancer's wallet."],
-    ["Browse", "Search, discipline and licence filters, token filter, sort by newest or price."],
-    ["Buy", "One call moves payment to the seller and the NFT to the buyer."],
-    ["Gas", "Paid in USDC, so no second asset is ever needed."],
+    ["Register", "Dancer appends a move CID to MoveRegistry (Compact)."],
+    ["Prove", "First cold proof can take ~4 min on the local proof server."],
+    ["Browse", "Shop + moves surfaces share the same Midnight Undeployed stack."],
+    ["Settle", "Buyers pay experimental mUSDC through the x402 facilitator."],
+    ["Verify", "Indexer GraphQL confirms ContractCall / transfer hashes."],
   ];
   return (
     <Slide n={14}>
-      <Kicker>Secondary market</Kicker>
+      <Kicker>Move rights on Midnight</Kicker>
       <h3 className="mt-2 text-xl font-black leading-tight sm:text-3xl md:text-4xl">
-        Move rights that <span style={{ color: GREEN }}>resell themselves.</span>
+        Choreography that <span style={{ color: GREEN }}>proves itself.</span>
       </h3>
       <div className="mt-3 grid flex-1 content-start gap-1.5 overflow-y-auto pr-1 sm:mt-5 sm:gap-2">
         {rows.map(([k, v], i) => (
@@ -662,14 +653,13 @@ function SlideMarketplace() {
       </div>
       <div className="mt-3 rounded-xl border border-border bg-background p-3 sm:p-4">
         <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-xs">
-          MoveMarket.sol · verified on Arcscan
+          MoveRegistry.compact · Undeployed
         </div>
-        <div className="mt-1 break-all font-mono text-[11px] sm:text-sm">0x5b00367612ef4533e89ed9547dd4c2f3080f783e</div>
+        <div className="mt-1 break-all font-mono text-[11px] sm:text-sm">67656a55…64787</div>
       </div>
       <p className="mt-auto pt-3 text-[11px] text-muted-foreground sm:text-sm">
-        Live at /market — list, cancel, buy and transfer, all settled on Arc. Every buy
-        carves out the creator's 5% ERC-2981 royalty and pays it in the same stablecoin,
-        in the same transaction. Filters live in the URL, so a filtered view is shareable.
+        Live at /moves — appendEntry discloses the CID while author commitment stays ZK-bound.
+        Compact MoveRegistry is the demo path for rights on Undeployed.
       </p>
     </Slide>
   );
@@ -685,17 +675,17 @@ function SlideDefi() {
       </h3>
       <div className="mt-auto grid gap-3 sm:grid-cols-2 sm:gap-4">
         <div className="rounded-xl border border-border p-3 sm:p-5">
-          <Kicker>Multi-stablecoin checkout</Kicker>
+          <Kicker>mUSDC checkout</Kicker>
           <p className="mt-2 text-xs text-muted-foreground sm:text-sm">
-            Shopify catalog priced in USD, settled in USDC, EURC, or cirBTC. App Kits
-            Unified Balance picks the token with headroom.
+            Shopify catalog priced in fiat, settled as experimental mUSDC on Midnight
+            Undeployed via the x402 facilitator (demo scale ×0.001).
           </p>
         </div>
         <div className="rounded-xl border border-border p-3 sm:p-5">
-          <Kicker>Nanopayment royalties</Kicker>
+          <Kicker>Private-by-default rights</Kicker>
           <p className="mt-2 text-xs text-muted-foreground sm:text-sm">
-            arc-nanopayments streams sub-cent USDC per play back to the choreographer's
-            wallet. Continuous, not periodic.
+            MoveRegistry + MandateVault keep witnesses private unless Compact disclose()
+            publishes what counterparties need to verify.
           </p>
         </div>
       </div>
@@ -706,14 +696,14 @@ function SlideDefi() {
 // 10
 function SlideCriteria() {
   const rows: [string, string][] = [
-    ["Meaningful use of Arc / USDC", "Contract deployed + verified, USDC as gas token"],
-    ["Programmable money flows", "Autonomous agent settlement + Gateway-batched nanopayments"],
+    ["Meaningful use of Midnight", "Four Compact contracts deployed on Local Undeployed"],
+    ["Programmable money flows", "x402 mUSDC facilitator + genesis server-append settles"],
     ["Interoperable commerce", "H2H, H2A, A2A and A2H on A2A 0.3 + AP2 + UCP + x402"],
-    ["Uses App Kits", "Unified Balance for spendable USDC, Swap Kit rates behind the token toggle"],
-    ["Agent with decision logic", "Live FX + AP2 spend policy pick the token, cap, and payout"],
-    ["Autonomous spending in USDC", "Treasury wallet signs via Circle SCP — no manual approval"],
-    ["Uses Agent Stack", "Buyer agent resolves services through Circle's x402 Marketplace Discovery"],
-    ["Verifiable authorization", "ERC-1271 contract returns 0x1626ba7e for an approved mandate digest"],
+    ["Private-by-default", "Compact witnesses private unless disclose()"],
+    ["Agent with decision logic", "AIsa negotiation + AP2 spend policy + live FX pricing"],
+    ["Autonomous Undeployed writes", "Genesis …0002 wallet — no Lace required for demo settles"],
+    ["Standards stack", "Buyer/seller agents + purchase 402 + MandateVault / OrderLedger"],
+    ["Verifiable receipts", "Indexer GraphQL confirms real ledger hashes"],
   ];
   return (
     <Slide n={16}>
@@ -745,17 +735,17 @@ function SlideCriteria() {
 // 11
 function SlideRoadmap() {
   const shipped = [
-    "Contract verified on Arcscan",
-    "Privy Google login + embedded wallet",
+    "MoveRegistry / MandateVault / OrderLedger / MidnightUSDC on Undeployed",
+    "Lace connect + Undeployed server-append pseudo-session",
     "7 SKUs live in Shopify (dev store)",
-    "USDC / EURC / cirBTC token switcher",
-    "ERC-1271 authorizer verified on Arcscan",
-    "Circle x402 Discovery wired into negotiation",
+    "mUSDC x402 challenge → verify → settle facilitator",
+    "AIsa-powered A2A negotiation settle path",
+    "Cart settle elapsed timer for cold proofs",
     "Mobile-tuned end to end",
-    "On-chain claim offers (A2H)",
-    "Treasury balance panel + low-gas warning",
-    "Move Rights NFTs + IPFS clip evidence",
-    "MoveMarket.sol resale, verified on Arcscan",
+    "Indexer-backed settlement history (Confirmed)",
+    "Local Docker node + indexer + proof server",
+    "Move append via Compact appendEntry",
+    "Judges deck + primer aligned to Midnight",
   ];
   const next = [
     "Encode Club Demo Day — 9 Aug 2026",
@@ -838,8 +828,8 @@ function SlideMarkets() {
 
       <p className="mt-3 max-w-3xl text-[10px] leading-relaxed text-muted-foreground sm:mt-5 sm:text-sm">
         In these markets a card checkout costs 10–15% in FX and demands a card most
-        young buyers don't hold. USDC on Arc settles in seconds, for sub-cent gas,
-        with the creator's royalty split at the moment of sale.
+        young buyers don't hold. Experimental mUSDC on Midnight Undeployed settles with a
+        real Compact proof, and creator rights can be anchored without publishing every witness.
       </p>
     </Slide>
   );
@@ -850,16 +840,16 @@ function SlideClose() {
   return (
     <Slide n={19} bg="bg-background">
       <div className="flex h-full flex-col justify-between">
-        <Kicker>Built for Encode Club · Programmable Money Hackathon</Kicker>
+        <Kicker>Built on Midnight Local Undeployed</Kicker>
         <h2 className="text-4xl font-black leading-[0.9] tracking-tight sm:text-6xl md:text-7xl">
           Give the culture
           <br />
           <span style={{ color: GREEN }}>its receipts.</span>
         </h2>
         <p className="text-xs text-muted-foreground sm:text-sm">
-          streetrail.lovable.app · DanceMoveTokens.sol on Arc Testnet
+          localhost:8080 · Compact MoveRegistry + mUSDC on Undeployed
           <br />
-          github.com/arunnadarasa/streetdancearc
+          github.com/arunnadarasa/zealymidnight
         </p>
       </div>
     </Slide>
@@ -870,14 +860,14 @@ export const slides: Array<{ id: string; render: () => ReactNode }> = [
   { id: "title", render: () => <SlideTitle /> },
   { id: "problem", render: () => <SlideProblem /> },
   { id: "insight", render: () => <SlideInsight /> },
-  { id: "why-arc", render: () => <SlideWhyArc /> },
+  { id: "why-midnight", render: () => <SlideWhyMidnight /> },
   { id: "built", render: () => <SlideWhatWeBuilt /> },
   { id: "interfaces", render: () => <SlideInterfaces /> },
   { id: "a2h", render: () => <SlideA2h /> },
   { id: "live", render: () => <SlideLive /> },
   { id: "agent", render: () => <SlideAgent /> },
   { id: "protocols", render: () => <SlideProtocolStack /> },
-  { id: "circle", render: () => <SlideCircleStack /> },
+  { id: "midnight-stack", render: () => <SlideMidnightStack /> },
   { id: "onchain-auth", render: () => <SlideOnChainAuth /> },
   { id: "claim-offers", render: () => <SlideClaimOffers /> },
   { id: "marketplace", render: () => <SlideMarketplace /> },

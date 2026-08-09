@@ -79,7 +79,7 @@ export function authorizerUrl() {
 }
 
 export interface OnChainAuth {
-  scheme: "erc-1271";
+  scheme: "erc-1271" | "midnight-mandate-vault";
   authorizer: string;
   authorizerUrl: string;
   network: string;
@@ -134,6 +134,15 @@ export async function approveAuthOnChain(
     valid: false,
   };
 
+  if (!process.env["CIRCLE_API_KEY"]) {
+    return {
+      ...base,
+      expiresAt: null,
+      detail:
+        "Legacy ERC-1271 authorizer paused — Undeployed uses Ed25519 mandates (+ optional Compact MandateVault).",
+    };
+  }
+
   try {
     const tx = await treasuryContractCall({
       contractAddress: AUTHORIZER,
@@ -164,6 +173,9 @@ export async function approveAuthOnChain(
 }
 
 function humanizeAuthError(message: string): string {
+  if (message.includes("Midnight") || message.includes("mUSDC")) {
+    return message.slice(0, 200);
+  }
   if (message.includes("circle_tx_timeout")) {
     return "The on-chain authorization is still pending at Circle — the off-chain mandate is already valid.";
   }

@@ -1,26 +1,24 @@
 /**
- * "Why Arc" economics card. Every figure is an illustrative order-of-magnitude
- * estimate from public gas references, not a measured benchmark — labelled as
- * such so judges read it as reasoning, not a claim.
+ * "Why Midnight" economics / privacy card (kept filename for import stability).
  */
 
 const ROWS = [
   {
-    rail: "Ethereum L1",
-    gas: "~$1–5",
-    verdict: "Fee is 1,000–5,000× the payment. Impossible.",
+    rail: "Public L1 (no privacy)",
+    gas: "Fees + full ledger disclosure",
+    verdict: "Every CID, buyer, and mandate is public forever.",
     tone: "bad" as const,
   },
   {
-    rail: "Typical L2",
-    gas: "~$0.005–0.05",
-    verdict: "Fee still exceeds the payment. Needs batching plus a gas asset.",
+    rail: "Typical L2 + escrow",
+    gas: "Cheaper, still transparent",
+    verdict: "Agents still leak spend policy and identity on-chain.",
     tone: "warn" as const,
   },
   {
-    rail: "Arc Testnet",
-    gas: "Fractions of a cent, paid in USDC",
-    verdict: "Fee is a slice of the payment, in the same asset.",
+    rail: "Midnight Undeployed",
+    gas: "tDUST fees · ZK circuits",
+    verdict: "Witnesses stay private; only disclose() lands on the public ledger.",
     tone: "good" as const,
   },
 ];
@@ -37,14 +35,14 @@ export function WhyArc() {
       <div className="border-b border-border/60 px-5 py-5 sm:px-7">
         <p className="eyebrow">The economics</p>
         <h3 className="display mt-2 text-xl text-foreground sm:text-2xl">
-          A $0.001 royalty only works where gas is a rounding error
+          Private-by-default settlement for agentic streetwear
         </h3>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          StreetRail pays choreographers <strong className="text-foreground">$0.001 per play</strong>{" "}
-          and batches accruals off-chain until they clear{" "}
-          <strong className="text-foreground">$0.50</strong>. That unit economics only survives on a
-          rail where the fee is a fraction of the payment — and where the fee is the same asset as
-          the payment, so nobody has to hold a second token.
+          StreetRail anchors move CIDs, AP2 mandates, UCP orders, and experimental{" "}
+          <strong className="text-foreground">mUSDC</strong> transfers on Midnight Local Undeployed.
+          Circuit inputs stay private unless the Compact contract calls{" "}
+          <strong className="text-foreground">disclose()</strong>. Writes go through the genesis
+          wallet (server-append) because Lace cannot sign on Undeployed.
         </p>
       </div>
 
@@ -62,10 +60,11 @@ export function WhyArc() {
       </div>
 
       <p className="border-t border-border/60 px-5 py-4 text-[11px] leading-relaxed text-muted-foreground sm:px-7">
-        Gas figures are illustrative orders of magnitude from public fee trackers, shown to compare
-        rails — not measured benchmarks. On Arc, USDC <em>is</em> the gas token, so a payout is a
-        native value transfer and there is no second asset to acquire, bridge or top up.
+        Local stack: midnight-node:0.22.5 · indexer-standalone:4.0.2 · proof-server:8.0.3. Verify
+        anchors with a GraphQL POST to the indexer — not a simulated tx hash.
       </p>
     </div>
   );
 }
+
+export const WhyMidnight = WhyArc;

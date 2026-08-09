@@ -5,6 +5,8 @@
 // registry via log(token, amount, cid). The inbox is then read back from those
 // on-chain Logged events — nothing here is a fixture.
 
+import fs from "node:fs";
+import path from "node:path";
 import { createPublicClient, http, parseAbiItem, type Address } from "viem";
 import { arcTestnet } from "@/lib/arc-chain";
 import { TOKENS, toAtomic, fromAtomic, type TokenKey } from "@/lib/tokens";
@@ -168,8 +170,21 @@ const MAX_CALLS = 12;
  * page backwards over a short recent window with a hard call budget and give up
  * early rather than grinding through 429s. Never throws.
  */
+const MIDNIGHT_A2H =
+  "Indexer history is empty — new Undeployed mUSDC / MoveRegistry settlements still appear here when they land.";
+
 export async function readPayouts(to?: string, lookback = 5_000n): Promise<PayoutHistory> {
   const wanted = to?.toLowerCase();
+
+  // Soft-align: do not call Arc RPC after Midnight pivot unless explicitly configured.
+  if (!process.env["ARC_RPC_URL"] && !process.env["ARC_LOGS_RPC_URL"]) {
+    const payouts = mergeSession([], wanted);
+    return {
+      payouts,
+      degraded: true,
+      detail: MIDNIGHT_A2H,
+    };
+  }
 
   if (logCache && Date.now() - logCache.at < CACHE_TTL_MS) {
     return { payouts: mergeSession(mapLogs(logCache.logs, wanted), wanted), degraded: false, detail: null };
@@ -248,10 +263,108 @@ export interface PayoutResult {
   moveCid: string;
 }
 
+function moveRegistryAddress(): string {
+  const env = process.env.VITE_DEFAULT_CONTRACT;
+  if (env) return env;
+  try {
+    const p = path.resolve("src/data/midnight-contract.undeployed.json");
+    if (fs.existsSync(p)) {
+      const j = JSON.parse(fs.readFileSync(p, "utf8")) as {
+        address?: string;
+        contracts?: { moveRegistry?: { address?: string } };
+      };
+      return j.contracts?.moveRegistry?.address || j.address || "";
+    }
+  } catch {
+    /* ignore */
+  }
+  return "";
+}
+
+/** Undeployed settle: experimental mUSDC transfer + Compact MoveRegistry append. */
+async function sendPayoutMidnight(params: {
+  to: string;
+  token: TokenKey;
+  amount: string;
+  moveCid: string;
+}): Promise<PayoutResult> {
+  const { createHash } = await import("node:crypto");
+  const { DEMO_SCALE } = await import("@/lib/agent-card");
+  const { musdcTransfer, musdcFaucet } = await import("@/lib/musdc.server");
+  const { appendEntry } = await import("@/lib/append-entry.server");
+
+  const scaled = (Number(params.amount) * DEMO_SCALE).toFixed(6);
+  const atomic = toAtomic(scaled, params.token);
+  if (atomic <= 0n) throw new Error("payout_amount_zero");
+
+  const toHex = createHash("sha256").update(`streetrail:a2h:${params.to}`).digest("hex");
+
+  let transfer: Awaited<ReturnType<typeof musdcTransfer>>;
+  try {
+    transfer = await musdcTransfer({
+      toHex,
+      amountAtomic: atomic.toString(),
+    });
+  } catch (e1) {
+    const msg1 = e1 instanceof Error ? e1.message : String(e1);
+    if (/no balance|insufficient|SubmissionError|FiberFailure/i.test(msg1)) {
+      await musdcFaucet().catch(() => {});
+      transfer = await musdcTransfer({
+        toHex,
+        amountAtomic: atomic.toString(),
+      });
+    } else {
+      throw e1;
+    }
+  }
+
+  let registryTx = transfer.midnightTxHash;
+  const registryAddr = moveRegistryAddress();
+  if (registryAddr) {
+    try {
+      const anchored = await appendEntry({
+        contractAddress: registryAddr,
+        appTag: "streetrail_a2h_payout",
+        message: encodeCid(params.moveCid, params.to),
+        payload: {
+          mode: "A2H",
+          to: params.to,
+          token: params.token,
+          amount: scaled,
+          settleTx: transfer.midnightTxHash,
+        },
+      });
+      registryTx = anchored.txId;
+    } catch {
+      /* transfer still counts as the payout receipt */
+    }
+  }
+
+  sessionPayouts.unshift({
+    txHash: transfer.midnightTxHash,
+    moveCid: params.moveCid,
+    to: params.to.toLowerCase(),
+    token: params.token,
+    value: scaled,
+    atSeconds: Math.floor(Date.now() / 1000),
+    blockNumber: "0",
+  });
+  if (sessionPayouts.length > 50) sessionPayouts.length = 50;
+
+  return {
+    transferTx: transfer.midnightTxHash,
+    registryTx,
+    token: params.token,
+    value: scaled,
+    to: params.to,
+    moveCid: params.moveCid,
+  };
+}
+
 /**
- * Send a payout and anchor it. Two real Arc transactions:
- *   1. treasury -> recipient value transfer (native USDC or ERC-20 transfer())
- *   2. registry log(token, amount, cid) so the rights record exists on chain
+ * Send a payout and anchor it.
+ * Midnight Undeployed: mUSDC server-append + MoveRegistry appendEntry.
+ * Legacy Arc path kept when CIRCLE_API_KEY is configured.
  */
 export async function sendPayout(params: {
   to: string;
@@ -259,6 +372,11 @@ export async function sendPayout(params: {
   amount: string;
   moveCid: string;
 }): Promise<PayoutResult> {
+  const undeployed = (process.env.VITE_NETWORK_ID ?? "undeployed") === "undeployed";
+  if (undeployed || !process.env["CIRCLE_API_KEY"]) {
+    return sendPayoutMidnight(params);
+  }
+
   const cfg = TOKENS[params.token];
   const atomic = toAtomic(params.amount, params.token);
   if (atomic <= 0n) throw new Error("payout_amount_zero");
@@ -275,8 +393,6 @@ export async function sendPayout(params: {
     abiParameters: [cfg.address, atomic.toString(), encodeCid(params.moveCid, params.to)],
   });
 
-  // Remember it locally so the inbox shows the settlement even when the RPC
-  // provider caps log history reads.
   sessionPayouts.unshift({
     txHash: registry.txHash ?? transfer.txHash ?? "",
     moveCid: params.moveCid,
@@ -289,7 +405,6 @@ export async function sendPayout(params: {
   if (sessionPayouts.length > 50) sessionPayouts.length = 50;
 
   return {
-
     transferTx: transfer.txHash ?? "",
     registryTx: registry.txHash ?? "",
     token: params.token,

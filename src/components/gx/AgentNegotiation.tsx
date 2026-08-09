@@ -1,17 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useWallet } from "@/lib/wallet-context";
-import type { Address } from "viem";
 import { toast } from "sonner";
-import { Sparkles, Loader2, ShoppingCart, Send, RotateCcw, Braces, ChevronRight } from "lucide-react";
+import { Sparkles, Loader2, ShoppingCart, Send, RotateCcw, Braces } from "lucide-react";
 import { runNegotiation, type NegotiationTurn } from "@/lib/agent-negotiation.functions";
 import { AgentChatBubble, type ChatTurn } from "./AgentChatBubble";
 import { JsonBlock } from "./JsonBlock";
 import { DEMO_SCALE } from "@/lib/agent-card";
 import { usePayToken } from "@/lib/pay-token";
-import { settleOnArc } from "@/lib/settle";
+import { settleOnMidnight } from "@/lib/settle";
 import { recordSettlement } from "@/lib/tx-log";
 import { TOKENS, getTokenUsdRate, type FxRates } from "@/lib/tokens";
+import { formatElapsed, useElapsed } from "@/lib/use-elapsed";
 import {
   STOREFRONT_QUERY,
   SHOPIFY_STOREFRONT_URL,
@@ -21,37 +21,7 @@ import { categoryFor } from "@/routes/api/public/catalog";
 import { fetchFxRates } from "@/lib/fx.functions";
 import { deriveBudget, displayBudget, recommendedGoal } from "@/lib/negotiation-budget";
 
-import { payWithNanopayments } from "@/lib/circle-rails.functions";
-import { CircleRailsPanel } from "./CircleRailsPanel";
-import { DiscoveryPanel } from "./DiscoveryPanel";
 import { ReceiptButton } from "./ReceiptButton";
-
-/** Reference material stays one click away instead of between the run and its receipt. */
-function Disclosure({
-  label,
-  defaultOpen = false,
-  children,
-}: {
-  label: string;
-  defaultOpen?: boolean;
-  children: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div className="min-w-0">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground transition hover:bg-secondary hover:text-foreground"
-      >
-        <ChevronRight className={`h-3 w-3 transition-transform ${open ? "rotate-90" : ""}`} aria-hidden />
-        {label}
-      </button>
-      {open && <div className="mt-3">{children}</div>}
-    </div>
-  );
-}
 
 function explorerUrl(value: unknown): string | null {
   try {
@@ -93,13 +63,21 @@ export function AgentNegotiation() {
   const [receipt, setReceipt] = useState<Record<string, unknown> | null>(null);
   const [rawReceipt, setRawReceipt] = useState(false);
   const dealRef = useRef<HTMLElement | null>(null);
+  const settleStartedRef = useRef<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fx, setFx] = useState<FxRates | null>(null);
   const [nanoNote, setNanoNote] = useState<string | null>(null);
+  const { label: settleLabel } = useElapsed(settling);
+
+  useEffect(() => {
+    if (!settling) return;
+    setNanoNote(
+      `x402 facilitator · proving mUSDC on Undeployed · elapsed ${settleLabel} (up to ~4 min cold)`,
+    );
+  }, [settling, settleLabel]);
 
   const negotiate = useServerFn(runNegotiation);
   const getFx = useServerFn(fetchFxRates);
-  const nanopay = useServerFn(payWithNanopayments);
 
   useEffect(() => {
     fetch(SHOPIFY_STOREFRONT_URL, {
@@ -204,6 +182,7 @@ export function AgentNegotiation() {
     const listedAmount = Number(variant?.price?.amount ?? 0);
     const currency = variant?.price?.currencyCode ?? "GBP";
 
+    settleStartedRef.current = Date.now();
     setSettling(true);
     setError(null);
     try {
@@ -228,26 +207,25 @@ export function AgentNegotiation() {
       const requirement =
         quote.accepts.find((a: { symbol?: string }) => a.symbol === payToken) ?? quote.accepts[0];
 
-      // Preferred path: Circle Nanopayments (Gateway batching). If the resource
-      // or the agent's Gateway balance is not ready, fall through to a direct
-      // Arc transfer so the demo never dead-ends.
-      setNanoNote("Trying Circle Nanopayments (Gateway batching)…");
-      const nano = await nanopay({ data: { url: "/api/public/purchase", body } }).catch(() => null);
-      setNanoNote(
-        nano && !nano.simulated
-          ? `Batched via Circle Nanopayments · transfer ${nano.transferId ?? "pending"}`
-          : `Circle Nanopayments unavailable (${nano?.reason ?? "no response"}) — settling directly on Arc.`,
-      );
+      setNanoNote("x402 facilitator · challenge → verify → settle (mUSDC Undeployed)…");
 
-      const embedded = wallets.find((w) => w.walletClientType === "privy") ?? wallets[0];
-      if (!embedded?.address) throw new Error("No embedded wallet available.");
-      const settled = await settleOnArc(
-        embedded as Parameters<typeof settleOnArc>[0],
+      const embedded = wallets[0] ?? { address: "server-append" };
+      const settled = await settleOnMidnight(
+        embedded,
         payToken,
-        requirement.payTo as Address,
+        requirement.payTo,
         BigInt(requirement.amount),
+        `a2a:${finalQuote.sku}`,
       );
-      const { hash, from } = settled;
+      const { hash, from, nonce } = settled;
+      const elapsedLabel = formatElapsed(
+        Math.floor((Date.now() - (settleStartedRef.current ?? Date.now())) / 1000),
+      );
+      setNanoNote(
+        settled.simulated
+          ? `Simulated settle in ${elapsedLabel} (deploy MidnightUSDC / set VITE_NETWORK_ID=undeployed)`
+          : `Settled mUSDC in ${elapsedLabel} · ${hash.slice(0, 12)}…`,
+      );
       recordSettlement({
         hash,
         mode: "A2A",
@@ -256,13 +234,25 @@ export function AgentNegotiation() {
         atomic: String(requirement.amount),
         to: requirement.payTo,
         from,
+        status: settled.simulated ? "pending" : "success",
       });
 
-
-      const xPayment = btoa(JSON.stringify({ txHash: hash, from, nonce: requirement.nonce }));
+      const xPayment = btoa(
+        JSON.stringify({
+          txHash: hash,
+          midnightTxHash: hash,
+          from,
+          fromPk: from,
+          nonce: nonce ?? requirement.nonce,
+        }),
+      );
       const paidRes = await fetch("/api/public/purchase", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-PAYMENT": xPayment },
+        headers: {
+          "Content-Type": "application/json",
+          "X-PAYMENT": xPayment,
+          "PAYMENT-SIGNATURE": settled.paymentSignature ?? xPayment,
+        },
         body: JSON.stringify(body),
       });
       const receiptJson = await paidRes.json();
@@ -272,11 +262,17 @@ export function AgentNegotiation() {
         () => dealRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }),
         80,
       );
-      toast.success("Agent deal settled on Arc", { description: receiptJson.order_id });
+      toast.success("Agent deal settled on Midnight", {
+        description: `${receiptJson.order_id} · ${elapsedLabel}`,
+      });
     } catch (e) {
+      const elapsedLabel = formatElapsed(
+        Math.floor((Date.now() - (settleStartedRef.current ?? Date.now())) / 1000),
+      );
       const msg = e instanceof Error ? e.message : String(e);
       setError(msg);
-      toast.error("Settlement failed", { description: msg });
+      setNanoNote(`Failed after ${elapsedLabel}`);
+      toast.error("Settlement failed", { description: `${msg} · after ${elapsedLabel}` });
     } finally {
       setSettling(false);
     }
@@ -293,8 +289,8 @@ export function AgentNegotiation() {
             </h2>
             <p className="mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
               A buyer agent and a seller agent negotiate a streetwear deal in natural language. The seller
-              emits an AP2 cart mandate and an x402 payment requirement. The buyer agent settles on Arc
-              Testnet — all visible, all on-chain.
+              emits an AP2 cart mandate and an x402 payment requirement. The buyer agent settles on
+              Midnight Undeployed — all visible, all on-chain.
             </p>
           </div>
           <ul className="hidden gap-2 lg:grid">
@@ -302,7 +298,7 @@ export function AgentNegotiation() {
               ["A2A 0.3", "message/send task loop"],
               ["AP2", "signed cart mandate"],
               ["x402", "402 challenge + settle"],
-              ["Arc", "on-chain receipt"],
+              ["Midnight", "on-chain receipt"],
             ].map(([k, v]) => (
               <li
                 key={k}
@@ -438,7 +434,7 @@ export function AgentNegotiation() {
               >
                 {running && <Loader2 className="h-3 w-3 animate-spin" />}
                 {receipt
-                  ? "Settled on Arc"
+                  ? "Settled on Midnight"
                   : finalQuote
                     ? "Deal agreed"
                     : running
@@ -480,14 +476,23 @@ export function AgentNegotiation() {
                     className="lift flex w-full items-center justify-center gap-2 rounded-full bg-glow px-6 py-3 text-sm font-black text-glow-foreground disabled:opacity-50"
                   >
                     {settling ? <Loader2 className="animate-spin" size={16} /> : <ShoppingCart size={16} />}
-                    {settling ? "Settling on Arc…" : authenticated ? "Settle on Arc" : "Sign in to settle"}
+                    {settling
+                      ? `Settling… ${settleLabel}`
+                      : authenticated
+                        ? "Settle on Midnight"
+                        : "Connect to settle"}
                   </button>
+                )}
+                {settling && (
+                  <p className="text-[11px] leading-snug text-muted-foreground">
+                    Proving mUSDC · first proof can take up to ~4 min · elapsed {settleLabel}
+                  </p>
                 )}
               </>
             ) : (
               <p className="text-xs leading-relaxed text-muted-foreground/80">
-                Run the agents, then settle the deal — the Arc transaction receipt appears right here and
-                stays pinned while you scroll the transcript.
+                Run the agents, then settle the deal — the Midnight transaction receipt appears right
+                here and stays pinned while you scroll the transcript.
               </p>
             )}
 
@@ -511,18 +516,6 @@ export function AgentNegotiation() {
               {nanoNote}
             </p>
           )}
-
-          <div className="space-y-3 rounded-2xl border border-border bg-card/50 p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">
-              Under the hood
-            </p>
-            <Disclosure label="Agent marketplace discovery" defaultOpen={!finalQuote && !receipt}>
-              <DiscoveryPanel />
-            </Disclosure>
-            <Disclosure label="Circle rails">
-              <CircleRailsPanel />
-            </Disclosure>
-          </div>
         </div>
 
       </div>

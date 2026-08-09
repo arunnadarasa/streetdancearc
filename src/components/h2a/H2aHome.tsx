@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Bot, ShieldCheck, ScrollText } from "lucide-react";
 import { AgentRunPanel } from "@/components/gx/AgentRunPanel";
-import { CircleRailsPanel } from "@/components/gx/CircleRailsPanel";
 import type { AgentOrder } from "@/components/gx/useAgentRun";
 
 interface Offer {
@@ -164,9 +163,6 @@ export function H2aHome() {
       )}
 
       <AgentRunPanel order={order} cta="Delegate this purchase to the agent" />
-
-      <CircleRailsPanel />
-
     </div>
   );
 }

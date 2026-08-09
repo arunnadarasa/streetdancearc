@@ -95,6 +95,9 @@ function formatUnits(atomic: bigint, decimals: number): string {
   return frac ? `${whole}.${frac}` : whole;
 }
 
+const MIDNIGHT_MARKET =
+  "Arc MoveMarket is paused — use Midnight MoveRegistry / mUSDC rails for demo settlement.";
+
 /** Read every active listing. Never throws. */
 export async function listMarket(max = 24): Promise<{
   items: MarketListing[];
@@ -104,6 +107,9 @@ export async function listMarket(max = 24): Promise<{
   detail: string | null;
 }> {
   const base = { market: MARKET_ADDRESS, nft: nft.address, configured: marketConfigured() };
+  if (!process.env["ARC_LOGS_RPC_URL"] && !process.env["ARC_RPC_URL"]) {
+    return { ...base, configured: false, items: [], detail: MIDNIGHT_MARKET };
+  }
   if (!marketConfigured()) {
     return { ...base, items: [], detail: "The marketplace contract is not deployed yet." };
   }

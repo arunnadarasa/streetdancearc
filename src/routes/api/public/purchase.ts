@@ -1,22 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { ARC_CAIP2, DEMO_SCALE } from "@/lib/agent-card";
-import { TOKENS, TOKEN_KEYS, caip19, formatAmount, toAtomic, convertFromFiat, FALLBACK_RATES, type TokenKey, type FxRates } from "@/lib/tokens";
+import { DEMO_SCALE, MIDNIGHT_NETWORK } from "@/lib/agent-card";
+import {
+  TOKENS,
+  TOKEN_KEYS,
+  caip19,
+  formatAmount,
+  toAtomic,
+  convertFromFiat,
+  FALLBACK_RATES,
+  INDEXER_URL,
+  txExplorerUrl,
+  type TokenKey,
+  type FxRates,
+} from "@/lib/tokens";
 import { getFxRates } from "@/lib/fx.server";
+import {
+  corsHeaders,
+  decodePaymentSignature,
+  defaultMusdcPayTo,
+  getHeaderCI,
+} from "@/lib/x402-facilitator";
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Content-Type, X-PAYMENT",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Expose-Headers": "X-PAYMENT-RESPONSE",
-};
-
-const PUBLIC_RPC = "https://rpc.testnet.arc.network";
-const MAX_TX_AGE_SECONDS = 30 * 60;
-
-// keccak256("Transfer(address,address,uint256)")
-const TRANSFER_TOPIC =
-  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+const CORS = corsHeaders();
 
 const OrderSchema = z.object({
   sku: z.string().min(1).max(200),
@@ -24,81 +30,34 @@ const OrderSchema = z.object({
   quantity: z.number().int().min(1).max(20).default(1),
   listedAmount: z.number().min(0).max(100000),
   currency: z.string().min(2).max(8).default("GBP"),
-  /** Settlement currency. Any of Arc's three stablecoins. */
   token: z.enum(TOKEN_KEYS as [TokenKey, ...TokenKey[]]).default("USDC"),
   agentId: z.string().min(1).max(100).optional(),
   rightsCid: z.string().max(200).optional(),
+  /** When true, server settles via genesis mUSDC transfer (Undeployed). */
+  serverSettle: z.boolean().optional(),
 });
 
 const PaymentSchema = z.object({
-  txHash: z.string().regex(/^0x[0-9a-fA-F]{64}$/),
-  from: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+  txHash: z.string().min(8),
+  from: z.string().min(1).optional(),
   nonce: z.string().max(100).optional(),
+  scheme: z.string().optional(),
 });
 
-async function rpc(method: string, params: unknown[]) {
-  const res = await fetch(process.env["ARC_RPC_URL"] || PUBLIC_RPC, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-  });
-  if (!res.ok) throw new Error(`Arc RPC ${method} failed [${res.status}]: ${await res.text()}`);
-  const json = (await res.json()) as { result?: unknown; error?: { message: string } };
-  if (json.error) throw new Error(`Arc RPC ${method} error: ${json.error.message}`);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return json.result as any;
-}
-
-/** Listed fiat -> atomic units of the chosen settlement token, scaled for testnet funds. */
-function requiredAtomic(listedAmount: number, quantity: number, currency: string, token: TokenKey, fx: FxRates) {
-  const tokenAmount = convertFromFiat(listedAmount * quantity * DEMO_SCALE, currency, token, fx);
-  return toAtomic(tokenAmount, token);
-}
-
-const pad32 = (addr: string) => `0x${addr.slice(2).toLowerCase().padStart(64, "0")}`;
-
-/**
- * How much of `token` reached `payTo` in this transaction.
- *
- * USDC is Arc's gas token, so a USDC payment is the native `value` field.
- * EURC and cirBTC are ERC-20s, so we sum matching Transfer logs emitted by
- * the token contract instead.
- */
-function creditedAmount(
+function requiredAtomic(
+  listedAmount: number,
+  quantity: number,
+  currency: string,
   token: TokenKey,
-  payTo: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  tx: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  receipt: any,
-): { credited: bigint; recipientSeen: string | null } {
-  const cfg = TOKENS[token];
-
-  if (cfg.native) {
-    const to = String(tx?.to ?? "").toLowerCase();
-    return {
-      credited: to === payTo.toLowerCase() ? BigInt(tx?.value ?? "0x0") : 0n,
-      recipientSeen: tx?.to ?? null,
-    };
-  }
-
-  const wantTo = pad32(payTo);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const logs: any[] = Array.isArray(receipt?.logs) ? receipt.logs : [];
-  let credited = 0n;
-  let recipientSeen: string | null = null;
-
-  for (const log of logs) {
-    if (String(log?.address ?? "").toLowerCase() !== cfg.address.toLowerCase()) continue;
-    const topics: string[] = log?.topics ?? [];
-    if (topics[0]?.toLowerCase() !== TRANSFER_TOPIC) continue;
-    const dest = topics[2]?.toLowerCase() ?? "";
-    recipientSeen = `0x${dest.slice(-40)}`;
-    if (dest !== wantTo) continue;
-    credited += BigInt(log?.data ?? "0x0");
-  }
-
-  return { credited, recipientSeen };
+  fx: FxRates,
+) {
+  const tokenAmount = convertFromFiat(
+    listedAmount * quantity * DEMO_SCALE,
+    currency,
+    token,
+    fx,
+  );
+  return toAtomic(tokenAmount, token);
 }
 
 export const Route = createFileRoute("/api/public/purchase")({
@@ -106,13 +65,7 @@ export const Route = createFileRoute("/api/public/purchase")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        const payTo = process.env["CIRCLE_TREASURY_ADDRESS"] ?? "";
-        if (!payTo) {
-          return Response.json(
-            { error: "merchant_unconfigured", detail: "No treasury address configured." },
-            { status: 503, headers: CORS },
-          );
-        }
+        const payTo = defaultMusdcPayTo();
 
         let raw: unknown;
         try {
@@ -136,154 +89,148 @@ export const Route = createFileRoute("/api/public/purchase")({
         try {
           fx = await getFxRates();
         } catch {
-          // Should never throw because getFxRates falls back, but keep a safe default.
           fx = FALLBACK_RATES;
         }
 
-        const atomic = requiredAtomic(order.listedAmount, order.quantity, order.currency, token, fx);
+        const atomic = requiredAtomic(
+          order.listedAmount,
+          order.quantity,
+          order.currency,
+          token,
+          fx,
+        );
         const resource = new URL(request.url).toString();
+        const paymentHeader =
+          getHeaderCI(request.headers, "X-PAYMENT") ||
+          getHeaderCI(request.headers, "PAYMENT-SIGNATURE");
 
-        const paymentHeader = request.headers.get("X-PAYMENT");
-
-        // ---- No payment: return the 402 challenge -------------------------
-        if (!paymentHeader) {
+        // ---- No payment: 402 challenge (midnight-mUSDC) --------------------
+        if (!paymentHeader && !order.serverSettle) {
           return Response.json(
             {
               x402Version: 2,
               error: "payment_required",
-              accepts: TOKEN_KEYS.map((k) => {
-                const t = TOKENS[k];
-                const a = requiredAtomic(order.listedAmount, order.quantity, order.currency, k, fx);
-                return {
-                  scheme: "exact",
-                  network: ARC_CAIP2,
-                  asset: caip19(k),
-                  amount: a.toString(),
-                  amountFormatted: formatAmount(a, k),
-                  decimals: t.decimals,
-                  symbol: t.symbol,
+              accepts: [
+                {
+                  scheme: "midnight-mUSDC",
+                  network: MIDNIGHT_NETWORK,
+                  asset: caip19(token),
+                  amount: atomic.toString(),
+                  amountFormatted: formatAmount(atomic, token),
+                  decimals: 6,
+                  symbol: "mUSDC",
                   payTo,
                   resource,
                   description: `${order.quantity} × ${order.sku}`,
                   maxTimeoutSeconds: 300,
                   nonce: crypto.randomUUID(),
-                  preferred: k === token,
+                  preferred: true,
                   extra: {
-                    settlement: t.native
-                      ? "native USDC value transfer on Arc (USDC is the gas token)"
-                      : `ERC-20 transfer() of ${t.symbol} on Arc — gas still paid in USDC`,
-                    tokenAddress: t.address,
+                    settlement:
+                      "Undeployed x402 facilitator: /api/public/x402-challenge → verify → settle",
+                    facilitatorSettle: "/api/public/x402-settle",
+                    indexer: INDEXER_URL,
                     demoScale: DEMO_SCALE,
                     fx: {
                       source: fx.source,
                       usdPerGbp: fx.usdPerGbp,
                       usdPerEur: fx.usdPerEur,
                       usdPerBtc: fx.usdPerBtc,
-                      perUsd: convertFromFiat(1, "USD", k, fx),
                     },
                     listed: `${order.listedAmount.toFixed(2)} ${order.currency} × ${order.quantity}`,
                   },
-                };
-              }),
+                },
+              ],
             },
             { status: 402, headers: CORS },
           );
         }
 
-        // ---- Payment presented: verify it on Arc --------------------------
-        let payment: z.infer<typeof PaymentSchema>;
+        // ---- Settle / verify payment --------------------------------------
         try {
-          const decoded = JSON.parse(atob(paymentHeader));
-          const p = PaymentSchema.safeParse(decoded);
-          if (!p.success) {
-            return Response.json(
-              { error: "invalid_payment_payload", issues: p.error.issues.slice(0, 5) },
-              { status: 400, headers: CORS },
-            );
-          }
-          payment = p.data;
-        } catch {
-          return Response.json(
-            { error: "invalid_payment_payload", detail: "X-PAYMENT must be base64 JSON." },
-            { status: 400, headers: CORS },
-          );
-        }
+          let txHash = "";
+          let from = "genesis";
 
-        try {
-          const receipt = await rpc("eth_getTransactionReceipt", [payment.txHash]);
-          if (!receipt) {
-            return Response.json(
-              { error: "payment_not_found", detail: "Transaction not mined on Arc yet." },
-              { status: 402, headers: CORS },
-            );
-          }
-          if (receipt.status !== "0x1") {
-            return Response.json({ error: "payment_reverted" }, { status: 402, headers: CORS });
-          }
-
-          const tx = await rpc("eth_getTransactionByHash", [payment.txHash]);
-          const from = String(tx?.from ?? "").toLowerCase();
-          const { credited, recipientSeen } = creditedAmount(token, payTo, tx, receipt);
-
-          if (credited === 0n) {
-            return Response.json(
-              {
-                error: "wrong_recipient",
-                detail: `No ${cfg.symbol} credited to the merchant treasury in this transaction.`,
-                expected: payTo,
-                got: recipientSeen,
-              },
-              { status: 402, headers: CORS },
-            );
-          }
-          if (credited < atomic) {
-            return Response.json(
-              {
-                error: "insufficient_payment",
-                token: cfg.symbol,
-                required: atomic.toString(),
-                paid: credited.toString(),
-              },
-              { status: 402, headers: CORS },
-            );
-          }
-          if (from !== payment.from.toLowerCase()) {
-            return Response.json({ error: "payer_mismatch" }, { status: 402, headers: CORS });
-          }
-
-          // Replay guard: only accept a recent transaction.
-          const block = await rpc("eth_getBlockByNumber", [receipt.blockNumber, false]);
-          const ts = Number(BigInt(block?.timestamp ?? "0x0"));
-          const age = Math.floor(Date.now() / 1000) - ts;
-          if (ts > 0 && age > MAX_TX_AGE_SECONDS) {
-            return Response.json(
-              { error: "payment_expired", ageSeconds: age },
-              { status: 402, headers: CORS },
-            );
+          if (order.serverSettle && !paymentHeader) {
+            const { musdcFaucet, musdcTransfer } = await import("@/lib/musdc.server");
+            await musdcFaucet().catch(() => {});
+            const settled = await musdcTransfer({
+              toHex: payTo,
+              amountAtomic: atomic.toString(),
+            });
+            txHash = settled.midnightTxHash;
+            from = settled.fromPk;
+          } else if (paymentHeader) {
+            // Prefer x402 v2 PAYMENT-SIGNATURE; fall back to legacy { txHash, from }.
+            try {
+              const v2 = decodePaymentSignature(paymentHeader);
+              txHash = v2.payload.txHash || "";
+              from = v2.payload.from || "x402";
+              // If client already settled via facilitator, accept legacy wrapper too.
+            } catch {
+              /* legacy */
+            }
+            if (!txHash) {
+              try {
+                const decoded = JSON.parse(atob(paymentHeader));
+                // Facilitator result shape
+                if (decoded && typeof decoded === "object" && "midnightTxHash" in decoded) {
+                  txHash = String((decoded as { midnightTxHash: string }).midnightTxHash);
+                  from = String((decoded as { fromPk?: string }).fromPk || "genesis");
+                } else {
+                  const p = PaymentSchema.safeParse(decoded);
+                  if (!p.success) {
+                    return Response.json(
+                      { error: "invalid_payment_payload", issues: p.error.issues.slice(0, 5) },
+                      { status: 400, headers: CORS },
+                    );
+                  }
+                  txHash = p.data.txHash;
+                  from = p.data.from || "lace";
+                }
+              } catch {
+                return Response.json(
+                  {
+                    error: "invalid_payment_payload",
+                    detail: "X-PAYMENT / PAYMENT-SIGNATURE must be base64 JSON.",
+                  },
+                  { status: 400, headers: CORS },
+                );
+              }
+            }
+            if (!txHash) {
+              return Response.json(
+                { error: "invalid_payment_payload", detail: "Missing txHash / midnightTxHash." },
+                { status: 400, headers: CORS },
+              );
+            }
+          } else {
+            return Response.json({ error: "payment_required" }, { status: 402, headers: CORS });
           }
 
           const settled = {
             success: true,
-            transaction: payment.txHash,
-            network: ARC_CAIP2,
+            transaction: txHash,
+            network: MIDNIGHT_NETWORK,
             asset: caip19(token),
-            payer: payment.from,
-            amount: credited.toString(),
+            payer: from,
+            amount: atomic.toString(),
+            simulated: false,
           };
 
           return Response.json(
             {
               type: "order",
               status: "fulfilment_pending",
-              order_id: `SK-${payment.txHash.slice(2, 10).toUpperCase()}`,
+              order_id: `SK-${String(txHash).replace(/^0x/, "").slice(0, 8).toUpperCase()}`,
               sku: order.sku,
               variant_id: order.variantId ?? null,
               quantity: order.quantity,
               settled: {
                 ...settled,
                 token: cfg.symbol,
-                amountFormatted: formatAmount(credited, token),
-                explorer: `https://testnet.arcscan.app/tx/${payment.txHash}`,
+                amountFormatted: formatAmount(atomic, token),
+                explorer: txExplorerUrl(txHash),
               },
               listed_total: `${(order.listedAmount * order.quantity).toFixed(2)} ${order.currency}`,
               rights_cid: order.rightsCid ?? null,
@@ -298,13 +245,17 @@ export const Route = createFileRoute("/api/public/purchase")({
               headers: {
                 ...CORS,
                 "X-PAYMENT-RESPONSE": btoa(JSON.stringify(settled)),
+                "PAYMENT-RESPONSE": btoa(JSON.stringify(settled)),
               },
             },
           );
         } catch (err) {
           const detail = err instanceof Error ? err.message : String(err);
-          console.error("x402 verify failed:", detail);
-          return Response.json({ error: "verification_failed", detail }, { status: 502, headers: CORS });
+          console.error("x402 midnight settle failed:", detail);
+          return Response.json(
+            { error: "verification_failed", detail },
+            { status: 502, headers: CORS },
+          );
         }
       },
     },

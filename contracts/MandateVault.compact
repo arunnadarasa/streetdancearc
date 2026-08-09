@@ -1,0 +1,28 @@
+pragma language_version 0.23;
+import CompactStandardLibrary;
+
+export ledger anchored_count: Counter;
+export ledger last_mandate_hash: Bytes<32>;
+export ledger last_buyer: Bytes<32>;
+export ledger last_seller: Bytes<32>;
+export ledger last_amount: Uint<64>;
+
+witness buyerSecret(): Bytes<32>;
+
+constructor() { anchored_count.increment(1); }
+
+export circuit anchorMandate(
+  mandateHash: Bytes<32>,
+  buyer: Bytes<32>,
+  seller: Bytes<32>,
+  amount: Uint<64>,
+): [] {
+  const sk = buyerSecret();
+  const pk = persistentHash<Vector<2, Bytes<32>>>([pad(32, "ap2:buyer:v1"), sk]);
+  assert(pk == buyer, "buyer signature invalid");
+  last_mandate_hash = disclose(mandateHash);
+  last_buyer = disclose(buyer);
+  last_seller = disclose(seller);
+  last_amount = disclose(amount);
+  anchored_count.increment(1);
+}

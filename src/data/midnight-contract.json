@@ -1,0 +1,37 @@
+{
+  "network": "undeployed",
+  "address": "91cda7aa98c3ed54a781335aec21569b4aef49a433221b77a9fe06f0e2c71c7d",
+  "contracts": {
+    "moveRegistry": {
+      "name": "move-registry",
+      "address": "91cda7aa98c3ed54a781335aec21569b4aef49a433221b77a9fe06f0e2c71c7d",
+      "deployTx": "b394890960c956edf8932e2e289e2e9267b302749dd3a8f86b6a2fc06b12b8c7",
+      "privateStateId": "streetrail-midnight-state-move-registry"
+    },
+    "mandateVault": {
+      "name": "mandate-vault",
+      "address": "0bd9a2f91a2c76f19c2f65206f186b62a522e39e110eac09f0b037c103ba4d4d",
+      "deployTx": "8ef8535a769e89207272743b87b01aa9e5f9f7f836e9cf68d7126fe2b2faa692",
+      "privateStateId": "streetrail-midnight-state-mandate-vault"
+    },
+    "orderLedger": {
+      "name": "order-ledger",
+      "address": "0c34aa35eb506a7d8745842c32e4f5e303bb9b69c3113d0f83a137d1978d9c1f",
+      "deployTx": "40db3e735e0ab7c55840f839fdd730a7e12e9ba6fc244726437ea286ba7916f8",
+      "privateStateId": "streetrail-midnight-state-order-ledger"
+    },
+    "midnightUsdc": {
+      "name": "midnight-usdc",
+      "address": "3fa872984319a41d3f4ce12c1458bf5b6e3781801025d74d1803f8928f4edca0",
+      "deployTx": "4abdd1fbbc37909b363a563a8f3fe90733c99240e83c246bb8ea81c54d16357b",
+      "privateStateId": "streetrail-midnight-state-midnight-usdc"
+    },
+    "moveNft": {
+      "name": "move-nft",
+      "address": "ae3a0541a304fc41668b8b7633fe7b1ce7b953e3bc39bd671f97b3b74be626f1",
+      "deployTx": "fa808f9ac276c5abdb17ec7dfc21a9ca31bcb37075cf3a9980ca47caba62aa96",
+      "privateStateId": "streetrail-midnight-state-move-nft"
+    }
+  },
+  "deployedAt": "2026-08-09T22:54:33.048Z"
+}

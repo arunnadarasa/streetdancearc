@@ -1,0 +1,79 @@
+pragma language_version 0.23;
+import CompactStandardLibrary;
+
+// StreetRail Move Rights NFT on Midnight Undeployed.
+// Unshielded ownership maps for demo listing / buy / transfer (mUSDC settle off-contract).
+export ledger next_id: Counter;
+export ledger owners: Map<Uint<64>, Bytes<32>>;
+export ledger uris: Map<Uint<64>, Opaque<"string">>;
+export ledger listed_price: Map<Uint<64>, Uint<64>>;
+export ledger listed_payee: Map<Uint<64>, Bytes<32>>;
+export ledger last_token_id: Uint<64>;
+
+witness localSecretKey(): Bytes<32>;
+
+constructor() {
+  last_token_id = disclose(0 as Uint<64>);
+}
+
+export circuit mint(to: Bytes<32>, uri: Opaque<"string">): [] {
+  const sk = localSecretKey();
+  const auth = persistentHash<Vector<2, Bytes<32>>>([pad(32, "movenft:minter:v1"), sk]);
+  assert(auth != pad(32, ""), "auth");
+  next_id.increment(1);
+  const id = disclose(next_id.read() as Uint<64>);
+  last_token_id = id;
+  owners.insert(id, disclose(to));
+  uris.insert(id, disclose(uri));
+  listed_price.insert(id, disclose(0 as Uint<64>));
+  listed_payee.insert(id, disclose(to));
+}
+
+export circuit transfer(tokenId: Uint<64>, seller: Bytes<32>, buyer: Bytes<32>): [] {
+  const sk = localSecretKey();
+  const auth = persistentHash<Vector<2, Bytes<32>>>([pad(32, "movenft:minter:v1"), sk]);
+  assert(auth != pad(32, ""), "auth");
+  const id = disclose(tokenId);
+  assert(owners.member(id), "no token");
+  assert(owners.lookup(id) == disclose(seller), "not owner");
+  owners.insert(id, disclose(buyer));
+  listed_price.insert(id, disclose(0 as Uint<64>));
+  listed_payee.insert(id, disclose(buyer));
+}
+
+export circuit list(tokenId: Uint<64>, seller: Bytes<32>, price: Uint<64>): [] {
+  const sk = localSecretKey();
+  const auth = persistentHash<Vector<2, Bytes<32>>>([pad(32, "movenft:minter:v1"), sk]);
+  assert(auth != pad(32, ""), "auth");
+  const id = disclose(tokenId);
+  assert(owners.member(id), "no token");
+  assert(owners.lookup(id) == disclose(seller), "not owner");
+  assert(disclose(price) > (0 as Uint<64>), "price");
+  listed_price.insert(id, disclose(price));
+  listed_payee.insert(id, disclose(seller));
+}
+
+export circuit cancel(tokenId: Uint<64>, seller: Bytes<32>): [] {
+  const sk = localSecretKey();
+  const auth = persistentHash<Vector<2, Bytes<32>>>([pad(32, "movenft:minter:v1"), sk]);
+  assert(auth != pad(32, ""), "auth");
+  const id = disclose(tokenId);
+  assert(owners.member(id), "no token");
+  assert(owners.lookup(id) == disclose(seller), "not owner");
+  listed_price.insert(id, disclose(0 as Uint<64>));
+}
+
+export circuit buy(tokenId: Uint<64>, buyer: Bytes<32>): [] {
+  const sk = localSecretKey();
+  const auth = persistentHash<Vector<2, Bytes<32>>>([pad(32, "movenft:minter:v1"), sk]);
+  assert(auth != pad(32, ""), "auth");
+  const id = disclose(tokenId);
+  assert(owners.member(id), "no token");
+  assert(listed_price.member(id), "not listed");
+  const price = listed_price.lookup(id);
+  assert(price > (0 as Uint<64>), "not listed");
+  // mUSDC payment is sequenced by the server before this circuit runs.
+  owners.insert(id, disclose(buyer));
+  listed_price.insert(id, disclose(0 as Uint<64>));
+  listed_payee.insert(id, disclose(buyer));
+}

@@ -1,0 +1,25 @@
+{
+  "contractAddress": "ae3a0541a304fc41668b8b7633fe7b1ce7b953e3bc39bd671f97b3b74be626f1",
+  "tokens": [
+    {
+      "tokenId": "1",
+      "ownerPk": "1ea137f265033c9a0418e43164b4e881d5aa22c83280da3a494ddeea86f0cb8a",
+      "ownerLabel": "mn_addr_seller_demo_aaa",
+      "uri": "{\"kind\":\"move-log\",\"cid\":\"bafyTestMoveNft1\",\"at\":\"2026-08-09T22:55:33.189Z\"}",
+      "name": "Move · bafyTestMoveNft1",
+      "listedPriceAtomic": "0",
+      "listed": false,
+      "mintTxId": "004966494d0b14e6f49d1d75c7c4d03543dd38aada6a1e4d95aa7c7eeb204456da",
+      "updatedAt": "2026-08-09T22:56:26.929Z"
+    }
+  ],
+  "activity": [
+    {
+      "kind": "mint",
+      "tokenId": "1",
+      "txId": "004966494d0b14e6f49d1d75c7c4d03543dd38aada6a1e4d95aa7c7eeb204456da",
+      "actor": "mn_addr_seller_demo_aaa",
+      "at": "2026-08-09T22:56:26.929Z"
+    }
+  ]
+}

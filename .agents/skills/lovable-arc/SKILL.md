@@ -107,18 +107,6 @@ as a rounding error.
     A compact link to the dedicated settlement surface (`/judge`, `/shop`, or a
     standalone history page) keeps the checkout path short and the receipt
     surface authoritative.
-16. **Mode-independent editorial/reference pages.** Routes that explain the
-    product (`/markets`, `/moves`, `/primer`, `/deck`, `/judge`) must always
-    render their own content. Never wrap them in a per-mode surface, and hide
-    the mode toggle on them so a persisted GX mode does not silently swap the
-    page in the middle of a demo.
-17. **Paginate long settlement/activity lists.** Judge ledgers, receipt
-    panels, and marketplace activity lists should paginate at ~10 items with
-    numbered controls. Long scrollable lists push primary actions below the fold
-    and break demo pacing.
-18. **Round hero stats to 2 decimals.** Marketing metrics (e.g., "USDC settled
-    through the rail") should render with 2-decimal precision, not raw
-    contract precision, for readable social proof.
 
 ## Reference index
 
@@ -157,11 +145,6 @@ as a rounding error.
   `payload · N fields` disclosure that auto-opens only on failures.
 - **A single cross-mode settlement list.** H2H, H2A, A2A and A2H all write to
   one persisted client ledger; judges stop asking whether anything settled.
-- **Mode-independent editorial pages + hidden mode toggle.** Content routes
-  stayed readable even when the user had a persisted GX mode, and the compact
-  "Recent settlements →" link kept the cart drawer focused on checkout.
-- **Paginated settlement/activity lists.** 10-item pages with numbered controls
-  kept the judge demo compact and the primary action always visible.
 
 ## What I'd do differently next time
 
@@ -179,12 +162,6 @@ as a rounding error.
 6. Ship the **shared settlement ledger with the first settlement path**, not
    after a reviewer asks where the transactions are. Retrofitting it meant
    touching every mode's success handler at once.
-7. Decide which routes are **mode-driven vs. mode-independent** before wiring the
-   global toggle. Retrofitting content pages to ignore the saved mode meant
-   touching route wrappers, headers, and mobile drawers at once.
-8. Build **pagination into the first settlement/activity panel**, not after the
-   list grows long. A 10-item default with numbered controls keeps demos from
-   turning into scrolling exercises.
 
 
 

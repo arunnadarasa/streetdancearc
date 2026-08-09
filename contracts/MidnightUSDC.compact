@@ -1,0 +1,32 @@
+pragma language_version 0.23;
+import CompactStandardLibrary;
+
+// Experimental mUSDC mimic — no peg, no value. Never deploy to Mainnet.
+export ledger balances: Map<Bytes<32>, Uint<64>>;
+export ledger spent_nonces: Set<Bytes<32>>;
+
+witness localSecretKey(): Bytes<32>;
+
+export circuit faucet(): [] {
+  const sk = localSecretKey();
+  const pk = persistentHash<Vector<2, Bytes<32>>>([pad(32, "musdc:signer:v1"), sk]);
+  assert(!balances.member(disclose(pk)), "already claimed");
+  balances.insert(disclose(pk), disclose(10000000 as Uint<64>));
+}
+
+export circuit transfer(to: Bytes<32>, amount: Uint<64>, nonce: Bytes<32>): [] {
+  const sk = localSecretKey();
+  const fromPk = persistentHash<Vector<2, Bytes<32>>>([pad(32, "musdc:signer:v1"), sk]);
+  assert(!spent_nonces.member(disclose(nonce)), "nonce spent");
+  assert(balances.member(disclose(fromPk)), "no balance");
+  const fromBal = balances.lookup(disclose(fromPk));
+  assert(fromBal >= amount, "insufficient");
+  spent_nonces.insert(disclose(nonce));
+  balances.insert(disclose(fromPk), disclose((fromBal - amount) as Uint<64>));
+  if (balances.member(disclose(to))) {
+    const toBal = balances.lookup(disclose(to));
+    balances.insert(disclose(to), disclose((toBal + amount) as Uint<64>));
+  } else {
+    balances.insert(disclose(to), disclose(amount));
+  }
+}

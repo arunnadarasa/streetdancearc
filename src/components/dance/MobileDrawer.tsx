@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import {
   BookOpen,
   Check,
@@ -12,20 +11,16 @@ import {
   Globe2,
   Handshake,
   Home,
-  Loader2,
   Music2,
   Presentation,
-  RefreshCw,
   ShoppingBag,
   Wallet,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useWallet } from "@/lib/wallet-context";
 import { usePayToken } from "@/lib/pay-token";
-import { useArcBalances, shortBalance } from "@/lib/use-arc-balances";
 import { useCartStore } from "@/stores/cartStore";
-import { fetchFxRates } from "@/lib/fx.functions";
-import { ARC_EXPLORER, TOKENS, TOKEN_KEYS, getTokenUsdRate, type FxRates } from "@/lib/tokens";
+import { INDEXER_URL, NETWORK_ID, TOKENS, TOKEN_KEYS } from "@/lib/tokens";
 import { ARC_CHAIN_CAPTION, CONTRACTS } from "@/lib/contracts";
 
 const REPO_URL = "https://github.com/arunnadarasa/streetdancearc";
@@ -66,24 +61,11 @@ export function MobileDrawer({
   onNavigate: () => void;
   extra?: React.ReactNode;
 }) {
-  const { authenticated, login, logout, user, ready, available } = useWallet();
+  const { authenticated, login, logout, user, ready } = useWallet();
   const address = user?.wallet?.address;
   const [token, setToken] = usePayToken();
-  const { balances, loading, refresh } = useArcBalances(authenticated ? address : undefined);
-  const [fx, setFx] = useState<FxRates | null>(null);
   const [copied, setCopied] = useState(false);
-  const getFx = useServerFn(fetchFxRates);
   const cartCount = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
-
-  useEffect(() => {
-    let mounted = true;
-    void getFx({ data: undefined }).then((rates) => {
-      if (mounted) setFx(rates);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, [getFx]);
 
   const copyAddress = async () => {
     if (!address) return;
@@ -150,34 +132,13 @@ export function MobileDrawer({
         ) : null}
 
         <div className="space-y-2 border-t border-border p-3">
-          <div className="flex items-center justify-between gap-2">
-            <SectionLabel>
-              <span className="inline-flex items-center gap-1.5">
-                <Wallet className="h-3 w-3" /> Wallet · settlement currency
-              </span>
-            </SectionLabel>
-            {authenticated && (
-              <button
-                type="button"
-                onClick={() => void refresh()}
-                disabled={loading}
-                className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[10px] font-bold text-muted-foreground disabled:opacity-50"
-              >
-                {loading ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-3 w-3" />
-                )}
-                {loading ? "Reading" : "Refresh"}
-              </button>
-            )}
-          </div>
+          <SectionLabel>
+            <span className="inline-flex items-center gap-1.5">
+              <Wallet className="h-3 w-3" /> Wallet · {NETWORK_ID}
+            </span>
+          </SectionLabel>
 
-          {!available ? (
-            <p className="rounded-xl border border-border bg-background/40 px-3 py-2.5 text-[11px] leading-relaxed text-muted-foreground">
-              Wallet unavailable — no Privy app ID is configured for this build.
-            </p>
-          ) : !ready ? (
+          {!ready ? (
             <p className="px-1 text-[11px] text-muted-foreground">Loading wallet…</p>
           ) : !authenticated ? (
             <button
@@ -185,7 +146,7 @@ export function MobileDrawer({
               onClick={() => void login()}
               className="w-full rounded-full bg-linear-to-r from-primary to-glow px-4 py-3 text-xs font-bold text-primary-foreground shadow-glow-sm"
             >
-              Sign in with Google
+              Connect Lace / server-append
             </button>
           ) : (
             <button
@@ -194,7 +155,7 @@ export function MobileDrawer({
               className="flex w-full items-center gap-2 rounded-xl border border-border bg-background/40 px-3 py-2 text-left"
             >
               <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-muted-foreground">
-                {address ?? "No embedded wallet"}
+                {address ?? "Connected (server-append)"}
               </span>
               {copied ? (
                 <Check className="h-3.5 w-3.5 shrink-0 text-primary" />
@@ -204,12 +165,13 @@ export function MobileDrawer({
             </button>
           )}
 
+          <p className="px-1 text-[10px] leading-relaxed text-muted-foreground">
+            Settlements use mUSDC server-append on Undeployed — not Arc RPC balances.
+          </p>
+
           <ul className="space-y-1.5">
             {TOKEN_KEYS.map((k) => {
               const cfg = TOKENS[k];
-              const bal = balances[k];
-              const rate = getTokenUsdRate(k, fx);
-              const usd = bal === null || bal === undefined ? null : Number(bal) / rate;
               const on = k === token;
               return (
                 <li key={k}>
@@ -227,13 +189,8 @@ export function MobileDrawer({
                         {cfg.label}
                       </span>
                     </span>
-                    <span className="shrink-0 text-right">
-                      <span className="block text-xs font-bold tabular-nums text-foreground">
-                        {authenticated ? shortBalance(bal) : "—"}
-                      </span>
-                      <span className="block text-[10px] tabular-nums text-muted-foreground">
-                        {usd === null || !authenticated ? "tap to select" : `≈ $${usd.toFixed(2)}`}
-                      </span>
+                    <span className="shrink-0 text-[10px] text-muted-foreground">
+                      {on ? "selected" : "tap"}
                     </span>
                   </button>
                 </li>
@@ -247,7 +204,7 @@ export function MobileDrawer({
               onClick={() => void logout()}
               className="w-full rounded-full border border-border px-4 py-2 text-[11px] font-bold text-muted-foreground"
             >
-              Sign out
+              Disconnect
             </button>
           )}
         </div>
@@ -271,10 +228,18 @@ export function MobileDrawer({
             rel="noreferrer"
             className="flex items-center gap-2 rounded-xl px-2 py-2 text-[11px] font-semibold text-muted-foreground hover:text-foreground"
           >
-            <FileCode2 className="h-3.5 w-3.5 shrink-0" /> {c.name} on Arcscan
+            <FileCode2 className="h-3.5 w-3.5 shrink-0" /> {c.name} · indexer
             <ExternalLink className="ml-auto h-3 w-3 shrink-0" />
           </a>
         ))}
+        <a
+          href={INDEXER_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-2 rounded-xl px-2 py-2 text-[11px] font-semibold text-muted-foreground hover:text-foreground"
+        >
+          <ExternalLink className="h-3.5 w-3.5 shrink-0" /> Midnight indexer
+        </a>
         <p className="px-2 pt-1 text-[10px] text-muted-foreground">{ARC_CHAIN_CAPTION}</p>
 
       </div>

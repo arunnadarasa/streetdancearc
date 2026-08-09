@@ -1,40 +1,16 @@
 import { useEffect, useState } from "react";
 import { useWallet } from "@/lib/wallet-context";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  createWalletClient,
-  createPublicClient,
-  custom,
-  http,
-  encodeFunctionData,
-  parseUnits,
-  type Address,
-} from "viem";
-import { arcTestnet } from "@/lib/arc-chain";
-import { TOKENS, type TokenKey, ARC_EXPLORER, convertFromUsd, type FxRates } from "@/lib/tokens";
-import contractCfg from "@/data/contract.json";
-import { TokenSwitcher } from "./TokenSwitcher";
+import { INDEXER_URL, TOKENS, type TokenKey, convertFromUsd, type FxRates, txExplorerUrl } from "@/lib/tokens";
+import midnightContract from "@/data/midnight-contract.json";
 import { fetchFxRates } from "@/lib/fx.functions";
-import { getMoveNftConfig, mintMoveNft } from "@/lib/nft.functions";
+import { getMoveNftConfig } from "@/lib/nft.functions";
+import { recordSettlement } from "@/lib/tx-log";
 import { MetadataPreview } from "./MetadataPreview";
 
-
-const ERC20_APPROVE_ABI = [
-  {
-    type: "function",
-    name: "approve",
-    stateMutability: "nonpayable",
-    inputs: [
-      { name: "spender", type: "address" },
-      { name: "amount", type: "uint256" },
-    ],
-    outputs: [{ type: "bool" }],
-  },
-] as const;
-
 export function MintForm() {
-  const { authenticated, login, wallets } = useWallet();
-  const [token, setToken] = useState<TokenKey>("USDC");
+  const { authenticated, login, wallets, unshieldedAddress } = useWallet();
+  const token: TokenKey = "USDC";
   const [cid, setCid] = useState("");
   const [amount, setAmount] = useState("1");
   const [usdAmount, setUsdAmount] = useState("1");
@@ -43,155 +19,199 @@ export function MintForm() {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [nftTokenId, setNftTokenId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [mintHash, setMintHash] = useState<string | null>(null);
-  const [nftCfg, setNftCfg] = useState<{
-    nftConfigured: boolean;
-    nftAddress: string;
+  const [pinCfg, setPinCfg] = useState<{
     pinningEnabled: boolean;
     maxUploadBytes: number;
   } | null>(null);
   const getFx = useServerFn(fetchFxRates);
   const getNftCfg = useServerFn(getMoveNftConfig);
-  const mintNft = useServerFn(mintMoveNft);
+  const ownerLabel =
+    unshieldedAddress ||
+    wallets.find((w) => w.walletClientType === "privy")?.address ||
+    wallets[0]?.address ||
+    "mn_addr_undeployed1qqqqserverappend";
 
   useEffect(() => {
     let mounted = true;
     void getFx({ data: undefined }).then((rates) => {
       if (mounted) setFx(rates);
     });
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [getFx]);
 
   useEffect(() => {
     let mounted = true;
     void getNftCfg({ data: undefined })
-      .then((cfg) => { if (mounted) setNftCfg(cfg); })
+      .then((cfg) => {
+        if (mounted) {
+          setPinCfg({
+            pinningEnabled: cfg.pinningEnabled,
+            maxUploadBytes: cfg.maxUploadBytes,
+          });
+        }
+      })
       .catch(() => undefined);
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [getNftCfg]);
 
-  const contractAddress = contractCfg.address as Address;
-  const contractDeployed = contractAddress && contractAddress !== "0x0000000000000000000000000000000000000000";
+  const contractAddress =
+    (import.meta.env.VITE_DEFAULT_CONTRACT as string) ||
+    (midnightContract as { address?: string }).address ||
+    "";
+  const contractDeployed =
+    !!contractAddress && !/^0+$/.test(contractAddress.replace(/^0x/, ""));
 
   const tokenPerUsd = convertFromUsd(1, token, fx) || 1;
-  const tokenAmount = mode === "usd"
-    ? convertFromUsd(parseFloat(usdAmount || "0"), token, fx).toFixed(TOKENS[token].decimals === 8 ? 8 : 6)
-    : amount;
-  const usdEquivalent = mode === "usd"
-    ? parseFloat(usdAmount || "0")
-    : parseFloat(amount || "0") / tokenPerUsd;
-
-  function onUsdChange(raw: string) {
-    setUsdAmount(raw);
-    setMode("usd");
-  }
-
-  function onTokenChange(raw: string) {
-    setAmount(raw);
-    setMode("token");
-  }
+  const tokenAmount =
+    mode === "usd"
+      ? convertFromUsd(parseFloat(usdAmount || "0"), token, fx).toFixed(6)
+      : amount;
+  const usdEquivalent =
+    mode === "usd" ? parseFloat(usdAmount || "0") : parseFloat(amount || "0") / tokenPerUsd;
 
   async function onSubmit() {
     setError(null);
     setTxHash(null);
-    setMintHash(null);
+    setNftTokenId(null);
     setBusy(true);
+    setStatus(null);
     try {
       if (!authenticated) {
         await login();
         return;
       }
       if (!contractDeployed) {
-        throw new Error("Contract not deployed yet. Run `node scripts/deploy-arc.mjs DanceMoveTokens`.");
+        throw new Error("MoveRegistry not deployed. Run: bun run compile");
       }
-      const embedded = wallets.find((w) => w.walletClientType === "privy") ?? wallets[0];
-      if (!embedded) throw new Error("No embedded wallet. Sign in first.");
+      if (!cid.trim()) throw new Error("Enter a move CID or message to anchor.");
 
-      const provider = await embedded.getEthereumProvider();
-      await embedded.switchChain(arcTestnet.id);
-
-      const tokenCfg = TOKENS[token];
-      const value = parseUnits(tokenAmount || "0", tokenCfg.decimals);
-      const from = embedded.address as Address;
-
-      const walletClient = createWalletClient({
-        account: from,
-        chain: arcTestnet,
-        transport: custom(provider),
+      setStatus("Proving MoveRegistry append… first call can take up to ~4 min on a cold proof server.");
+      const message = JSON.stringify({
+        kind: "move-log",
+        cid: cid.trim(),
+        token,
+        amount: tokenAmount,
+        usd: usdEquivalent,
+        at: new Date().toISOString(),
       });
-      const publicClient = createPublicClient({ chain: arcTestnet, transport: http() });
-
-      // 1. Approve
-      setStatus(`Approving ${tokenCfg.symbol}…`);
-      const approveData = encodeFunctionData({
-        abi: ERC20_APPROVE_ABI,
-        functionName: "approve",
-        args: [contractAddress, value],
+      const res = await fetch("/api/public/append-entry", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          contractAddress,
+          appTag: "streetrail_move_registry",
+          message,
+        }),
       });
-      const approveHash = await walletClient.sendTransaction({
-        to: tokenCfg.address as Address,
-        data: approveData,
-        chain: arcTestnet,
-      });
-      await publicClient.waitForTransactionReceipt({ hash: approveHash });
-
-      // 2. Call log(token, amount, cid)
-      setStatus(`Logging move on-chain…`);
-      const logData = encodeFunctionData({
-        abi: contractCfg.abi,
-        functionName: "log",
-        args: [tokenCfg.address as Address, value, cid || "bafkreidemo"],
-      });
-      const hash = await walletClient.sendTransaction({
-        to: contractAddress,
-        data: logData,
-        chain: arcTestnet,
-      });
+      const body = (await res.json()) as { txId?: string; error?: string };
+      if (!res.ok) throw new Error(body.error || `append-entry failed (${res.status})`);
+      const hash = body.txId || null;
       setTxHash(hash);
-      setStatus(`Logged with ${tokenCfg.symbol}`);
-
-      // 3. Mint the move NFT to the dancer, agent-side from the treasury.
-      if (nftCfg?.nftConfigured) {
-        try {
-          setStatus("Minting your move NFT on Arc…");
-          const minted = await mintNft({ data: { to: from, cid: cid || "bafkreidemo" } });
-          setMintHash(minted.txHash);
-          setStatus(`Logged with ${tokenCfg.symbol} · move NFT minted`);
-        } catch (mintErr) {
-          const m = mintErr instanceof Error ? mintErr.message : String(mintErr);
-          setStatus(`Logged with ${tokenCfg.symbol} · NFT mint failed (${m.slice(0, 80)})`);
-        }
+      if (hash) {
+        recordSettlement({
+          hash,
+          mode: "H2H",
+          label: `Move log · ${cid.trim().slice(0, 48)}`,
+          token,
+          amountFormatted: `${tokenAmount} ${TOKENS[token].symbol}`,
+        });
       }
+
+      setStatus("Minting Compact MoveNft…");
+      const mintRes = await fetch("/api/public/move-nft-mint", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ownerLabel,
+          uri: message,
+        }),
+      });
+      const mintBody = (await mintRes.json()) as {
+        tokenId?: string;
+        txId?: string;
+        error?: string;
+      };
+      if (!mintRes.ok) throw new Error(mintBody.error || `move-nft-mint failed (${mintRes.status})`);
+      setNftTokenId(mintBody.tokenId ?? null);
+      if (mintBody.txId) {
+        recordSettlement({
+          hash: mintBody.txId,
+          mode: "H2H",
+          label: `Move NFT #${mintBody.tokenId} · ${cid.trim().slice(0, 40)}`,
+          token,
+          amountFormatted: `${tokenAmount} ${TOKENS[token].symbol}`,
+        });
+        setTxHash(mintBody.txId);
+      }
+      setStatus(
+        `Anchored on MoveRegistry and minted MoveNft #${mintBody.tokenId ?? "?"} — list it on /market.`,
+      );
     } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      setError(msg);
-      setStatus(null);
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <div className="min-w-0 max-w-full space-y-4 overflow-hidden rounded-2xl border border-border bg-card/70 p-4 sm:p-6">
-      <div>
-        <p className="mb-2 text-xs uppercase tracking-widest text-muted-foreground">Pay with</p>
-        <TokenSwitcher value={token} onChange={setToken} />
-        <p className="mt-2 text-xs text-muted-foreground">{TOKENS[token].label}</p>
+    <div className="space-y-4 rounded-3xl border border-border bg-card/60 p-5">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="eyebrow">Move registry</p>
+          <h3 className="display text-xl text-foreground">Log a move on Midnight</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Append MoveRegistry + mint Compact MoveNft · indexer {INDEXER_URL}
+          </p>
+        </div>
+        <span className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
+          mUSDC
+        </span>
       </div>
 
+      <label className="block text-xs text-muted-foreground">
+        Amount ({TOKENS[token].symbol})
+        <input
+          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+          value={mode === "usd" ? undefined : amount}
+          onChange={(e) => {
+            setAmount(e.target.value);
+            setMode("token");
+          }}
+          placeholder="1.0"
+        />
+      </label>
+      <label className="block text-xs text-muted-foreground">
+        USD equivalent
+        <input
+          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+          value={mode === "token" ? usdEquivalent.toFixed(2) : usdAmount}
+          onChange={(e) => {
+            setUsdAmount(e.target.value);
+            setMode("usd");
+          }}
+        />
+      </label>
+
       <MetadataPreview
-        token={token}
-        amount={tokenAmount || "0"}
+        token={token === "cirBTC" ? "cirBTC" : token === "EURC" ? "EURC" : "USDC"}
+        amount={tokenAmount}
         cid={cid || null}
-        pinningEnabled={nftCfg?.pinningEnabled ?? false}
-        maxUploadBytes={nftCfg?.maxUploadBytes ?? 25 * 1024 * 1024}
+        pinningEnabled={pinCfg?.pinningEnabled ?? false}
+        maxUploadBytes={pinCfg?.maxUploadBytes ?? 25 * 1024 * 1024}
         onConfirm={(next) => setCid(next)}
         onReset={() => setCid("")}
       />
 
       <div>
-        <label className="text-xs uppercase tracking-widest text-muted-foreground">IPFS CID (rights metadata)</label>
+        <label className="text-xs uppercase tracking-widest text-muted-foreground">
+          IPFS CID (rights metadata)
+        </label>
         <input
           value={cid}
           onChange={(e) => setCid(e.target.value)}
@@ -206,131 +226,40 @@ export function MintForm() {
         </p>
       </div>
 
-
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <label className="text-xs uppercase tracking-widest text-muted-foreground">Amount</label>
-          <div className="flex rounded-full border border-border bg-surface p-0.5">
-            <button
-              type="button"
-              onClick={() => setMode("token")}
-              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold transition ${
-                mode === "token" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {TOKENS[token].symbol}
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("usd")}
-              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold transition ${
-                mode === "usd" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              USD
-            </button>
-          </div>
-        </div>
-
-        {mode === "usd" ? (
-          <input
-            value={usdAmount}
-            onChange={(e) => onUsdChange(e.target.value)}
-            type="number"
-            inputMode="decimal"
-            pattern="[0-9]*\.?[0-9]*"
-            min="0"
-            step="0.01"
-            placeholder="0.00"
-            className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-          />
-        ) : (
-          <input
-            value={amount}
-            onChange={(e) => onTokenChange(e.target.value)}
-            type="number"
-            inputMode="decimal"
-            pattern="[0-9]*\.?[0-9]*"
-            min="0"
-            step="0.01"
-            className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-          />
-        )}
-
-        <div className="rounded-lg border border-border/60 bg-background/40 px-3 py-2 text-xs text-muted-foreground">
-          {mode === "usd" ? (
-            <>
-              You will approve{" "}
-              <span className="font-semibold text-foreground">
-                {tokenAmount} {TOKENS[token].symbol}
-              </span>{" "}
-              (${usdAmount || "0"} USD at live FX rate).
-            </>
-          ) : (
-            <>
-              Listed payment:{" "}
-              <span className="font-semibold text-foreground">
-                {amount || "0"} {TOKENS[token].symbol}
-              </span>
-              {fx && (
-                <span className="ml-1 opacity-70">
-                  ≈ ${usdEquivalent.toFixed(2)} USD
-                </span>
-              )}
-            </>
-          )}
-        </div>
-      </div>
-
-      {authenticated && contractDeployed && (
-        <div className="rounded-lg border border-border bg-background/40 p-3 text-xs text-muted-foreground">
-          You'll approve <span className="font-semibold text-foreground">{tokenAmount || "0"} {TOKENS[token].symbol}</span>{" "}
-          to be spent by the DanceMoveTokens contract, then log the move.
-          <br />
-          <span className="text-muted-foreground">
-            Token: <code className="break-all text-muted-foreground">{TOKENS[token].address.slice(0, 6)}…{TOKENS[token].address.slice(-4)}</code>
-            {" · "}Privy's modal shows your USDC gas balance, not the approval amount.
-          </span>
-        </div>
-      )}
-
       <button
-        disabled={busy || (authenticated && !cid)}
-        onClick={onSubmit}
-        className="h-12 w-full rounded-full bg-primary px-4 text-base font-bold text-primary-foreground transition hover:bg-primary/85 disabled:opacity-50"
+        type="button"
+        disabled={busy || !cid.trim()}
+        onClick={() => void onSubmit()}
+        className="inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
       >
-        {busy
-          ? "Working…"
-          : !authenticated
-            ? "Sign in with Google"
-            : cid
-              ? "Step 2 · Approve & Log Move"
-              : "Preview metadata first"}
+        {busy ? "Proving…" : authenticated ? "Prove & mint move NFT" : "Connect & mint"}
       </button>
 
-
-      {status && <p className="text-sm text-muted-foreground">{status}</p>}
+      {!contractDeployed && (
+        <p className="text-xs text-amber-400">
+          Contract address missing — run <code>bun run compile</code> after Docker is up.
+        </p>
+      )}
+      {status && <p className="text-xs text-muted-foreground">{status}</p>}
+      {error && <p className="text-xs text-red-400">{error}</p>}
+      {nftTokenId && (
+        <p className="text-xs text-foreground">
+          MoveNft token <span className="font-semibold">#{nftTokenId}</span> —{" "}
+          <a href="/market" className="text-glow underline">
+            list on Market
+          </a>
+        </p>
+      )}
       {txHash && (
         <a
-          href={`${ARC_EXPLORER}/tx/${txHash}`}
+          className="block text-xs text-glow underline"
+          href={txExplorerUrl(txHash)}
           target="_blank"
           rel="noreferrer"
-          className="block break-all text-sm text-glow hover:underline"
         >
-          View tx on Arcscan → {txHash}
+          View tx in indexer · {txHash.slice(0, 18)}…
         </a>
       )}
-      {mintHash && (
-        <a
-          href={`${ARC_EXPLORER}/tx/${mintHash}`}
-          target="_blank"
-          rel="noreferrer"
-          className="block break-all text-sm text-glow hover:underline"
-        >
-          Move NFT mint on Arcscan → {mintHash}
-        </a>
-      )}
-      {error && <p className="text-sm text-red-400">{error}</p>}
     </div>
   );
 }

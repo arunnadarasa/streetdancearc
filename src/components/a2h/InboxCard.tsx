@@ -20,9 +20,14 @@ import type { A2hMessage } from "./a2h-feed";
 import { isTokenKey } from "@/lib/tokens";
 import { recordSettlement } from "@/lib/tx-log";
 
-/** Pull the tx hash out of an Arcscan receipt URL and log it for the judge list. */
+/** Pull a ledger hash out of an indexer receipt URL and log it for the judge list. */
 function logA2h(receiptUrl: string | undefined, label: string, value?: string, token?: string) {
-  const hash = receiptUrl?.match(/0x[0-9a-fA-F]{64}/)?.[0];
+  if (!receiptUrl) return;
+  const evm = receiptUrl.match(/0x([0-9a-fA-F]{64})/i)?.[1];
+  const bare =
+    receiptUrl.match(/(?:tx=|#tx=|\/tx\/)([0-9a-fA-F]{64})/i)?.[1] ??
+    (/^[0-9a-fA-F]{64}$/.test(receiptUrl) ? receiptUrl : undefined);
+  const hash = evm ? `0x${evm}` : bare;
   if (!hash) return;
   recordSettlement({
     hash,
@@ -39,7 +44,7 @@ const KIND: Record<
 > = {
   payout: {
     icon: ArrowDownToLine,
-    label: "Payout settled on Arc",
+    label: "Payout settled on Midnight",
     ring: "border-primary/40",
     tint: "text-glow",
   },
@@ -87,6 +92,7 @@ export function InboxCard({
     expiresAt: string;
     mandate: unknown;
     onChainAuth?: OnChainAuthView;
+    receiptUrl?: string | null;
   } | null>(null);
   const [renewError, setRenewError] = useState<string | null>(null);
   const [result, setResult] = useState<
@@ -128,7 +134,12 @@ export function InboxCard({
         expiresAt: res.expiresAt,
         mandate: res.mandate,
         onChainAuth: res.onChainAuth as OnChainAuthView,
+        receiptUrl: (res as { receiptUrl?: string | null }).receiptUrl ?? null,
       });
+      const renewReceipt =
+        (res as { receiptUrl?: string | null }).receiptUrl ??
+        (res.onChainAuth as OnChainAuthView | undefined)?.receiptUrl;
+      if (renewReceipt) logA2h(renewReceipt, "Mandate renewed · MandateVault");
       setOpen(true);
     } catch (e) {
       setRenewError(
@@ -212,7 +223,10 @@ export function InboxCard({
     }
   }
 
-  const receipt = result?.ok ? result.receiptUrl : (claimed?.receiptUrl ?? msg.receiptUrl);
+  const receipt =
+    result?.ok
+      ? result.receiptUrl
+      : (claimed?.receiptUrl ?? renewed?.receiptUrl ?? renewed?.onChainAuth?.receiptUrl ?? msg.receiptUrl);
   const errored = Boolean((result && !result.ok) || claimError || renewError);
 
 
@@ -226,9 +240,9 @@ export function InboxCard({
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className={`text-[10px] font-black uppercase tracking-[0.18em] ${k.tint}`}>
               {result?.ok
-                ? "Payout settled on Arc"
+                ? "Payout settled on Midnight"
                 : claimed
-                  ? "Offer claimed on Arc"
+                  ? "Offer claimed on Midnight"
                   : renewed
                     ? "Mandate renewed"
                     : k.label}
@@ -293,7 +307,13 @@ export function InboxCard({
             <div className="mt-3">
               <ReceiptButton
                 href={receipt}
-                label={claimed ? "View claim on Arcscan" : "View receipt on Arcscan"}
+                label={
+                  renewed
+                    ? "View mandate on indexer"
+                    : claimed
+                      ? "View claim on indexer"
+                      : "View receipt on indexer"
+                }
               />
             </div>
           )}
@@ -321,7 +341,7 @@ export function InboxCard({
                   className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-primary to-glow px-4 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
                 >
                   {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                  {busy ? "Sending on Arc…" : address ? "Approve payout" : "Connect wallet first"}
+                  {busy ? "Settling on Midnight…" : address ? "Approve payout" : "Connect wallet first"}
                 </button>
                 <button
                   onClick={() => setActed("declined")}
@@ -341,7 +361,7 @@ export function InboxCard({
                   className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-primary to-glow px-4 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
                 >
                   {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                  {busy ? "Claiming on Arc…" : address ? "Claim offer" : "Connect wallet first"}
+                  {busy ? "Claiming on Midnight…" : address ? "Claim offer" : "Connect wallet first"}
                 </button>
                 <button
                   onClick={() => setActed("dismissed")}
@@ -414,7 +434,7 @@ export function InboxCard({
               {claimed && (
                 <JsonBlock
                   key={`claim-${rawAll}`}
-                  label="AP2 offer claim · Ed25519 signed, logged on Arc"
+                  label="AP2 offer claim · Ed25519 signed, logged on Midnight"
                   value={claimed.claim}
                   tone="green"
                   collapsible

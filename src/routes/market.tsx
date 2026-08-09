@@ -4,9 +4,8 @@ import { z } from "zod";
 import { Header } from "@/components/dance/Header";
 import { Section, SectionHead } from "@/components/layout/Section";
 import { SiteFooter } from "@/components/layout/SiteFooter";
-import { MoveMarketPanel } from "@/components/market/MoveMarketPanel";
+import { MidnightMoveMarketPanel } from "@/components/market/MidnightMoveMarketPanel";
 import { MarketActivityPanel } from "@/components/market/MarketActivityPanel";
-
 
 const marketSearchSchema = z.object({
   q: fallback(z.string(), "").default(""),
@@ -20,18 +19,18 @@ export const Route = createFileRoute("/market")({
   validateSearch: zodValidator(marketSearchSchema),
   head: () => ({
     meta: [
-      { title: "Move Rights Market — Buy & Sell Choreography NFTs on Arc" },
+      { title: "Move Rights Market — Compact MoveNfts on Midnight" },
       {
         name: "description",
         content:
-          "List, buy and transfer StreetRail Move Rights NFTs on Circle's Arc Testnet, settled in USDC, EURC or cirBTC with gas paid in USDC.",
+          "List, buy and transfer StreetRail Move Rights NFTs on Midnight Undeployed, settled in experimental mUSDC.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:title", content: "Move Rights Market — Buy & Sell Choreography NFTs on Arc" },
+      { property: "og:title", content: "Move Rights Market — Compact MoveNfts on Midnight" },
       {
         property: "og:description",
-        content: "A non-custodial marketplace for dance move rights, settled in Arc stablecoins.",
+        content: "A Compact MoveNft marketplace for dance move rights, settled in mUSDC.",
       },
     ],
   }),
@@ -39,7 +38,6 @@ export const Route = createFileRoute("/market")({
 });
 
 function MarketPage() {
-
   return (
     <>
       <div className="min-h-screen bg-background text-foreground">
@@ -48,15 +46,14 @@ function MarketPage() {
           <SectionHead
             eyebrow="Secondary market"
             title="Trade move rights"
-            blurb="Every Move Rights NFT can be listed, bought and transferred on Arc. Sellers keep custody until someone pays; settlement runs in USDC, EURC or cirBTC."
+            blurb="Compact MoveNfts on Midnight Undeployed. Mint on /moves, then list, buy or transfer here — settlement runs in experimental mUSDC."
           />
           <div className="mt-8">
-            <MoveMarketPanel />
+            <MidnightMoveMarketPanel />
           </div>
           <div className="mt-6">
             <MarketActivityPanel />
           </div>
-
         </Section>
         <SiteFooter />
       </div>

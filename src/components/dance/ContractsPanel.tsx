@@ -2,7 +2,7 @@ import { useState } from "react";
 import { BadgeCheck, Check, Copy, ExternalLink, FileCode2 } from "lucide-react";
 import { ARC_CHAIN_CAPTION, CONTRACTS, shortAddress } from "@/lib/contracts";
 
-/** Card list of every deployed StreetRail contract with Arcscan links. */
+/** Card list of every deployed StreetRail Compact contract with indexer links. */
 export function ContractsPanel({ className = "" }: { className?: string }) {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -39,7 +39,7 @@ export function ContractsPanel({ className = "" }: { className?: string }) {
             ))}
             {c.verified ? (
               <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
-                <BadgeCheck className="h-3 w-3" /> Verified on Arcscan
+                <BadgeCheck className="h-3 w-3" /> Deployed on Undeployed
               </span>
             ) : null}
           </div>
@@ -63,7 +63,7 @@ export function ContractsPanel({ className = "" }: { className?: string }) {
               rel="noreferrer"
               className="ml-auto inline-flex items-center gap-1 text-[11px] font-bold text-primary underline underline-offset-4"
             >
-              Arcscan <ExternalLink className="h-3 w-3" />
+              Indexer <ExternalLink className="h-3 w-3" />
             </a>
           </div>
         </div>

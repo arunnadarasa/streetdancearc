@@ -60,9 +60,14 @@ export interface MintResult {
   tokenUri: string;
 }
 
+const MIDNIGHT_NFT =
+  "Arc Move NFT minting is paused — register moves via Midnight MoveRegistry (/api/public/append-entry).";
+
 /** Mint one move NFT to the dancer, with an ipfs:// token URI. */
 export async function mintMove(params: { to: string; cid: string }): Promise<MintResult> {
-  if (!nftConfigured()) throw new Error("move_nft_not_deployed");
+  if (!process.env["CIRCLE_API_KEY"] || !nftConfigured()) {
+    throw new Error(MIDNIGHT_NFT);
+  }
   const cid = params.cid.replace(/^ipfs:\/\//, "").trim();
   if (!cid) throw new Error("missing_cid");
   const tokenUri = `ipfs://${cid}`;
@@ -112,6 +117,14 @@ export async function listOwnedMoves(owner: string, max = 12): Promise<{
   detail: string | null;
 }> {
   const base = { contract: MOVE_NFT_ADDRESS, configured: nftConfigured() };
+  if (!process.env["CIRCLE_API_KEY"] || !process.env["ARC_LOGS_RPC_URL"]) {
+    return {
+      ...base,
+      configured: false,
+      items: [],
+      detail: MIDNIGHT_NFT,
+    };
+  }
   if (!nftConfigured()) {
     return { ...base, items: [], detail: "The move NFT contract is not deployed yet." };
   }

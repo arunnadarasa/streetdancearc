@@ -15,6 +15,18 @@ dist-ssr
 .tanstack/**
 .nitro
 *.local
+.env
+.env.*
+!.env.example
+
+# Midnight LevelDB private-state stores (local Undeployed)
+.midnight/
+*-priv/
+*-priv-signing-keys/
+streetrail-midnight-priv*
+.leveldb/
+*.db
+circle-entity-recovery.json
 
 # Wrangler / Cloudflare
 .wrangler/
@@ -30,3 +42,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+midnight-level-db/

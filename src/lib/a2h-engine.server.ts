@@ -1,11 +1,12 @@
-// A2H orchestration: nanopayment accrual, batch settlement on Arc, cap checks,
-// FX and signed AP2 receipts.
+// A2H orchestration: nanopayment accrual, batch settlement on Midnight Undeployed,
+// cap checks, FX and signed AP2 receipts.
 // Kept out of a2h.functions.ts because server-fn splitting deletes siblings.
 
 import { getFxRates } from "@/lib/fx.server";
 import { convertFromUsd, getTokenUsdRate, microToUsd, usdToMicro, FALLBACK_RATES } from "@/lib/fx";
-import { TOKENS, ARC_EXPLORER, toAtomic, type TokenKey } from "@/lib/tokens";
+import { TOKENS, INDEXER_URL, txExplorerUrl, toAtomic, type TokenKey } from "@/lib/tokens";
 import { treasuryContractCall } from "@/lib/circle.server";
+import { MIDNIGHT_NETWORK } from "@/lib/agent-card";
 
 import { signMandate } from "@/lib/mandate-sign.server";
 import { approveAuthOnChain, AUTHORIZER, authorizerUrl } from "@/lib/erc1271.server";
@@ -28,7 +29,8 @@ import {
   type OnChainPayout,
 } from "@/lib/a2h.server";
 
-const ARC_CAIP2 = "eip155:5042002";
+const ARC_CAIP2 = MIDNIGHT_NETWORK;
+const isUndeployed = () => (process.env.VITE_NETWORK_ID ?? "undeployed") === "undeployed";
 
 function places(token: TokenKey) {
   return TOKENS[token].decimals === 8 ? 8 : 6;
@@ -80,9 +82,9 @@ export async function runListPayouts(address?: string) {
     .reduce((sum, p) => sum + usdOf(p, fx), 0);
 
   return {
-    payouts: payouts.map((p) => ({ ...p, receiptUrl: `${ARC_EXPLORER}/tx/${p.txHash}` })),
+    payouts: payouts.map((p) => ({ ...p, receiptUrl: txExplorerUrl(p.txHash) })),
     registry: REGISTRY,
-    registryUrl: `${ARC_EXPLORER}/address/${REGISTRY}`,
+    registryUrl: INDEXER_URL,
     spentTodayUsd,
     caps: { perPayoutUsd: PER_PAYOUT_CAP_USD, dailyUsd: DAILY_CAP_USD },
     batchThresholdUsd: BATCH_THRESHOLD_USD,
@@ -139,7 +141,7 @@ async function settle(input: SettleInput) {
       type: "PayoutMandate",
       payoutId: `po_${result.transferTx.slice(2, 14)}`,
       agent: "did:web:streetrail.lovable.app#rights-agent",
-      recipient: { address: input.address, network: ARC_CAIP2, chainId: 5042002 },
+      recipient: { address: input.address, network: ARC_CAIP2 },
       amount: { value, asset: input.token, usd: input.usd.toFixed(4) },
       move: { cid: input.moveCid, plays: input.plays ?? null },
       authorization: input.approved ? "human_approved" : "standing_mandate",
@@ -156,21 +158,29 @@ async function settle(input: SettleInput) {
           }
         : null,
       proof: [
-        { scheme: "evm-tx", role: "transfer", txHash: result.transferTx, network: ARC_CAIP2 },
-        { scheme: "evm-tx", role: "registry-log", txHash: result.registryTx, network: ARC_CAIP2 },
+        {
+          scheme: isUndeployed() ? "midnight-tx" : "evm-tx",
+          role: "transfer",
+          txHash: result.transferTx,
+          network: ARC_CAIP2,
+        },
+        {
+          scheme: isUndeployed() ? "midnight-tx" : "evm-tx",
+          role: "registry-log",
+          txHash: result.registryTx,
+          network: ARC_CAIP2,
+        },
       ],
       issuedAt: new Date().toISOString(),
     };
 
-    // ERC-1271: anchor the mandate digest on Arc so any counterparty can verify
-    // the treasury authorized this payout — no EOA delegate required.
     const onChainAuth = await approveAuthOnChain(mandate);
 
     return {
       ok: true as const,
       ...result,
-      receiptUrl: `${ARC_EXPLORER}/tx/${result.transferTx}`,
-      registryUrl: `${ARC_EXPLORER}/tx/${result.registryTx}`,
+      receiptUrl: txExplorerUrl(result.transferTx),
+      registryUrl: txExplorerUrl(result.registryTx),
       onChainAuth,
       mandate: { ...mandate, signature: signMandate(mandate), onChainAuth },
     };
@@ -188,14 +198,17 @@ async function settle(input: SettleInput) {
 
 /** Turn raw Circle / RPC failure strings into one readable line. */
 function humanizePayoutError(message: string): string {
+  if (/Indexer history is empty|Midnight MoveRegistry|missing_secret/i.test(message)) {
+    return "Midnight Undeployed settle failed — check the local node, indexer, proof server, and mandate signing.";
+  }
   if (message.includes("circle_tx_timeout")) {
-    return "The Arc transaction is still pending at Circle — check the treasury in a moment.";
+    return "The payout transaction is still pending — check the indexer in a moment.";
   }
   if (message.includes("insufficient") || message.includes("INSUFFICIENT")) {
-    return "The treasury wallet is out of USDC gas. Top it up at faucet.circle.com and retry.";
+    return "mUSDC faucet/transfer failed on Undeployed — retry after the proof server is warm.";
   }
   if (message.startsWith("circle_")) {
-    return "Circle rejected the payout request. Nothing left the treasury — retry in a moment.";
+    return "Legacy Circle payout path rejected the request. Retry on Midnight Undeployed.";
   }
   return message.split(":").slice(0, 2).join(": ").slice(0, 160);
 }
@@ -308,27 +321,69 @@ export async function runClaimOffer(data: {
   const expiresAt = new Date(Date.now() + (data.expiresInHours ?? 6) * 3_600_000).toISOString();
 
   try {
-    const registry = await treasuryContractCall({
-      contractAddress: REGISTRY,
-      abiFunctionSignature: "log(address,uint256,string)",
-      abiParameters: [
-        cfg.address,
-        atomic.toString(),
-        `srclaim:${data.offerId}:${data.address.toLowerCase()}`,
-      ],
-    });
-    const txHash = registry.txHash ?? "";
+    let txHash = "";
+    if (isUndeployed() || !process.env["CIRCLE_API_KEY"]) {
+      const { createHash } = await import("node:crypto");
+      const { DEMO_SCALE } = await import("@/lib/agent-card");
+      const { musdcTransfer } = await import("@/lib/musdc.server");
+      const { appendEntry } = await import("@/lib/append-entry.server");
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const scaled = (Number(value) * DEMO_SCALE).toFixed(6);
+      const scaledAtomic = toAtomic(scaled, data.token);
+      const toHex = createHash("sha256").update(`streetrail:a2h-claim:${data.address}`).digest("hex");
+      const transfer = await musdcTransfer({
+        toHex,
+        amountAtomic: scaledAtomic.toString(),
+      });
+      txHash = transfer.midnightTxHash;
+      const deployPath = path.resolve("src/data/midnight-contract.undeployed.json");
+      if (fs.existsSync(deployPath)) {
+        const j = JSON.parse(fs.readFileSync(deployPath, "utf8")) as {
+          address?: string;
+          contracts?: { moveRegistry?: { address?: string } };
+        };
+        const registryAddr = j.contracts?.moveRegistry?.address || j.address;
+        if (registryAddr) {
+          const anchored = await appendEntry({
+            contractAddress: registryAddr,
+            appTag: "streetrail_a2h_claim",
+            message: `srclaim:${data.offerId}:${data.address.toLowerCase()}`,
+            payload: { claimCode, settleTx: txHash, value: scaled },
+          });
+          txHash = anchored.txId || txHash;
+        }
+      }
+    } else {
+      const registry = await treasuryContractCall({
+        contractAddress: REGISTRY,
+        abiFunctionSignature: "log(address,uint256,string)",
+        abiParameters: [
+          cfg.address,
+          atomic.toString(),
+          `srclaim:${data.offerId}:${data.address.toLowerCase()}`,
+        ],
+      });
+      txHash = registry.txHash ?? "";
+    }
 
     const claim = {
       ap2Version: "0.1",
       type: "OfferClaim",
       claimId: claimCode,
       agent: "did:web:streetrail.lovable.app#drop-agent",
-      subject: { address: data.address, network: ARC_CAIP2, chainId: 5042002 },
+      subject: { address: data.address, network: ARC_CAIP2 },
       offer: { id: data.offerId, title: data.title },
       amount: { value, asset: data.token, usd: usd.toFixed(4) },
       authorization: "standing_mandate",
-      proof: [{ scheme: "evm-tx", role: "registry-log", txHash, network: ARC_CAIP2 }],
+      proof: [
+        {
+          scheme: isUndeployed() ? "midnight-tx" : "evm-tx",
+          role: "registry-log",
+          txHash,
+          network: ARC_CAIP2,
+        },
+      ],
       issuedAt: new Date().toISOString(),
       expires_at: expiresAt,
     };
@@ -341,7 +396,7 @@ export async function runClaimOffer(data: {
       value,
       token: data.token,
       expiresAt,
-      receiptUrl: `${ARC_EXPLORER}/tx/${txHash}`,
+      receiptUrl: txExplorerUrl(txHash),
       onChainAuth,
       claim: { ...claim, signature: signMandate(claim), onChainAuth },
     };
@@ -361,7 +416,7 @@ export async function runClaimOffer(data: {
 
 /**
  * Renew the standing AP2 payout mandate.
- * Off-chain authorization only — no Circle call, no chain write.
+ * On Undeployed: Ed25519 sign + Compact MandateVault.anchorMandate (indexer receipt).
  */
 export async function runRenewMandate(data: {
   address: string;
@@ -375,7 +430,7 @@ export async function runRenewMandate(data: {
   const mandate = {
     type: "ap2.payout-mandate",
     version: "0.1",
-    subject: `did:pkh:eip155:5042002:${data.address}`,
+    subject: `did:midnight:undeployed:${data.address}`,
     agent: "did:web:streetrail.lovable.app#rights-agent",
     settle_token: data.token,
     chain: ARC_CAIP2,
@@ -385,14 +440,41 @@ export async function runRenewMandate(data: {
     renewed_at: new Date().toISOString(),
     expires_at: expiresAt,
   };
-  const onChainAuth = await approveAuthOnChain(mandate, data.days * 86_400);
+  const signature = signMandate(mandate);
+  const signedMandate = { ...mandate, signature };
+  let onChainAuth = await approveAuthOnChain(signedMandate, data.days * 86_400);
+  let receiptUrl: string | null = onChainAuth.receiptUrl;
+
+  if (isUndeployed()) {
+    const { computeAuthHash } = await import("@/lib/erc1271.server");
+    const { anchorMandateOnUndeployed } = await import("@/lib/anchor-mandate.server");
+    const mandateHash = computeAuthHash(signedMandate);
+    const anchored = await anchorMandateOnUndeployed({
+      mandateHash,
+      seller: "streetrail.rights-agent",
+      amount: Math.round(PER_PAYOUT_CAP_USD * 1e6),
+    });
+    receiptUrl = txExplorerUrl(anchored.midnightTxHash);
+    onChainAuth = {
+      ...onChainAuth,
+      scheme: "midnight-mandate-vault",
+      authorizer: anchored.contractAddress,
+      authorizerUrl: receiptUrl,
+      hash: mandateHash,
+      txHash: anchored.midnightTxHash,
+      receiptUrl,
+      valid: true,
+      detail: "Anchored on Compact MandateVault (Undeployed).",
+    };
+  }
 
   return {
     ok: true as const,
     expiresAt,
-    authorizer: AUTHORIZER,
-    authorizerUrl: authorizerUrl(),
+    authorizer: onChainAuth.authorizer || AUTHORIZER,
+    authorizerUrl: onChainAuth.authorizerUrl || authorizerUrl(),
     onChainAuth,
-    mandate: { ...mandate, signature: signMandate(mandate), onChainAuth },
+    receiptUrl,
+    mandate: { ...signedMandate, onChainAuth },
   };
 }

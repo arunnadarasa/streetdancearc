@@ -75,9 +75,9 @@ const isRateLimited = (e: unknown) =>
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 function humanReason(e: unknown): string {
-  if (isRateLimited(e)) return "The public Arc RPC is rate-limiting history reads right now.";
-  if (isRange(e)) return "The RPC provider limits how far back log queries can reach.";
-  return "Registry history could not be read from the RPC provider.";
+  if (isRateLimited(e)) return "History reads are rate-limited right now — retry shortly.";
+  if (isRange(e)) return "The provider limits how far back log queries can reach.";
+  return "Registry history could not be read right now.";
 }
 
 let cache: { at: number; value: ReceiptHistory } | null = null;
@@ -87,8 +87,21 @@ const MIN_WINDOW = 500n;
 const MAX_CALLS = 12;
 const MAX_RECEIPT_LOOKUPS = 24;
 
+const MIDNIGHT_RECEIPTS =
+  "Use the session receipt history on /moves — Compact MoveRegistry / mUSDC settlements with indexer links.";
+
 /** Read the registry's whole recent history. Never throws. */
 export async function readReceipts(limit = 25, lookback = 5_000n): Promise<ReceiptHistory> {
+  if (!process.env["ARC_LOGS_RPC_URL"] && !process.env["ARC_RPC_URL"]) {
+    return {
+      receipts: [],
+      registry: REGISTRY,
+      degraded: false,
+      detail: MIDNIGHT_RECEIPTS,
+      scannedBlocks: 0,
+    };
+  }
+
   if (cache && Date.now() - cache.at < CACHE_TTL_MS) {
     return { ...cache.value, receipts: cache.value.receipts.slice(0, limit) };
   }

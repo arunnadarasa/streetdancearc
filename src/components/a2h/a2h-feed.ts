@@ -26,8 +26,8 @@ export const STANDING_MANDATE = {
   version: "0.1",
   subject: "did:privy:choreographer:krumpline",
   agent: "did:web:streetrail.lovable.app#rights-agent",
-  settle_token: "USDC",
-  chain: "eip155:5042002",
+  settle_token: "mUSDC",
+  chain: "midnight:undeployed",
   per_payout_cap: "5.00",
   daily_cap: "25.00",
   notify: ["payout", "approval", "offer", "mandate"],
@@ -46,7 +46,7 @@ export interface ChainPayout {
   receiptUrl: string;
 }
 
-/** Turn a Logged event read off Arc into an inbox card. */
+/** Turn a settled Undeployed payout into an inbox card. */
 export function payoutToMessage(p: ChainPayout): A2hMessage {
   return {
     id: `chain_${p.txHash}`,
@@ -55,7 +55,7 @@ export function payoutToMessage(p: ChainPayout): A2hMessage {
     at: new Date(p.atSeconds * 1000).toISOString(),
     title: `Paid you ${p.value} ${p.token} for ${p.moveCid}`,
     body:
-      "Licensed plays settled since your last payout. Inside your per-payout cap, so I sent it without asking — the treasury signed, you did not.",
+      "Licensed plays settled since your last payout. Inside your per-payout cap, so I settled experimental mUSDC without asking — the agent signed, you did not.",
     amount: { value: p.value, token: p.token },
     receiptUrl: p.receiptUrl,
     registryUrl: `${ARC_EXPLORER}/address/${RIGHTS_REGISTRY}`,
@@ -97,7 +97,7 @@ export function approvalMessage(usd: number, token: TokenKey, fx?: FxRates | nul
     agent: "Rights Agent",
     at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
     title: `Approve ${value} ${token} payout? Above your cap`,
-    body: `A Paris studio licensed '${moveCid}' for a campaign. The payout is ${value} ${token} — over your per-payout ceiling, so nothing leaves the treasury until you say yes.`,
+    body: `A Paris studio licensed '${moveCid}' for a campaign. The payout is ${value} ${token} — over your per-payout ceiling, so nothing settles on Midnight until you say yes.`,
     amount: { value, token },
     approval: { usd, moveCid },
     envelope: {
@@ -136,8 +136,8 @@ export function noticeMessages(token: TokenKey, fx?: FxRates | null): A2hMessage
       kind: "offer",
       agent: "Drop Agent",
       at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-      title: `Treasury rebalance — your snapback drops 8% for 6h`,
-      body: `Treasury is over its target, so I'm discounting the Cypher Snapback for holders who settle in ${token}. Expires in 6 hours.`,
+      title: `Drop rebalance — your snapback drops 8% for 6h`,
+      body: `Inventory is over target, so I'm discounting the Cypher Snapback for holders who settle in experimental mUSDC. Expires in 6 hours.`,
       amount: { value: offer, token },
       envelope: {
         jsonrpc: "2.0",

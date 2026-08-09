@@ -61,7 +61,7 @@ export function CircleRailsPanel() {
             hint={
               data.nanopay.available
                 ? `Gateway balance ${data.nanopay.gatewayUsdc} USDC · agent ${data.nanopay.agentAddress?.slice(0, 8)}…`
-                : "Gateway batching ready; agent balance unfunded, so settlement falls back to a direct Arc transfer."
+                : "Gateway batching unfunded — settlement falls back to Midnight mUSDC (x402 facilitator)."
             }
           />
           <Row
@@ -69,8 +69,8 @@ export function CircleRailsPanel() {
             value={`${data.discovery.total} resources`}
             hint={
               data.discovery.source === "circle"
-                ? `Circle Agent Marketplace · ${data.discovery.arcCount} on Arc Testnet`
-                : "Marketplace unreachable — using StreetRail's own x402 resource."
+                ? `Circle Agent Marketplace · ${data.discovery.arcCount} resources (demo settles on Midnight)`
+                : "Marketplace unreachable — using StreetRail's own x402 / Midnight mUSDC resource."
             }
           />
           <Row
@@ -95,7 +95,7 @@ export function CircleRailsPanel() {
           <Row
             label="Paymaster"
             value="intentionally unused"
-            hint="USDC is already Arc's native gas token, so a USDC paymaster abstracts nothing. Gas Station is the correct product here."
+            hint="StreetRail settles experimental mUSDC on Midnight Undeployed — Circle Gas Station / paymaster are not used for that rail."
           />
         </ul>
       )}

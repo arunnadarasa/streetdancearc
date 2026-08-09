@@ -9,15 +9,13 @@ import {
 import { useWallet } from "@/lib/wallet-context";
 import { usePayToken } from "@/lib/pay-token";
 import { useArcBalances, shortBalance } from "@/lib/use-arc-balances";
-import { TOKENS, TOKEN_KEYS, getTokenUsdRate, type FxRates } from "@/lib/tokens";
+import { TOKENS, SETTLE_TOKEN_KEYS, getTokenUsdRate, type FxRates } from "@/lib/tokens";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchFxRates } from "@/lib/fx.functions";
 
 /**
- * Global settlement-currency pill. The choice applies to every mode: the merch
- * checkout, the delegated agent, the x402 agent-to-agent flow and the payout
- * inbox. Balances are read live off Arc through the same-origin RPC proxy and
- * shared with the header balances panel.
+ * Global settlement-currency pill. On Midnight Undeployed this collapses to a
+ * single experimental mUSDC option (catalog FX keys still exist server-side).
  */
 export function PayTokenToggle({ compact = false }: { compact?: boolean }) {
   const [token, setToken] = usePayToken();
@@ -26,6 +24,7 @@ export function PayTokenToggle({ compact = false }: { compact?: boolean }) {
   const { balances } = useArcBalances(authenticated ? address : undefined);
   const [fx, setFx] = useState<FxRates | null>(null);
   const getFx = useServerFn(fetchFxRates);
+  const options = SETTLE_TOKEN_KEYS;
 
   useEffect(() => {
     let mounted = true;
@@ -37,9 +36,28 @@ export function PayTokenToggle({ compact = false }: { compact?: boolean }) {
     };
   }, [getFx]);
 
+  useEffect(() => {
+    if (options.length === 1 && token !== options[0]) setToken(options[0]);
+  }, [options, token, setToken]);
+
   const active = TOKENS[token];
   const activeBalance = balances[token];
   const empty = authenticated && activeBalance !== undefined && Number(activeBalance ?? 0) === 0;
+
+  if (options.length === 1) {
+    const k = options[0];
+    return (
+      <span
+        title={TOKENS[k].label}
+        className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-border/80 bg-surface/70 px-3 text-[11px] font-bold tracking-wide text-foreground"
+      >
+        {TOKENS[k].symbol}
+        {authenticated && activeBalance !== undefined && activeBalance !== null ? (
+          <span className="tabular-nums opacity-70">{shortBalance(activeBalance)}</span>
+        ) : null}
+      </span>
+    );
+  }
 
   if (compact) {
     return (
@@ -58,7 +76,7 @@ export function PayTokenToggle({ compact = false }: { compact?: boolean }) {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-44">
-          {TOKEN_KEYS.map((k) => {
+          {options.map((k) => {
             const bal = balances[k];
             return (
               <DropdownMenuItem
@@ -82,8 +100,7 @@ export function PayTokenToggle({ compact = false }: { compact?: boolean }) {
 
   return (
     <div className="flex shrink-0 items-center gap-1 rounded-full border border-border/80 bg-surface/70 p-0.5">
-
-      {TOKEN_KEYS.map((k) => {
+      {options.map((k) => {
         const on = k === token;
         const bal = balances[k];
         const rate = getTokenUsdRate(k, fx);
@@ -115,7 +132,7 @@ export function PayTokenToggle({ compact = false }: { compact?: boolean }) {
       })}
       <span className="sr-only">
         Settling in {active.symbol}
-        {empty ? " — no balance on Arc Testnet" : ""}
+        {empty ? " — no mUSDC balance on Undeployed" : ""}
       </span>
     </div>
   );

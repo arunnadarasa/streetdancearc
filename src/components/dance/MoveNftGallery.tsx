@@ -1,21 +1,29 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { BadgeCheck, Images, RefreshCw } from "lucide-react";
+import { BadgeCheck, Images, RefreshCw, ExternalLink } from "lucide-react";
 import { useWallet } from "@/lib/wallet-context";
-import { listMoveNfts } from "@/lib/nft.functions";
+import { listMidnightMoveNfts } from "@/lib/move-nft.functions";
 
-type Nft = Awaited<ReturnType<typeof listMoveNfts>>["items"][number];
+type Nft = Awaited<ReturnType<typeof listMidnightMoveNfts>>["items"][number];
+
+function short(hash: string) {
+  const h = hash.replace(/^0x/i, "");
+  return h ? `${h.slice(0, 10)}…${h.slice(-8)}` : "—";
+}
 
 export function MoveNftGallery() {
-  const { authenticated, wallets } = useWallet();
+  const { authenticated, wallets, unshieldedAddress, login } = useWallet();
   const [items, setItems] = useState<Nft[]>([]);
   const [detail, setDetail] = useState<string | null>(null);
   const [contract, setContract] = useState<string | null>(null);
-  const [configured, setConfigured] = useState(true);
   const [loading, setLoading] = useState(false);
-  const list = useServerFn(listMoveNfts);
+  const list = useServerFn(listMidnightMoveNfts);
 
-  const owner = wallets.find((w) => w.walletClientType === "privy")?.address ?? wallets[0]?.address ?? "";
+  const owner =
+    unshieldedAddress ||
+    wallets.find((w) => w.walletClientType === "privy")?.address ||
+    wallets[0]?.address ||
+    "";
 
   async function load() {
     if (!owner) return;
@@ -25,9 +33,8 @@ export function MoveNftGallery() {
       setItems(res.items);
       setDetail(res.detail);
       setContract(res.contract);
-      setConfigured(res.configured);
     } catch {
-      setDetail("Could not load your move NFTs right now.");
+      setDetail("Could not load your MoveNfts right now.");
     } finally {
       setLoading(false);
     }
@@ -38,15 +45,13 @@ export function MoveNftGallery() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [owner]);
 
-  if (!configured) return null;
-
   return (
     <div className="rounded-2xl border border-border bg-card/70 p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Images className="h-4 w-4 text-glow" aria-hidden />
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            My move NFTs
+            My MoveNfts
           </p>
         </div>
         <button
@@ -60,50 +65,44 @@ export function MoveNftGallery() {
         </button>
       </div>
 
+      <p className="mt-3 text-xs text-muted-foreground">
+        Compact Move Rights NFTs minted on Midnight Undeployed. List them on{" "}
+        <a href="/market" className="text-glow hover:underline">
+          /market
+        </a>
+        .
+      </p>
+
       {!authenticated || !owner ? (
         <p className="mt-3 text-sm text-muted-foreground">
-          Sign in to see the move rights tokens held by your wallet.
+          <button type="button" onClick={() => void login()} className="text-glow hover:underline">
+            Connect Lace or the Undeployed session
+          </button>{" "}
+          to see moves you minted.
         </p>
       ) : items.length === 0 ? (
         <p className="mt-3 text-sm text-muted-foreground">
-          {detail ?? "No move NFTs yet — log a move and one is minted to your wallet."}
+          {detail ?? "No MoveNfts yet — use Prove & mint move NFT above."}
         </p>
       ) : (
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {items.map((nft) => (
             <li key={nft.tokenId} className="rounded-xl border border-border/60 bg-surface p-3">
-              {nft.mediaUrl && nft.mediaKind === "video" ? (
-                <video
-                  src={nft.mediaUrl}
-                  controls
-                  playsInline
-                  preload="metadata"
-                  className="mb-2 aspect-video w-full rounded-lg bg-background object-cover"
-                />
-              ) : nft.mediaUrl ? (
-                <img
-                  src={nft.mediaUrl}
-                  alt={nft.name ?? `Move token #${nft.tokenId}`}
-                  loading="lazy"
-                  className="mb-2 aspect-video w-full rounded-lg bg-background object-cover"
-                />
-              ) : null}
               <p className="flex items-center gap-1.5 text-sm font-bold text-foreground">
                 <BadgeCheck className="h-4 w-4 shrink-0 text-glow" aria-hidden />
-                <span className="truncate">{nft.name ?? `Move #${nft.tokenId}`}</span>
+                <span className="truncate">{nft.name}</span>
               </p>
               <p className="mt-1 text-[11px] uppercase tracking-widest text-muted-foreground">
                 #{nft.tokenId}
-                {nft.discipline ? ` · ${nft.discipline}` : ""}
-                {nft.license ? ` · ${nft.license}` : ""}
+                {nft.listed ? ` · listed ${nft.listedPriceAtomic} atomic` : " · unlisted"}
               </p>
               <a
                 href={nft.explorerUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-2 inline-block text-xs text-glow hover:underline"
+                className="mt-2 inline-flex items-center gap-1 text-xs text-glow hover:underline"
               >
-                View on Arcscan →
+                {nft.mintTxId ? short(nft.mintTxId) : "Indexer"} <ExternalLink className="h-3 w-3" />
               </a>
             </li>
           ))}

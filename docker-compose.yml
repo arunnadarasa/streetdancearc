@@ -1,0 +1,24 @@
+# Midnight Local Undeployed — pins that match wallet-sdk@1.2.0 + testkit-js@4.1.1
+# (same triple as working agentic Undeployed demos; see lovable-midnight skill).
+services:
+  proof-server:
+    image: midnightntwrk/proof-server:8.0.3
+    command: ["midnight-proof-server", "-v"]
+    ports: ["6300:6300"]
+  node:
+    image: midnightntwrk/midnight-node:0.22.5
+    environment:
+      CFG_PRESET: dev
+    ports: ["9944:9944"]
+  indexer:
+    image: midnightntwrk/indexer-standalone:4.0.2
+    depends_on: [node]
+    environment:
+      APP__INFRA__NODE__URL: ws://node:9944
+      APP__APPLICATION__NETWORK_ID: undeployed
+      APP__INFRA__STORAGE__PASSWORD: indexer
+      APP__INFRA__PUB_SUB__PASSWORD: indexer
+      APP__INFRA__LEDGER_STATE_STORAGE__PASSWORD: indexer
+      APP__INFRA__SECRET: "303132333435363738393031323334353637383930313233343536373839303132"
+      APP__INFRA__SPO_NODE__BLOCKFROST_ID: "placeholder-not-used-standalone"
+    ports: ["8088:8088"]

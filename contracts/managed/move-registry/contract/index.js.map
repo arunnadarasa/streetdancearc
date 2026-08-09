@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "file": "index.js",
+  "sourceRoot": "../../../../",
+  "sources": ["contracts/MoveRegistry.compact", "compiler/standard-library.compact"],
+  "names": [],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAWA;;;;;;;;;;;;;MAEA,AAAA,gBAIC;;OAAA;MAED,AAAA,WAMC;;;;;cAN0B,YAA4B;;;;;;;;;;;yCAA5B,YAA4B;;;;;;;;;6CAA5B,YAA4B;;;OAMtD;;;;GAd0C;EAA3C;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;IANA;;;;;;;;;yEAAmC;IACnC;;;;;;;;;yEAA6C;IAC7C;;;;;;;;;yEAAgD;UAIhC,KAAW;IAAX;;;;;;;;;;6FAAA,KAAW;;;;wEAAA;;;;;;;GAAgB;ECX3C,AAAA,kBAAA;oEAAA;;;EDSA,AAAA,iBAAoC;;0DAApC,cAAoC;;;;;;;;;;;;;;GAAA;EAIpC,AAAA,mBAIC,CAJ+B,IAAa,EAAE,KAAc;;mCAE5B,KAAG;mCAAE,IAAE;GAEvC;EAED,AAAA,cAMC,4BAN0B,YAA4B;UAC/C,IAAqB;UACrB,KAAuC;+EAAjC;;;;;;;;;;;oJAAW;;UACvB,KAAsB,4BAA6B,IAAE,EAAE,KAAG;IAA1D;;;;;;;2HAAA,KAAsB;;yEAAA;IACtB;;;;;;;2HAAwB,YAAU;;yEAAtB;UACZ,KAAW;IAAX;;;;;;;;;;6FAAA,KAAW;;;;wEAAA;;GACZ;;;;;;;;;;;;;;;;IApBD;qCAAA;;;;;;;;;;;0GAAmC;KAAA;IACnC;qCAAA;;;;;;;;;;;0GAA6C;KAAA;IAC7C;qCAAA;;;;;;;;;;;0GAAgD;KAAA;;;;;;;;EAMhD,AAAA,gBAIC;;;;UAJ+B,IAAa;UAAE,KAAc;;;;;;;;;;;;;;;8CAA7B,IAAa,EAAE,KAAc;GAI5D;;;;"
+}
