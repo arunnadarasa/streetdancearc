@@ -23,6 +23,9 @@ const NAV = [
   { to: "/deck", label: "Deck" },
 ] as const;
 
+const PRIMARY_NAV = NAV.slice(0, 4);
+const MORE_NAV = NAV.slice(4);
+
 
 export function Header({ extra }: { extra?: React.ReactNode }) {
   const { authenticated, login, logout, user, ready, available } = useWallet();
