@@ -67,11 +67,15 @@ export function InboxCard({
   msg,
   address,
   onSettled,
+  rawAll = false,
 }: {
   msg: A2hMessage;
   address?: string;
   onSettled?: () => void | Promise<void>;
+  /** Master toggle: expand every protocol payload on the page. */
+  rawAll?: boolean;
 }) {
+
   const [open, setOpen] = useState(false);
   const [acted, setActed] = useState<"declined" | "claimed" | "dismissed" | "deferred" | null>(
     null,
