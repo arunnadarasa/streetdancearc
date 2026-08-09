@@ -18,6 +18,8 @@ import {
 } from "@/lib/shopify";
 import { categoryFor } from "@/routes/api/public/catalog";
 import { fetchFxRates } from "@/lib/fx.functions";
+import { deriveBudget, displayBudget, recommendedGoal } from "@/lib/negotiation-budget";
+
 import { payWithNanopayments } from "@/lib/circle-rails.functions";
 import { CircleRailsPanel } from "./CircleRailsPanel";
 import { DiscoveryPanel } from "./DiscoveryPanel";
