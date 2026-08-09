@@ -51,6 +51,7 @@ export function CartDrawer() {
   const { authenticated, login, wallets, available } = useWallet();
   const [treasury, setTreasury] = useState("");
   const [fx, setFx] = useState<FxRates | null>(null);
+  const { entries: settlements } = useTxLog("H2H");
   const getFx = useServerFn(fetchFxRates);
 
   const [arcState, setArcState] = useState<
