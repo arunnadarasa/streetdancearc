@@ -21,7 +21,7 @@ import { getPublicConfig } from "@/lib/config.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchFxRates } from "@/lib/fx.functions";
 import { LiveTotalCalculator } from "@/components/fx/LiveTotalCalculator";
-import { recordSettlement } from "@/lib/tx-log";
+import { recordSettlement, useTxLog } from "@/lib/tx-log";
 import { TxHistoryPanel } from "@/components/dance/TxHistoryPanel";
 
 
