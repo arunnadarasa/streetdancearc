@@ -1,4 +1,6 @@
 import { FxPriceWidget } from "@/components/fx/FxPriceWidget";
+import { openContractsDrawer } from "@/components/dance/ContractsSheet";
+
 
 export function SiteFooter() {
   return (
