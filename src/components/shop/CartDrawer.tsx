@@ -21,6 +21,8 @@ import { getPublicConfig } from "@/lib/config.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchFxRates } from "@/lib/fx.functions";
 import { LiveTotalCalculator } from "@/components/fx/LiveTotalCalculator";
+import { recordSettlement } from "@/lib/tx-log";
+import { TxHistoryPanel } from "@/components/dance/TxHistoryPanel";
 
 
 export function CartDrawer() {
@@ -109,6 +111,18 @@ export function CartDrawer() {
         treasury as Address,
         arcAtomic,
       );
+      recordSettlement({
+        hash: res.hash,
+        mode: "H2H",
+        label:
+          items.length === 1 && items[0]
+            ? `${items[0].title} ×${items[0].quantity}`
+            : `Cart checkout · ${totalItems} item${totalItems === 1 ? "" : "s"}`,
+        token: payToken,
+        atomic: res.atomic,
+        to: res.to,
+        from: res.from,
+      });
       setArcState({
         phase: "paid",
         url: res.explorer,
