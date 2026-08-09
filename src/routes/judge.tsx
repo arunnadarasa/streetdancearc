@@ -15,6 +15,8 @@ import { Header } from "@/components/dance/Header";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Section, SectionHead } from "@/components/layout/Section";
 import { JsonBlock } from "@/components/gx/JsonBlock";
+import { ContractsPanel } from "@/components/dance/ContractsPanel";
+
 import { useWallet } from "@/lib/wallet-context";
 import { usePayToken } from "@/lib/pay-token";
 import { getPublicConfig } from "@/lib/config.functions";
@@ -305,7 +307,18 @@ function JudgePage() {
             </StepShell>
           </div>
         </Section>
+
+        <Section tone="raised">
+          <SectionHead
+            eyebrow="Verify"
+            title="The four deployed contracts"
+            blurb="Every address below is live on Arc Testnet and verified on Arcscan."
+          />
+          <ContractsPanel className="mt-6 md:grid md:grid-cols-2 md:gap-3 md:space-y-0" />
+        </Section>
+
       </main>
+
       <SiteFooter />
     </div>
   );
