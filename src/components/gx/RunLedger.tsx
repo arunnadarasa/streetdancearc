@@ -1,4 +1,14 @@
-import { Loader2, Check, X, AlertTriangle, CircleDot } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Loader2,
+  Check,
+  X,
+  AlertTriangle,
+  CircleDot,
+  Copy,
+  ExternalLink,
+  Braces,
+} from "lucide-react";
 import { JsonBlock } from "./JsonBlock";
 import type { RunStep } from "./useAgentRun";
 
@@ -10,7 +20,98 @@ function StatusIcon({ status }: { status: RunStep["status"] }) {
   return <AlertTriangle className="h-4 w-4 text-amber-400" />;
 }
 
+/** Endpoint-ish titles keep the monospace treatment; prose titles don't. */
+function isTechnical(title: string): boolean {
+  return /^(GET|POST|PUT|PATCH|DELETE)\b/.test(title) || title.includes("/") || title.includes("_");
+}
+
+function hashFromUrl(url?: string): string | undefined {
+  return url?.match(/0x[0-9a-fA-F]{64}/)?.[0];
+}
+
+function shortHash(h: string): string {
+  return `${h.slice(0, 8)}…${h.slice(-6)}`;
+}
+
+function ReceiptButton({ href, label }: { href: string; label?: string }) {
+  const hash = hashFromUrl(href);
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    if (!hash) return;
+    try {
+      await navigator.clipboard.writeText(hash);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard blocked — the link still works */
+    }
+  }
+
+  return (
+    <div className="flex min-w-0 flex-wrap items-center gap-2">
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex min-w-0 items-center gap-2 rounded-full border border-primary/50 bg-primary/15 px-3.5 py-2 text-xs font-black text-foreground transition hover:bg-primary/25"
+      >
+        <ExternalLink className="h-3.5 w-3.5 shrink-0 text-glow" />
+        <span className="truncate">{label ?? "View receipt on Arcscan"}</span>
+        {hash && (
+          <span className="hidden font-mono text-[11px] font-bold text-muted-foreground sm:inline">
+            {shortHash(hash)}
+          </span>
+        )}
+      </a>
+      {hash && (
+        <button
+          type="button"
+          onClick={() => void copy()}
+          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-3 py-2 text-[11px] font-bold text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+        >
+          <Copy className="h-3.5 w-3.5" />
+          {copied ? "Copied" : "Copy hash"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+type RunState = "running" | "settled" | "blocked" | "failed" | "done";
+
+function summarise(steps: RunStep[]): {
+  state: RunState;
+  done: number;
+  total: number;
+  receipt?: RunStep;
+} {
+  const total = steps.length;
+  const done = steps.filter((s) => s.status === "ok").length;
+  const receipt = [...steps].reverse().find((s) => s.href);
+  let state: RunState = "done";
+  if (steps.some((s) => s.status === "running")) state = "running";
+  else if (steps.some((s) => s.status === "failed")) state = "failed";
+  else if (steps.some((s) => s.status === "blocked" || s.status === "waiting")) state = "blocked";
+  else if (receipt) state = "settled";
+  return { state, done, total, receipt };
+}
+
+const STATE_CHIP: Record<RunState, { label: string; cls: string }> = {
+  running: { label: "Agent working", cls: "border-glow/50 bg-glow/10 text-glow" },
+  settled: { label: "Settled on Arc", cls: "border-primary/50 bg-primary/15 text-foreground" },
+  blocked: { label: "Waiting on you", cls: "border-amber-500/50 bg-amber-500/10 text-amber-200" },
+  failed: { label: "Run failed", cls: "border-red-500/50 bg-red-500/10 text-red-300" },
+  done: { label: "Run complete", cls: "border-border bg-background/60 text-muted-foreground" },
+};
+
 export function RunLedger({ steps }: { steps: RunStep[] }) {
+  const [rawAll, setRawAll] = useState(false);
+  // A fresh run collapses everything again.
+  useEffect(() => {
+    if (steps.length === 0) setRawAll(false);
+  }, [steps.length]);
+
   if (steps.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
@@ -21,48 +122,102 @@ export function RunLedger({ steps }: { steps: RunStep[] }) {
     );
   }
 
+  const { state, done, total, receipt } = summarise(steps);
+  const chip = STATE_CHIP[state];
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
   return (
-    <ol className="space-y-3">
-      {steps.map((step, i) => (
-        <li
-          key={step.id}
-          className="rounded-2xl border border-border bg-card/70 p-4 space-y-2"
-        >
-          <div className="flex items-start gap-3">
-            <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border bg-background text-[10px] font-bold text-muted-foreground">
-              {i + 1}
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <p className="min-w-0 break-words font-mono text-xs font-bold text-foreground">
-                  {step.title}
-                </p>
-                <StatusIcon status={step.status} />
-              </div>
-              {step.detail && (
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{step.detail}</p>
-              )}
-              {step.href && (
-                <a
-                  href={step.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-1 inline-block break-all text-xs font-bold text-glow hover:underline"
-                >
-                  View on Arcscan →
-                </a>
-              )}
-            </div>
+    <div className="space-y-3">
+      {/* Summary bar — status, progress, and the receipt up front */}
+      <div className="rounded-2xl border border-border bg-card/70 p-4">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${chip.cls}`}
+          >
+            {state === "running" && <Loader2 className="h-3 w-3 animate-spin" />}
+            {chip.label}
+          </span>
+          <span className="font-mono text-[11px] font-bold text-muted-foreground">
+            {done}/{total} steps
+          </span>
+          <button
+            type="button"
+            onClick={() => setRawAll((v) => !v)}
+            aria-pressed={rawAll}
+            className={`ml-auto inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${
+              rawAll
+                ? "border-glow/50 bg-glow/10 text-foreground"
+                : "border-border bg-background/60 text-muted-foreground hover:bg-secondary hover:text-foreground"
+            }`}
+          >
+            <Braces className="h-3.5 w-3.5" />
+            {rawAll ? "Hide raw JSON" : "Raw JSON"}
+          </button>
+        </div>
+
+        <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-background/70">
+          <div
+            className="h-full rounded-full bg-glow transition-all duration-500"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+
+        {receipt?.href && (
+          <div className="mt-3.5">
+            <ReceiptButton href={receipt.href} />
+            <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+              {receipt.detail ?? "The agent's transfer is confirmed on Arc Testnet."}
+            </p>
           </div>
-          {step.payload !== undefined && (
-            <JsonBlock
-              label={step.payloadLabel ?? "payload"}
-              value={step.payload}
-              tone={step.tone ?? "neutral"}
-            />
-          )}
-        </li>
-      ))}
-    </ol>
+        )}
+      </div>
+
+      <ol className="space-y-2.5">
+        {steps.map((step, i) => {
+          const bad = step.status === "failed" || step.status === "blocked";
+          const technical = isTechnical(step.title);
+          return (
+            <li key={step.id} className="rounded-2xl border border-border bg-card/70 p-4">
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border bg-background text-[10px] font-bold text-muted-foreground">
+                  {i + 1}
+                </span>
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <div className="flex min-w-0 items-start gap-2">
+                    <p
+                      className={`min-w-0 flex-1 break-words text-sm font-black leading-snug text-foreground ${
+                        technical ? "font-mono text-xs" : ""
+                      }`}
+                    >
+                      {step.title}
+                    </p>
+                    <span className="mt-0.5 shrink-0">
+                      <StatusIcon status={step.status} />
+                    </span>
+                  </div>
+
+                  {step.detail && (
+                    <p className="text-xs leading-relaxed text-muted-foreground">{step.detail}</p>
+                  )}
+
+                  {step.href && <ReceiptButton href={step.href} label="View on Arcscan" />}
+
+                  {step.payload !== undefined && (
+                    <JsonBlock
+                      key={rawAll ? "open" : "closed"}
+                      label={step.payloadLabel ?? "payload"}
+                      value={step.payload}
+                      tone={step.tone ?? "neutral"}
+                      collapsible
+                      defaultOpen={rawAll || bad}
+                    />
+                  )}
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
   );
 }
