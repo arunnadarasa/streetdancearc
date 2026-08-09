@@ -135,6 +135,11 @@ as a rounding error.
   content hash and can verify the pin matched.
 - **A human-readable error mapper** (`mapChainError`) between chain/Circle
   errors and UI copy. Retrofitting this late was the single biggest time sink.
+- **Run ledger = summary bar + collapsed payloads.** State chip, `n/total`
+  steps, one big "View receipt on Arcscan" button, payloads behind a
+  `payload · N fields` disclosure that auto-opens only on failures.
+- **A single cross-mode settlement list.** H2H, H2A, A2A and A2H all write to
+  one persisted client ledger; judges stop asking whether anything settled.
 
 ## What I'd do differently next time
 
@@ -149,6 +154,10 @@ as a rounding error.
 5. Build the **deterministic negotiation fallback before tuning any prompt**.
    Days went into prompt wording for a two-agent demo that a 15-line
    best-in-policy promotion fixed outright.
+6. Ship the **shared settlement ledger with the first settlement path**, not
+   after a reviewer asks where the transactions are. Retrofitting it meant
+   touching every mode's success handler at once.
+
 
 
 ## Success checkpoints
