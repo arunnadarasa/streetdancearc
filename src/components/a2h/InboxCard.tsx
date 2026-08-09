@@ -213,6 +213,8 @@ export function InboxCard({
   }
 
   const receipt = result?.ok ? result.receiptUrl : (claimed?.receiptUrl ?? msg.receiptUrl);
+  const errored = Boolean((result && !result.ok) || claimError || renewError);
+
 
   return (
     <article className={`min-w-0 rounded-2xl border bg-card/70 p-4 sm:p-5 ${k.ring}`}>
