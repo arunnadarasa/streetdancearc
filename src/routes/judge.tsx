@@ -15,6 +15,8 @@ import { Header } from "@/components/dance/Header";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Section, SectionHead } from "@/components/layout/Section";
 import { JsonBlock } from "@/components/gx/JsonBlock";
+import { ContractsPanel } from "@/components/dance/ContractsPanel";
+
 import { useWallet } from "@/lib/wallet-context";
 import { usePayToken } from "@/lib/pay-token";
 import { getPublicConfig } from "@/lib/config.functions";
