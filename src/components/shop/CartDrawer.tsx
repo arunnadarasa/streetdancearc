@@ -283,14 +283,14 @@ export function CartDrawer() {
                   </a>
                 )}
 
-                {settlements.length > 0 && (
-                  <TxHistoryPanel
-                    mode="H2H"
-                    limit={3}
-                    title="Recent Arc settlements"
-                    blurb="Your last shop payments on Arc Testnet."
-                  />
-                )}
+                <Link
+                  to="/judge"
+                  onClick={() => setOpen(false)}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-glow underline decoration-glow/50 underline-offset-4 transition hover:text-primary"
+                >
+                  <History className="h-3.5 w-3.5" />
+                  Recent settlements
+                </Link>
                 {arcState.phase === "error" && (
                   <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-foreground">
                     {arcState.message}
