@@ -22,6 +22,8 @@ The same catalog, the same settlement rail, four interfaces. A global toggle in 
 | `A2A` · x402   | Agent → agent   | No UI in the loop: agent-card discovery, UCP/AP2 mandates, AIsa negotiation, then `402 Payment Required` → settle → receipt. |
 | `A2H` · inbox  | Agent → human   | The agent initiates. The Rights Agent pushes royalty payouts, requests approval when a payout breaks the standing AP2 mandate, and drops an Arcscan receipt in a payout inbox. |
 
+The A2A negotiation pre-fills the buyer goal from the live catalog with a 10% buffer so the hardcoded budget no longer blocks a deal. The seller agent can discount up to 15% and is instructed to accept the best in-policy offer on the final turn. If the LLM transcript stalls, a deterministic fallback promotes the best in-policy seller quote to a `finalQuote`, so the demo closes successfully in the vast majority of runs.
+
 The header is responsive: desktop shows a full nav bar with the mode and currency toggles; mobile collapses navigation into a hamburger sheet so the wallet chip and toggles stay reachable.
 
 ### Judge demo ledger
