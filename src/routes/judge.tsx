@@ -305,7 +305,19 @@ function JudgePage() {
             </StepShell>
           </div>
         </Section>
+
+        <Section tone="muted">
+          <SectionHead
+            eyebrow="Verify"
+            title="The four deployed contracts"
+            blurb="Every address below is live on Arc Testnet and verified on Arcscan."
+          />
+          <div className="mt-6 grid gap-3 md:grid-cols-2">
+            <ContractsPanel className="contents" />
+          </div>
+        </Section>
       </main>
+
       <SiteFooter />
     </div>
   );
