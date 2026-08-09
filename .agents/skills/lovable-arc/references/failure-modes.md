@@ -28,3 +28,7 @@
 | CoinGecko 401 | Demo key sent to the pro host | Demo host + `x-cg-demo-api-key` header; keep a static fallback rate |
 | "Claim"/action looks on-chain but isn't | UI-only state | Anchor it with a real contract call and show the Arcscan link |
 | Mode/tab switch does nothing on the published site | Mode mapping duplicated across routes | Centralise mode → surface mapping in one component |
+| Agent negotiation always ends in a refusal | Budget hardcoded in the goal string, below every catalog price | Derive the budget from the live catalog at request time (cheapest in-policy item + headroom) |
+| Seller agent refuses instead of countering | Prompt only gave it a list price | Render `listUsd` + `floorUsd` and forbid flat refusals — discount or substitute |
+| Quote total off by ~1e6 | LLM returned minor units, not decimals | Normalise + clamp in code; re-derive the charged total from the catalog |
+| Run ends with no quote and no explanation | No-deal outcome not modelled | Return `{ accepted: false, reason }` and render the reason next to the transcript |

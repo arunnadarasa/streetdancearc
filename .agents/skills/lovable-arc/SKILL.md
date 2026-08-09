@@ -88,6 +88,13 @@ as a rounding error.
 10. **Demo-fallback over hard failure.** Every server module must boot with
     zero secrets and return a realistic envelope flagged `simulated: true`.
     Never throw at module scope for missing config.
+11. **Agent-demo outcomes come from deterministic code, not prompt wording.**
+    Prompts shape the transcript; a post-loop fallback that promotes the best
+    in-policy quote guarantees the close. Never let an LLM own your success
+    rate. See `references/agent-negotiation.md`.
+12. **Any price an LLM emits is untrusted input.** Normalise minor-units vs
+    decimals, clamp to `[floor, list]`, and re-derive the charged total from
+    the catalog before it reaches a settlement path.
 
 ## Reference index
 
@@ -97,7 +104,9 @@ as a rounding error.
 | `references/rpc-and-indexing.md` | RPC selection, getLogs limits, chunking, caching, Arcscan v2 as indexer |
 | `references/contracts-and-verify.md` | solc pinning, Blockscout verify recipe, ERC-721 / ERC-2981 / ERC-1271 on Arc |
 | `references/payments-ux.md` | USDC/EURC/cirBTC toggle, decimals, FX, Privy approval-modal gotchas, treasury panel |
+| `references/agent-negotiation.md` | Two-agent buyer/seller loops that close: derived budgets, seller floors, final-turn rules, deterministic fallback, quote sanitising |
 | `references/failure-modes.md` | Full symptom → cause → fix table |
+
 
 ## What worked well (reuse these)
 
@@ -128,6 +137,10 @@ as a rounding error.
    balance, and a `lowGas` warning. Payout failures otherwise look like bugs.
 4. Sketch the **multi-token decimal matrix** (6/6/8) once, in one `TOKENS`
    table, instead of discovering cirBTC's 8 decimals via a wrong balance.
+5. Build the **deterministic negotiation fallback before tuning any prompt**.
+   Days went into prompt wording for a two-agent demo that a 15-line
+   best-in-policy promotion fixed outright.
+
 
 ## Success checkpoints
 
