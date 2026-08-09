@@ -216,7 +216,7 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
                       : "Wallet"
                     : (
                       <>
-                        Sign in<span className="hidden sm:inline"> with Google</span>
+                        Sign in<span className="hidden sm:inline">&nbsp;with Google</span>
                       </>
                     )}
                 </button>
