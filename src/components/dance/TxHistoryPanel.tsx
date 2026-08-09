@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { CheckCircle2, Clock, Copy, ExternalLink, RefreshCw, Trash2, XCircle } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, Clock, Copy, ExternalLink, RefreshCw, Trash2, XCircle } from "lucide-react";
 import { formatAmount, TOKENS } from "@/lib/tokens";
 import { fetchTxStatuses } from "@/lib/tx-status.functions";
 import { setSettlementStatus, useTxLog, type TxEntry, type TxMode } from "@/lib/tx-log";
+
+const PAGE_SIZE = 10;
 
 const MODE_TINT: Record<TxMode, string> = {
   H2H: "border-primary/40 bg-primary/10 text-foreground",
