@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { callAisaJson } from "@/lib/aisa.server";
+import { deriveBudget } from "@/lib/negotiation-budget";
+
 
 const CatalogItemSchema = z.object({
   sku: z.string(),
@@ -43,17 +45,6 @@ function usdc(item: z.infer<typeof CatalogItemSchema>) {
   return Number(item.priceMinor) / 1e6;
 }
 
-/**
- * Budget derived from the live catalog rather than hardcoded in the goal text.
- * Cheapest in-policy item plus headroom, capped by the per-item policy limit.
- */
-function deriveBudget(catalog: Catalog, policy: Policy): number {
-  const allowed = catalog.filter((c) => policy.allowedCategories.includes(c.category));
-  const pool = allowed.length > 0 ? allowed : catalog;
-  const cheapest = Math.min(...pool.map(usdc).filter((n) => Number.isFinite(n) && n > 0));
-  if (!Number.isFinite(cheapest)) return policy.maxPerItemUsdc;
-  return Math.min(policy.maxPerItemUsdc, Math.max(cheapest * 1.1, cheapest + 0.001));
-}
 
 function sellerSystemPrompt(catalog: Catalog, budget: number, isFinalTurn: boolean) {
   const lines = catalog

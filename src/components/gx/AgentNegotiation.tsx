@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useWallet } from "@/lib/wallet-context";
 import type { Address } from "viem";
@@ -18,6 +18,8 @@ import {
 } from "@/lib/shopify";
 import { categoryFor } from "@/routes/api/public/catalog";
 import { fetchFxRates } from "@/lib/fx.functions";
+import { deriveBudget, displayBudget, recommendedGoal } from "@/lib/negotiation-budget";
+
 import { payWithNanopayments } from "@/lib/circle-rails.functions";
 import { CircleRailsPanel } from "./CircleRailsPanel";
 import { DiscoveryPanel } from "./DiscoveryPanel";
@@ -36,17 +38,27 @@ function categoryForTitle(title: string): string {
 
 }
 
+const SPEND_POLICY = {
+  agentId: "stylist-agent-01",
+  maxPerItemUsdc: 0.25,
+  dailyCapUsdc: 1.0,
+  confirmAboveUsdc: 0.05,
+  allowedCategories: ["sneakers", "headwear", "outerwear", "tops", "bottoms", "accessories"],
+};
+
 export function AgentNegotiation() {
   const { authenticated, login, wallets } = useWallet();
   const [payToken] = usePayToken();
 
   const [goal, setGoal] = useState("Buy a snapback cap in the selected stablecoin for practice sessions");
+  const goalDirty = useRef(false);
   const [products, setProducts] = useState<any[]>([]);
   const [loadingCatalog, setLoadingCatalog] = useState(true);
   const [running, setRunning] = useState(false);
   const [transcript, setTranscript] = useState<ChatTurn[]>([]);
   const [finalQuote, setFinalQuote] = useState<NegotiationTurn["quote"]>(null);
   const [noDealReason, setNoDealReason] = useState<string>("");
+
 
   const [settling, setSettling] = useState(false);
   const [receipt, setReceipt] = useState<Record<string, unknown> | null>(null);
@@ -103,6 +115,21 @@ export function AgentNegotiation() {
     [products, fx],
   );
 
+  const recommendedBudget = useMemo(
+    () => (catalog.length > 0 ? deriveBudget(catalog, SPEND_POLICY) : null),
+    [catalog],
+  );
+  const suggestedGoal = useMemo(
+    () => (catalog.length > 0 ? recommendedGoal(catalog, SPEND_POLICY) : null),
+    [catalog],
+  );
+
+  // Prefill the goal with the catalog-derived budget until the user edits it.
+  useEffect(() => {
+    if (!suggestedGoal || goalDirty.current) return;
+    setGoal(suggestedGoal);
+  }, [suggestedGoal]);
+
   async function onRun() {
     setRunning(true);
     setError(null);
@@ -115,16 +142,11 @@ export function AgentNegotiation() {
         data: {
           goal,
           catalog,
-          policy: {
-            agentId: "stylist-agent-01",
-            maxPerItemUsdc: 0.25,
-            dailyCapUsdc: 1.0,
-            confirmAboveUsdc: 0.05,
-            allowedCategories: ["sneakers", "headwear", "outerwear", "tops", "bottoms", "accessories"],
-          },
+          policy: SPEND_POLICY,
           turns: 5,
         },
       });
+
       setTranscript(result.transcript as ChatTurn[]);
       setFinalQuote(result.finalQuote);
       setNoDealReason(result.reason ?? "");
@@ -260,7 +282,10 @@ export function AgentNegotiation() {
               <div className="mt-2 flex gap-2">
                 <input
                   value={goal}
-                  onChange={(e) => setGoal(e.target.value)}
+                  onChange={(e) => {
+                    goalDirty.current = true;
+                    setGoal(e.target.value);
+                  }}
                   disabled={running}
                   className="flex-1 rounded-xl border border-border bg-background/60 px-4 py-3 text-sm text-foreground outline-none focus:border-primary"
                   placeholder="What should the buyer agent look for?"
@@ -274,7 +299,27 @@ export function AgentNegotiation() {
                   <span className="hidden sm:inline">{running ? "Negotiating…" : "Run agents"}</span>
                 </button>
               </div>
+              {recommendedBudget !== null && (
+                <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
+                  <span>
+                    Recommended budget {displayBudget(recommendedBudget)} USDC — derived from the live catalog
+                  </span>
+                  {suggestedGoal && goal !== suggestedGoal && !running && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        goalDirty.current = false;
+                        setGoal(suggestedGoal);
+                      }}
+                      className="font-bold text-primary underline underline-offset-2"
+                    >
+                      Reset to recommended
+                    </button>
+                  )}
+                </p>
+              )}
             </div>
+
 
             {loadingCatalog && (
               <p className="flex items-center gap-2 text-xs text-muted-foreground">
