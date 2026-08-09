@@ -24,6 +24,21 @@ The same catalog, the same settlement rail, four interfaces. A global toggle in 
 
 The header is responsive: desktop shows a full nav bar with the mode and currency toggles; mobile collapses navigation into a hamburger sheet so the wallet chip and toggles stay reachable.
 
+### Judge demo ledger
+
+A browser-side settlement ledger captures every Arc transfer so judges can see the full demo trail in one place:
+
+- **H2H** cart checkout → recorded with item, token amount, and Arcscan receipt.
+- **H2A** agent run → recorded when the agent settles the spend policy.
+- **A2A** negotiation → recorded once the buyer agent signs and posts the x402 payment.
+- **A2H** payout or claim → recorded when the treasury pushes the on-chain transfer.
+
+The ledger is surfaced on `/judge` ("Everything that settled"), in the cart drawer, and on `/shop`. Each row shows the mode chip, relative time, item label, token amount, and a clickable Arcscan link. Pending rows are polled against Arcscan via `fetchTxStatuses` and updated to confirmed or failed. A copy-hash button and a clear action are included for repeat demos.
+
+### Demo UX
+
+Agent runs now render a **receipt-first summary bar** instead of a wall of JSON. The H2A/A2A ledger shows a status chip, step progress, and a prominent "View receipt on Arcscan" button as soon as a settlement exists. Raw payloads are collapsed behind a toggle (auto-expanded on failures), and a master **Raw JSON** switch expands every step for technical deep-dives.
+
 ### Mobile UX
 
 On mobile the hamburger sheet replaces the top nav. It opens into a drawer with the site links, a dedicated **Wallet** section showing live USDC / EURC / cirBTC balances, and the global currency selector. A site-wide footer adds quick GitHub and Arcscan links so judges can jump to source or explorer from any screen.
