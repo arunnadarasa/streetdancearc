@@ -72,8 +72,22 @@ export function TxHistoryPanel({
   const getStatuses = useServerFn(fetchTxStatuses);
   const [checking, setChecking] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
-  const rows = limit ? entries.slice(0, limit) : entries;
+  const totalPages = Math.max(1, Math.ceil(entries.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * PAGE_SIZE;
+  const end = start + PAGE_SIZE;
+
+  const rows = useMemo(() => {
+    if (limit) return entries.slice(0, limit);
+    return entries.slice(start, end);
+  }, [entries, limit, start, end]);
+
+  // Reset to first page when the data set shrinks or the filter changes.
+  useEffect(() => {
+    setPage(1);
+  }, [mode, entries.length]);
 
   const sync = useCallback(async () => {
     const pending = entries.filter((e) => e.status === "pending").map((e) => e.hash);
