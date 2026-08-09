@@ -83,7 +83,7 @@ export function Header({
       }`}
     >
       <div
-        className={`rail grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 transition-all duration-300 sm:gap-3 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-4 ${
+        className={`rail grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 transition-all duration-300 sm:gap-3 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-4 ${
           scrolled ? "py-2" : "py-2.5 sm:py-4"
         }`}
       >
