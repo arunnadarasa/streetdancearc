@@ -118,7 +118,7 @@ export function Header({
         </Link>
 
 
-        <nav className="hidden min-w-0 items-center justify-center gap-0.5 md:flex lg:gap-1">
+        <nav className="hidden min-w-0 items-center justify-center gap-0.5 lg:flex lg:gap-1">
           {PRIMARY_NAV.map((n) => {
 
             const active = pathname.startsWith(n.to);
