@@ -207,6 +207,44 @@ export function TxHistoryPanel({
             </li>
           ))}
         </ul>
+
+        {!limit && totalPages > 1 && (
+          <div className="mt-5 flex flex-col items-center justify-between gap-3 sm:flex-row">
+            <p className="text-xs text-muted-foreground">
+              Showing {start + 1}–{Math.min(end, entries.length)} of {entries.length}
+            </p>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={safePage <= 1}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background/60 text-foreground transition hover:bg-secondary disabled:opacity-40"
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPage(p)}
+                  className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-bold transition ${p === safePage ? "bg-primary text-primary-foreground" : "border border-border bg-background/60 text-foreground hover:bg-secondary"}`}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={safePage >= totalPages}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background/60 text-foreground transition hover:bg-secondary disabled:opacity-40"
+                aria-label="Next page"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
       )}
     </div>
   );
