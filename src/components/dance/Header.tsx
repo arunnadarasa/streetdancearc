@@ -104,8 +104,8 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
         </Link>
 
 
-        <nav className="hidden items-center justify-center gap-0.5 md:flex lg:gap-1">
-          {NAV.map((n) => {
+        <nav className="hidden min-w-0 items-center justify-center gap-0.5 md:flex lg:gap-1">
+          {PRIMARY_NAV.map((n) => {
 
             const active = pathname.startsWith(n.to);
             return (
@@ -122,13 +122,39 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
               </Link>
             );
           })}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-2 text-xs font-semibold tracking-wide transition lg:px-3.5 ${
+                  MORE_NAV.some((n) => pathname.startsWith(n.to))
+                    ? "bg-secondary text-foreground"
+                    : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+                }`}
+              >
+                More
+                <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="min-w-40">
+              {MORE_NAV.map((n) => (
+                <DropdownMenuItem key={n.to} asChild className="text-xs font-semibold">
+                  <Link to={n.to}>{n.label}</Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
 
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 md:gap-2.5">
           {extra ? <span className="hidden md:inline-flex">{extra}</span> : null}
-          <span className="hidden sm:inline-flex">
+          <span className="hidden sm:inline-flex 2xl:hidden">
+            <PayTokenToggle compact />
+          </span>
+          <span className="hidden 2xl:inline-flex">
             <PayTokenToggle />
           </span>
+
           <span className="hidden md:inline-flex">
             <ModeToggle />
           </span>
