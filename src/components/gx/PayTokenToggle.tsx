@@ -43,7 +43,7 @@ export function PayTokenToggle({ compact = false }: { compact?: boolean }) {
 
   if (compact) {
     return (
-      <DropdownMenu>
+      <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
