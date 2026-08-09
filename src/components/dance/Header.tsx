@@ -68,7 +68,10 @@ export function Header({
   }, [walletOpen]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
+    // Hysteresis: a dead zone between the two thresholds so a small layout
+    // shift can never flip the state back and forth (blinking header).
+    const onScroll = () =>
+      setScrolled((prev) => (prev ? window.scrollY > 24 : window.scrollY > 64));
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
