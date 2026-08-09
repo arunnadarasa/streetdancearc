@@ -28,6 +28,14 @@ export function SiteFooter() {
             <a href="/markets" className="hover:text-foreground">Markets</a>
             <a href="/judge" className="hover:text-foreground">Judge run</a>
             <a href="/deck" className="hover:text-foreground">Deck</a>
+            <button
+              type="button"
+              onClick={openContractsDrawer}
+              className="font-semibold hover:text-foreground"
+            >
+              Contracts
+            </button>
+
             <a
               href="https://github.com/arunnadarasa/streetdancearc"
               target="_blank"
