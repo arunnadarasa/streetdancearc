@@ -46,6 +46,8 @@ export function A2hHome() {
   const [loading, setLoading] = useState(true);
   const [chainError, setChainError] = useState<string | null>(null);
   const [lowGas, setLowGas] = useState(false);
+  const [rawAll, setRawAll] = useState(false);
+
 
   const getFx = useServerFn(fetchFxRates);
   const getPayouts = useServerFn(listPayouts);
