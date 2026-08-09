@@ -68,7 +68,10 @@ export function Header({
   }, [walletOpen]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
+    // Hysteresis: a dead zone between the two thresholds so a small layout
+    // shift can never flip the state back and forth (blinking header).
+    const onScroll = () =>
+      setScrolled((prev) => (prev ? window.scrollY > 24 : window.scrollY > 64));
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -82,18 +85,10 @@ export function Header({
           : "border-b border-transparent bg-transparent"
       }`}
     >
-      <div
-        className={`rail grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 transition-all duration-300 sm:gap-3 xl:grid-cols-[auto_minmax(0,1fr)_auto] xl:gap-4 ${
-          scrolled ? "py-2" : "py-2.5 sm:py-4"
-        }`}
-      >
+      <div className="rail grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 py-2.5 transition-colors duration-300 sm:gap-3 sm:py-4 xl:grid-cols-[auto_minmax(0,1fr)_auto] xl:gap-4">
 
         <Link to="/" className="group flex min-w-0 items-center gap-2 sm:gap-3">
-          <span
-            className={`grid shrink-0 place-items-center rounded-xl bg-linear-to-br from-primary to-glow p-1.5 shadow-glow-sm transition-all duration-300 ${
-              scrolled ? "h-7 w-7 sm:h-8 sm:w-8" : "h-8 w-8 sm:h-10 sm:w-10"
-            }`}
-          >
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-linear-to-br from-primary to-glow p-1.5 shadow-glow-sm sm:h-10 sm:w-10">
             <img
               src={logoMark}
               alt="StreetRail logo"
@@ -106,11 +101,7 @@ export function Header({
             <span className="display block text-[15px] leading-tight text-foreground sm:text-lg">
               StreetRail
             </span>
-            <span
-              className={`block truncate text-[11px] tracking-wide text-muted-foreground transition-all duration-300 ${
-                scrolled ? "hidden" : "hidden sm:block"
-              }`}
-            >
+            <span className="hidden truncate text-[11px] tracking-wide text-muted-foreground sm:block">
               Street dance merch · settled on Arc
             </span>
 
@@ -248,7 +239,7 @@ export function Header({
         </div>
       </div>
 
-      <div className={`rail pb-2 xl:hidden ${scrolled ? "pt-0" : "pt-0.5"}`}>
+      <div className="rail pb-2 pt-0.5 xl:hidden">
         <ModeToggle full />
       </div>
     </header>
