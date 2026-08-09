@@ -22,7 +22,24 @@ The same catalog, the same settlement rail, four interfaces. A global toggle in 
 | `A2A` · x402   | Agent → agent   | No UI in the loop: agent-card discovery, UCP/AP2 mandates, AIsa negotiation, then `402 Payment Required` → settle → receipt. |
 | `A2H` · inbox  | Agent → human   | The agent initiates. The Rights Agent pushes royalty payouts, requests approval when a payout breaks the standing AP2 mandate, and drops an Arcscan receipt in a payout inbox. |
 
+The A2A negotiation pre-fills the buyer goal from the live catalog with a 10% buffer so the hardcoded budget no longer blocks a deal. The seller agent can discount up to 15% and is instructed to accept the best in-policy offer on the final turn. If the LLM transcript stalls, a deterministic fallback promotes the best in-policy seller quote to a `finalQuote`, so the demo closes successfully in the vast majority of runs.
+
 The header is responsive: desktop shows a full nav bar with the mode and currency toggles; mobile collapses navigation into a hamburger sheet so the wallet chip and toggles stay reachable.
+
+### Judge demo ledger
+
+A browser-side settlement ledger captures every Arc transfer so judges can see the full demo trail in one place:
+
+- **H2H** cart checkout → recorded with item, token amount, and Arcscan receipt.
+- **H2A** agent run → recorded when the agent settles the spend policy.
+- **A2A** negotiation → recorded once the buyer agent signs and posts the x402 payment.
+- **A2H** payout or claim → recorded when the treasury pushes the on-chain transfer.
+
+The ledger is surfaced on `/judge` ("Everything that settled"), in the cart drawer, and on `/shop`. Each row shows the mode chip, relative time, item label, token amount, and a clickable Arcscan link. Pending rows are polled against Arcscan via `fetchTxStatuses` and updated to confirmed or failed. A copy-hash button and a clear action are included for repeat demos.
+
+### Demo UX
+
+Agent runs now render a **receipt-first summary bar** instead of a wall of JSON. The H2A/A2A ledger shows a status chip, step progress, and a prominent "View receipt on Arcscan" button as soon as a settlement exists. Raw payloads are collapsed behind a toggle (auto-expanded on failures), and a master **Raw JSON** switch expands every step for technical deep-dives.
 
 ### Mobile UX
 
@@ -154,6 +171,10 @@ Circle's pre-audited ERC-721 SCP template (`76b83278-50e2-4006-8b63-5b1a2a814533
 - A2H payouts and mandate renewals carry an `onChainAuth` block; the inbox shows the ERC-1271 magic value `0x1626ba7e` when the digest is approved on-chain.
 - Public status endpoint: `/api/public/erc1271/authorizer`.
 
+### Contracts drawer
+
+A dedicated panel (`ContractsPanel.tsx` / `ContractsSheet.tsx`) summarizes all four deployed StreetRail contracts in one place: `DanceMoveTokens`, `StreetRailAuthorizer`, the Move Rights NFT, and `MoveMarket`. Each card shows the contract name, standards, verification badge, shortened address with a copy button, and a direct Arcscan link. The panel is reachable from the homepage header on large screens, the mobile hamburger sheet, and the footer.
+
 ---
 
 ## Arc network config
@@ -185,6 +206,7 @@ Testnet tokens have no financial value.
 | `/markets`           | FX-volatility research — why stablecoin rails matter in NGN/ARS/PHP markets |
 | `/primer`            | Web3 for dancers — concept cards + interactive glossary            |
 | `/deck`              | Interactive judges' slide deck (native React, mobile-friendly)     |
+| `/judge`             | Judge demo ledger — every Arc settlement across all four modes, with Arcscan links |
 
 ---
 
@@ -270,9 +292,11 @@ A short, polished post-mortem covering both the hackathon sprint and the product
 - **Proxy, do not embed.** Any RPC or AI key should go through a same-origin server route or server function.
 - **Treat testnet like mainnet.** Decimals, gas limits, and receipts deserve the same rigor even when the tokens have no financial value.
 - **Keep the contract small.** `DanceMoveTokens.sol` stays under 100 lines, which makes verification, auditing, and explaining it to judges easier.
+- **Demo UX should be prose-first, JSON-second.** Judges are not parsers. Collapsing raw payloads behind toggles and leading with the Arcscan receipt made agent runs dramatically easier to follow.
 
 ### What we would do differently next time
 
+- **Build the judge ledger and deterministic negotiation fallback on day one.** We added the settlement list and the best-in-policy quote fallback after seeing live demos fail due to hardcoded budgets and hidden transaction hashes. Having both from the start would have saved repeated judge-run debugging.
 - **Start schema-first for A2A messages.** We iterated the agent-card/AP2/UCP payloads while building the UI; a shared Zod/JSON Schema contract from day one would have prevented several integration rewrites.
 - **Separate the move-registry fee from merch payments earlier.** The registry currently charges a fee to log a CID; for a production merch-first product we would make provenance logging optional or sponsor it from the treasury.
 - **Add a testnet faucet and monitoring page.** Judges and new users should be able to see their balance and get gas USDC without leaving the app.
