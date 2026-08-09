@@ -1,311 +1,149 @@
 # StreetRail
 
-Streetwear commerce on **Circle's Arc Testnet** (chain id `5042002`) — a shop that humans can browse and agents can buy from, settled in stablecoins on the same rail.
-
-Built for the Encode Club [**Programmable Money Hackathon**](https://www.encodeclub.com/programmes/arc-hackathon) — Build on Arc (Agentic Economy track, final submissions 9 August 2026).
+Streetwear commerce and private-by-default choreography rights on **Midnight Local Undeployed**. Humans and agents share the same catalog; move anchoring, MoveNft rights, and experimental mUSDC settlement use Compact contracts, witnesses, and ZK commitments — not a public EVM rail.
 
 Live demo: https://streetrail.lovable.app  
 Source: https://github.com/arunnadarasa/streetdancearc
 
-Merch is the product. The on-chain move registry is the culture layer underneath it: dancers stamp a choreography CID on-chain and the drop it belongs to inherits that provenance. USDC is the native gas token on Arc; EURC and cirBTC are supported as payment tokens.
+## What it demonstrates
 
----
+| Compact contract | Role / privacy model |
+| --- | --- |
+| `MoveRegistry` | Log a move CID; `witness localSecretKey()` stays off-chain; public ledger stores a `persistentHash` **author commitment** + disclosed CID/message |
+| `MoveNft` | Mint / list / buy / transfer move rights; ownership + listings are public maps; **mUSDC settle is sequenced by the server** before `buy` |
+| `MidnightUSDC` | Experimental mUSDC mimic; signer key is a witness (`musdc:signer:v1`); spent nonces + balances are public |
+| `MandateVault` | Buyer secret derives `ap2:buyer:v1` public key in-circuit; secret never enters the ledger |
+| `OrderLedger` | Merchant signing-key fingerprint via `ucp:merchant:v1` witness |
 
-## Four modes
+Undeployed writes use a genesis **server-append** path (Lace cannot sign on Undeployed). Reads go through the local indexer GraphQL API.
 
-The same catalog, the same settlement rail, four interfaces. A global toggle in the header switches between them and the choice rides along in the `?mode=` query param across routes (legacy `?mode=gx` maps to A2A).
+Deployed addresses are written to `src/data/midnight-contract.json` / `midnight-contract.undeployed.json` under `contracts.moveRegistry`, `moveNft`, `midnightUsdc`, `mandateVault`, and `orderLedger`.
 
-| Mode           | Who drives      | What happens                                                                                                 |
-| -------------- | --------------- | ------------------------------------------------------------------------------------------------------------ |
-| `H2H` · UX     | Human           | Classic storefront: browse merch, add to cart, checkout. Move registry available as a secondary surface.       |
-| `H2A` · GX     | Human → agent   | You state intent and a spend policy; the agent shops, pauses on interrupts, and logs every step to an audit ledger. |
-| `A2A` · x402   | Agent → agent   | No UI in the loop: agent-card discovery, UCP/AP2 mandates, AIsa negotiation, then `402 Payment Required` → settle → receipt. |
-| `A2H` · inbox  | Agent → human   | The agent initiates. The Rights Agent pushes royalty payouts, requests approval when a payout breaks the standing AP2 mandate, and drops an Arcscan receipt in a payout inbox. |
+## Product surfaces
 
-The A2A negotiation pre-fills the buyer goal from the live catalog with a 10% buffer so the hardcoded budget no longer blocks a deal. The seller agent can discount up to 15% and is instructed to accept the best in-policy offer on the final turn. If the LLM transcript stalls, a deterministic fallback promotes the best in-policy seller quote to a `finalQuote`, so the demo closes successfully in the vast majority of runs.
+| Route | What you do |
+| --- | --- |
+| `/moves` | **Prove & mint move NFT** — `POST /api/public/append-entry` then `POST /api/public/move-nft-mint` |
+| `/market` | **MidnightMoveMarketPanel** — list, cancel, buy, transfer Compact MoveNfts; settle listed buys in experimental mUSDC |
+| `/shop` | Merch cart checkout via experimental mUSDC / x402 server settle |
 
-The header is responsive: desktop shows a full nav bar with the mode and currency toggles; mobile collapses navigation into a hamburger sheet so the wallet chip and toggles stay reachable.
+The Arc ERC-721 Move Market (`DanceMoveTokens` / `MoveMarket.sol`) is **paused** on this Undeployed product path. Use the Midnight Compact market on `/market`.
 
-Editorial/reference routes (`/markets`, `/moves`, `/primer`, `/deck`, `/judge`) are mode-independent: they always render their own content regardless of the saved GX mode, and the mode toggle is hidden while viewing them so the persisted mode does not accidentally swap the page content.
+## Prerequisites
 
+- Node.js ≥ 22
+- [bun](https://bun.sh)
+- Docker Desktop (or compatible Compose v2)
+- [Compact toolchain](https://docs.midnight.network) (`compact` CLI)
 
-### Judge demo ledger
-
-A browser-side settlement ledger captures every Arc transfer so judges can see the full demo trail in one place:
-
-- **H2H** cart checkout → recorded with item, token amount, and Arcscan receipt.
-- **H2A** agent run → recorded when the agent settles the spend policy.
-- **A2A** negotiation → recorded once the buyer agent signs and posts the x402 payment.
-- **A2H** payout or claim → recorded when the treasury pushes the on-chain transfer.
-
-The ledger is surfaced on `/judge` ("Everything that settled") and on `/shop`. The cart drawer links to `/judge` instead of duplicating the list, so checkout stays focused. Each row shows the mode chip, relative time, item label, token amount, and a clickable Arcscan link. Pending rows are polled against Arcscan via `fetchTxStatuses` and updated to confirmed or failed. A copy-hash button and a clear action are included for repeat demos. The list paginates at 10 transactions per page with numbered page controls, so long judge runs stay scannable.
-
-### Demo UX
-
-Agent runs now render a **receipt-first summary bar** instead of a wall of JSON. The H2A/A2A ledger shows a status chip, step progress, and a prominent "View receipt on Arcscan" button as soon as a settlement exists. Raw payloads are collapsed behind a toggle (auto-expanded on failures), and a master **Raw JSON** switch expands every step for technical deep-dives.
-
-### Mobile UX
-
-On mobile the hamburger sheet replaces the top nav. It opens into a drawer with the site links, a dedicated **Wallet** section showing live USDC / EURC / cirBTC balances, and the global currency selector. A site-wide footer adds quick GitHub and Arcscan links so judges can jump to source or explorer from any screen.
-
-### On-chain claim offers (A2H)
-
-Tapping **Claim offer** logs an agent-side receipt to the `DanceMoveTokens` registry via Circle SCP (no user wallet prompt, no user gas), returns a claim code and an Arcscan receipt, and produces a signed AP2 `OfferClaim` mandate. The discount is applied at checkout. Claims are logged for audit and do not count against the daily payout cap.
-
-### Settlement currency
-
-A second header toggle picks the settlement token — **USDC**, **EURC** or **cirBTC** — and applies to all four modes at once. It persists to `localStorage` and rides in the `?pay=` query param, so `/?mode=a2a&pay=cirBTC` links a judge straight into an agent-to-agent run priced in wrapped BTC.
-
-- **USDC** is Arc's gas token, so paying it is a native value transfer.
-- **EURC** (6 decimals) and **cirBTC** (8 decimals) are ERC-20s, settled with `transfer()` — gas is still paid in USDC.
-- `purchase.ts` quotes all three in its `402` challenge and verifies whichever arrived: native `value` for USDC, matching `Transfer` logs for the ERC-20s.
-- Fiat list prices convert through a **live FX feed** in `src/lib/fx.server.ts`: GBP/EUR rates from [Frankfurter](https://www.frankfurter.app) and BTC/USD from [CoinGecko](https://www.coingecko.com), cached for 5 minutes with hardcoded fallbacks. A `COINGECKO_API_KEY` secret is optional; demo keys (`CG-…`) route to the public endpoint with the `x-cg-demo-api-key` header, while paid Pro keys use `pro-api.coingecko.com`. The feed is exposed to client components via the `fetchFxRates` server function and used by the cart, negotiation, agent run, A2H inbox, live total calculator, and protocol endpoints.
-
-### Balances
-
-Wallet balances for USDC, EURC and cirBTC are read through ERC-20 `balanceOf` via the same-origin RPC proxy, then converted from atomic units using each token's configured decimals. A safety guard re-normalises any value above 1B units in case an RPC provider returns native USDC in 18-decimal atomic units instead of 6, so the UI always shows normal human-readable amounts.
-
-The **Treasury Panel** in the A2H inbox surfaces the treasury address and its live Arc balances, with an amber warning when USDC gas drops below `0.5` so users know to top up before approving payouts.
-
-### Move registry improvements
-
-The `/moves` page is now a full registry console:
-
-- **Metadata preview step.** Before logging a move, dancers fill move name, discipline, rights holder and license, then preview the exact JSON and the IPFS CIDv1 it hashes to. Logging is blocked until the CID is confirmed, so the on-chain record matches the off-chain metadata.
-- **Clip preview before pinning.** A picked clip is staged locally first: inline playback, file size, duration, intrinsic dimensions and MIME type, plus a CIDv1 (raw / sha2-256) content hash computed in the browser before any upload. Pinning is an explicit step, and afterwards the UI reports whether the pinned CID matches the local hash — it does for single-block files (≤256 KB); larger files are chunked by IPFS, so the local hash stands as an integrity proof of the exact bytes uploaded.
-- **Clip evidence pinned to IPFS.** With a `PINATA_JWT` configured, the metadata step accepts an optional move clip (MP4/MOV/WebM or image, max 25 MB). The clip is pinned through `POST /api/public/pin` (size cap and MIME allowlist enforced server-side), the metadata JSON gains a `media` block plus ERC-721 display fields (`name`, `description`, `animation_url`), and the JSON itself is pinned so the CID actually resolves. Without the key the field is hidden and the locally computed CID preview still works.
-- **Move NFTs.** Logging a move also mints an ERC-721 "StreetRail Move Rights" token to the dancer's wallet, agent-side from the treasury, so the dancer pays no gas and sees no extra prompt. `MoveNftGallery` lists the tokens held by the connected wallet with clip playback, discipline, licence and an Arcscan link.
-- **Receipt history panel.** Every `log()` call is listed newest-first with kind classification (move log, A2H payout, offer claim, nanopayment batch), formatted token amount, block number, success/failure status, and a clickable Arcscan link. History is read with a chunked, rate-limit-aware log sweep and cached for 45 seconds so public RPC limits don't break the UI.
-
-### Live totals & FX transparency
-
-- **Live total calculator.** Product pages, the cart drawer and the move-mint form show the real-time Arc token amount for the selected stablecoin, the listed fiat equivalent, the USD value, and the raw atomic value. Switching USDC/EURC/cirBTC updates the total instantly against the live FX feed.
-- **FX price widget.** The footer displays the last-updated time of the FX feed and the CoinGecko mode being used (`demo`, `pro`, or none). It turns amber when rates go stale and has a manual refresh button.
-- **Marketing metric rounding.** The homepage "USDC settled through the rail" stat is rounded to 2 decimals so the number reads cleanly in a hero stat rather than showing 4-decimal precision.
-
-
-### Primer for dancers new to web3
-
-`/primer` is a jargon-free onboarding page. Concept cards pair dance terms with their tech equivalents (e.g., "The Cypher" = blockchain, "The Setlist" = mandate). The interactive glossary lets beginners tap terms like *agentic*, *x402* or *mandate* to get a dance analogy, a plain definition, and related terms.
-
-
-
-**Agent surface** (all under `src/routes/api/public/`, callable by external agents):
-
-- `agent-card.ts` — A2A 0.3 agent card / capability discovery
-- `catalog.ts` — machine-readable product catalog
-- `purchase.ts` — x402 challenge, settlement, and signed receipt
-- `arc-rpc.ts` — same-origin JSON-RPC proxy so the Alchemy key never ships to the client
-- `x402/resources.ts` — StreetRail published in the Circle Agent Marketplace discovery shape
-- `a2a/`, `ap2/`, `ucp/` — protocol endpoints for tasks, mandates, and commerce intents
-
-**Client components:** `src/components/gx/` (A2A run panel, negotiation, spend policy, ledger, mode toggle), `src/components/h2a/H2aHome.tsx` and `src/components/a2h/` (payout inbox, standing mandate panel).
-
----
-
-## Marketplace — streetwear swag
-
-`/shop` pulls live products from a Shopify development store via the Storefront API. Cart state persists in `localStorage` (Zustand) and checkout hands off to Shopify's hosted checkout. Product imagery is custom-generated art matching the app's Midnight Indigo theme, with gradient placeholders as fallback.
-
-**Catalog (seeded):** sneakers, snapback, baseball jacket, trousers, socks, t-shirt, bandana.
-
-**Files:**
-
-- `src/lib/shopify.ts` — Storefront API client + types
-- `src/stores/cartStore.ts` — persistent cart (Zustand)
-- `src/hooks/useCartSync.ts` — cart line sync
-- `src/components/shop/ProductCard.tsx`, `CartDrawer.tsx`, `FeaturedMerch.tsx`
-- `src/routes/shop.tsx` — grid; `src/routes/product.$handle.tsx` — detail with quantity stepper
-
----
-
-## Circle products used
-
-| Product | Where it runs | Notes |
-| --- | --- | --- |
-| **Circle Wallets** | `scripts/bootstrap-circle.mjs`, `src/lib/circle.server.ts` | Developer-controlled treasury EOA on Arc Testnet — the Rights Agent's own wallet, signed with an entity secret. |
-| **Circle Contracts (SCP)** | `scripts/deploy-arc.mjs` | `DanceMoveTokens` deployed from the Circle wallet with USDC gas, no EOA private key, then verified on Arcscan. |
-| **Nanopayments** | `src/lib/nanopay.server.ts` | Gateway batching (`@circle-fin/x402-batching`) signs the EIP-3009 authorization for the A2A x402 loop; falls back to a direct Arc transfer when the agent balance is unfunded. |
-| **App Kits** | `src/lib/appkit.server.ts` | Unified Balance Kit reports spendable USDC across chains; Swap Kit quotes back the USDC / EURC / cirBTC toggle. |
-| **Gas Station** | Wallet-set policy | Sponsors agent gas on Arc. **Paymaster is intentionally unused** — USDC is already Arc's native gas token, so a USDC paymaster abstracts nothing. |
-| **Agent Stack** | `src/lib/discovery.server.ts` | The buyer agent resolves payable services through Circle's public x402 Marketplace Discovery API before negotiating. |
-
-Live status for all six is rendered in-app by `CircleRailsPanel` on the A2A and H2A screens, including the honest "unavailable, falling back" states.
-
-### Agent Marketplace Discovery
-
-The buyer agent does not hardcode StreetRail's checkout URL. Instead it calls Circle's public, keyless x402 Discovery API (`https://api.circle.com/v2/x402/discovery/resources`), filters for resources that settle on Arc Testnet, and selects the matching rail by network + scheme. The response is normalised defensively and cached server-side for 5 minutes. If Circle is unreachable, the agent falls back to StreetRail's own local resource published at `/api/public/x402/resources`, so the demo keeps working offline.
-
----
-
-## On-chain
-
-- **Contract:** `contracts/DanceMoveTokens.sol` — `log(address token, uint256 amount, string cid)` emits `MoveLogged` after pulling the fee via `transferFrom`.
-- **Deployed:** [`0x4d13b45f823f8944522890c20d8695b6005465f0`](https://testnet.arcscan.io/address/0x4d13b45f823f8944522890c20d8695b6005465f0) — verified on Arcscan.
-- **Deploy path:** Circle Smart Contract Platform, via the scripts below.
-- **Compiler:** `solc 0.8.24`, pinned to match the Arcscan verifier.
-
-### Move Rights NFT (ERC-721)
-
-Circle's pre-audited ERC-721 SCP template (`76b83278-50e2-4006-8b63-5b1a2a814533`) deployed to Arc Testnet from the dev-controlled treasury wallet — no custom Solidity, USDC gas.
-
-- **Deployed:** [`0x84546970f5265f31ae1523a1e3bf18938670702f`](https://testnet.arcscan.app/address/0x84546970f5265f31ae1523a1e3bf18938670702f) — `StreetRail Move Rights` / `MOVE`, 5% royalty to the treasury, ERC-721 Enumerable.
-- **Mint:** `mintTo(address,string)` executed from the treasury via Circle `contractExecution`, with an `ipfs://<cid>` token URI.
-- **Deploy script:** `node scripts/deploy-nft-arc.mjs` (writes `src/data/move-nft.json`).
-
-### Move Rights marketplace (MoveMarket.sol)
-
-`contracts/MoveMarket.sol` is a non-custodial secondary market for Move Rights NFTs: the seller keeps the token and only grants an approval, so nothing is escrowed.
-
-- **Deployed:** [`0x5b00367612ef4533e89ed9547dd4c2f3080f783e`](https://testnet.arcscan.app/address/0x5b00367612ef4533e89ed9547dd4c2f3080f783e) — verified on Arcscan.
-- **Flow:** `list(tokenId, payToken, price)` → `buy(tokenId)` splits the payment and moves the NFT to the buyer in one call; `cancel(tokenId)` pulls the listing. Direct transfers are also supported from the UI.
-- **Creator royalties (automatic):** `buy()` reads the NFT's ERC-2981 `royaltyInfo(tokenId, price)` and pays the 5% royalty to the creator in the *same* payment token, atomically, before the seller's proceeds — carved out of the listed price, not added on top. `royaltyFor(tokenId, price)` exposes the split as a view, a `RoyaltyPaid` event is emitted alongside `Sold`, and a token that declares no royalty simply pays the seller in full. The buy confirmation shows "you pay / creator receives / seller receives" before anything is signed, and the listing form shows net proceeds live.
-- **Settlement:** any Arc stablecoin — USDC, EURC or cirBTC — with gas paid in USDC.
-- **Discovery:** `activeCount()` / `listingAt(index)` enumerate live listings on-chain; the server cross-checks current ERC-721 ownership and filters stale listings.
-- **UI:** `/market` (linked in the header and the mobile drawer) shows listings with pinned clip media, plus list / cancel / buy / transfer actions.
-- **Browse:** the grid has search (name, token ID, discipline, license, seller address), discipline chips, a license filter, a payment-token filter and sorting (newest, price low→high, price high→low, by payment token). All of it lives in the URL (`/market?q=krump&tok=EURC&sort=price-asc`), so a filtered view is shareable. "Newest" uses the on-chain `Listed` event block, falling back to listing order when the indexer is unavailable.
-
-### Treasury authorization (ERC-1271)
-
-`contracts/StreetRailAuthorizer.sol` is a lightweight ERC-1271 authorizer for the treasury/agent wallet, so Gateway actions can be authorized without an EOA delegate.
-
-- **Deployed:** [`0x0519c703cde7cbff6829fdfdcfe8c9a4c7aac327`](https://testnet.arcscan.io/address/0x0519c703cde7cbff6829fdfdcfe8c9a4c7aac327) — verified on Arcscan.
-- **Modes:**
-  - Pre-approved digests via `approveHash` — no EOA delegate needed.
-  - Time-boxed delegate signers for temporary authorization.
-- A2H payouts and mandate renewals carry an `onChainAuth` block; the inbox shows the ERC-1271 magic value `0x1626ba7e` when the digest is approved on-chain.
-- Public status endpoint: `/api/public/erc1271/authorizer`.
-
-### Contracts drawer
-
-A dedicated panel (`ContractsPanel.tsx` / `ContractsSheet.tsx`) summarizes all four deployed StreetRail contracts in one place: `DanceMoveTokens`, `StreetRailAuthorizer`, the Move Rights NFT, and `MoveMarket`. Each card shows the contract name, standards, verification badge, shortened address with a copy button, and a direct Arcscan link. The panel is reachable from the homepage header on large screens, the mobile hamburger sheet, and the footer.
-
----
-
-## Arc network config
-
-- Chain id `5042002`, USDC as the native gas token with **6 decimals** (not 18 — this trips up most tooling).
-- Explorer: Arcscan testnet.
-- **RPC:** the browser never talks to the provider directly. Client calls go to the same-origin `/api/public/arc-rpc` route, which forwards JSON-RPC to the upstream URL held in the `ARC_RPC_URL` secret (an Alchemy Arc endpoint), so the provider key never ships to the client. When `ARC_RPC_URL` is unset, the public Arc testnet RPC is used.
-
-| Token  | Address                                      | Decimals | Notes                        |
-| ------ | -------------------------------------------- | -------- | ---------------------------- |
-| USDC   | `0x3600000000000000000000000000000000000000` | 6        | Native gas token on Arc      |
-| EURC   | `0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a` | 6        | Euro Coin                    |
-| cirBTC | `0xf0C4a4CE82A5746AbAAd9425360Ab04fbBA432BF` | 8        | Circle Wrapped BTC (testnet) |
-
-Testnet tokens have no financial value.
-
----
-
-## Routes
-
-| Route                | What it is                                                        |
-| -------------------- | ----------------------------------------------------------------- |
-| `/`                  | Home — featured merch, mode toggle, move registry below the fold   |
-| `/shop`              | Full catalog grid                                                  |
-| `/product/$handle`   | Product detail, quantity stepper, add to cart, live Arc total      |
-| `/moves`             | On-chain move registry: preview metadata, log a CID, receipt history |
-| `/market`            | Move Rights secondary market — browse (search, filters, sorting), list, buy, cancel, transfer on Arc |
-| `/agent-negotiation` | AIsa-powered buyer/seller negotiation transcript                   |
-| `/markets`           | FX-volatility research — why stablecoin rails matter in NGN/ARS/PHP markets (mode-independent content page) |
-| `/primer`            | Web3 for dancers — concept cards + interactive glossary            |
-| `/deck`              | Interactive judges' slide deck (native React, mobile-friendly)     |
-| `/judge`             | Judge demo ledger — every Arc settlement across all four modes, with Arcscan links |
-
----
-
-## Local setup
+## Quick start
 
 ```bash
-npm install
-npm run dev
+bun install
+bun run compile   # compact compile → copy artefacts → docker compose up → deploy
+bun run dev
 ```
 
-The project uses **Lovable Cloud** for managed PostgreSQL, Auth, and Storage. Runtime configuration lives in project secrets, not a committed `.env`. Names only:
+Open the app, connect Lace on **Undeployed** (optional — Undeployed writes go through server-append), then:
 
-| Name                             | Used for                                   |
-| -------------------------------- | ------------------------------------------ |
-| `PRIVY_APP_ID`                   | Google login + embedded wallet             |
-| `ARC_RPC_URL`                    | Upstream Arc RPC behind the proxy route    |
-| `CIRCLE_API_KEY`                 | Circle SCP / wallets                       |
-| `CIRCLE_ENTITY_SECRET`           | Circle entity secret (write-only)          |
-| `CIRCLE_TREASURY_WALLET_ID`      | Deployer / treasury wallet                 |
-| `CIRCLE_TREASURY_ADDRESS`        | Treasury address surfaced in the UI        |
-| `AISA_API_KEY`                   | AIsa agent reasoning and negotiation       |
-| `PINATA_JWT`                     | Optional — pins move clips and metadata to IPFS |
-| `PINATA_GATEWAY`                 | Optional dedicated Pinata gateway host     |
-| `COINGECKO_API_KEY`              | Optional CoinGecko demo/pro key for BTC/USD FX |
-| `VITE_SHOPIFY_DOMAIN`            | Shopify store domain                       |
-| `VITE_SHOPIFY_STOREFRONT_TOKEN`  | Shopify Storefront API token               |
+1. On `/moves`, use **Prove & mint move NFT** (proves `appendEntry`, then `MoveNft.mint`; first proof can take up to ~4 minutes cold)
+2. On `/market`, list / buy / transfer via `MidnightMoveMarketPanel` (buys settle in mUSDC)
+3. Settle a merch cart on `/shop` via experimental mUSDC
+4. Verify with a GraphQL POST to `http://localhost:8088/api/v4/graphql`
 
----
+### Environment
+
+Copy `.env.example` to `.env`. `bun run midnight:deploy` upserts contract addresses into `.env` automatically.
+
+```
+VITE_NETWORK_ID=undeployed
+VITE_INDEXER_URL=http://localhost:8088/api/v4/graphql
+VITE_INDEXER_WS_URL=ws://localhost:8088/api/v4/graphql/ws
+VITE_PROOF_SERVER_URL=http://localhost:6300
+VITE_NODE_URL=http://localhost:9944
+VITE_NODE_WS=ws://localhost:9944
+VITE_DEFAULT_CONTRACT=<MoveRegistry address from deploy>
+VITE_MOVE_NFT_CONTRACT=<MoveNft address from deploy>
+VITE_MUSDC_CONTRACT=<MidnightUSDC address from deploy>
+VITE_MANDATE_CONTRACT=<MandateVault address from deploy>
+VITE_ORDER_CONTRACT=<OrderLedger address from deploy>
+```
+
+Optional IPFS pinning (server-only — **never** `VITE_`):
+
+```
+PINATA_JWT=<Pinata JWT>
+PINATA_GATEWAY=<optional custom gateway host, e.g. mygateway.mypinata.cloud>
+```
+
+With `PINATA_JWT` set, `/moves` can upload a move clip through `POST /api/public/pin` (`src/lib/pinata.server.ts`). Without it, pinning reports not configured and the UI falls back to a locally computed CID preview. `GET /api/public/pin` returns `{ enabled, gateway, maxBytes, accepts }`.
+
+### Docker pins
+
+| Service | Image |
+| --- | --- |
+| Node | `midnightntwrk/midnight-node:0.22.5` |
+| Indexer | `midnightntwrk/indexer-standalone:4.0.2` |
+| Proof server | `midnightntwrk/proof-server:8.0.3` |
+
+After `bun run midnight:down` then `midnight:up`, run `bun run midnight:deploy` again and restart Vite — chain state and LevelDB private state reset together.
 
 ## Scripts
 
-| Script                        | What it does                                                              |
-| ----------------------------- | ------------------------------------------------------------------------- |
-| `scripts/bootstrap-circle.mjs` | Generates/registers the entity secret and provisions the treasury wallet   |
-| `scripts/deploy-arc.mjs`       | Compiles with `solc 0.8.24` and deploys to Arc Testnet via Circle SCP      |
-| `scripts/deploy-nft-arc.mjs`   | Deploys Circle's ERC-721 template as the Move Rights NFT on Arc Testnet   |
-| `scripts/verify-arc.mjs`       | Submits source to the Arcscan (Blockscout) REST verify endpoint            |
+| Script | Purpose |
+| --- | --- |
+| `bun run midnight:compile` | Compile all `.compact` sources (MoveRegistry, MandateVault, OrderLedger, MidnightUSDC, **MoveNft**) |
+| `bun run midnight:artefacts` | Copy keys/zkir/contract into `public/contract/` (including `public/contract/move-nft/`) |
+| `bun run midnight:up` / `down` / `status` | Start/stop/inspect local Undeployed stack |
+| `bun run midnight:deploy` | Deploy with genesis seed `…0002`; writes `VITE_*` contract env vars |
+| `bun run compile` | Full compile → artefacts → up → deploy pipeline |
+| `bun run dev` | Vite / TanStack Start app |
 
----
+## API surface (Undeployed writes)
 
-## Reference docs
+| Route | Circuit / action |
+| --- | --- |
+| `POST /api/public/append-entry` | MoveRegistry `appendEntry` |
+| `POST /api/public/move-nft-mint` | MoveNft `mint` |
+| `POST /api/public/move-nft-list` | MoveNft `list` |
+| `POST /api/public/move-nft-cancel` | MoveNft `cancel` |
+| `POST /api/public/move-nft-buy` | mUSDC transfer then MoveNft `buy` |
+| `POST /api/public/move-nft-transfer` | MoveNft `transfer` |
+| `POST /api/public/ap2-anchor` | MandateVault `anchorMandate` |
+| `POST /api/public/ucp-record-order` | OrderLedger `recordOrder` |
+| `POST /api/public/musdc-faucet` | MidnightUSDC `faucet` |
+| `POST /api/public/musdc-transfer` | MidnightUSDC `transfer` |
+| `POST /api/public/purchase` | x402 challenge + server settle |
+| `GET` / `POST /api/public/pin` | Optional Pinata clip pin (requires `PINATA_JWT`) |
 
-- Circle developer docs: https://developers.circle.com/llms-full.txt
-- Arc docs: https://docs.arc.io/llms-full.txt
-- Circle agent stack starter kits: https://github.com/circlefin/agent-stack-starter-kits
-- Arc nanopayments: https://github.com/circlefin/arc-nanopayments
-- cirBTC addresses: https://developers.circle.com/assets/cirbtc-contract-addresses
-- EURC addresses: https://developers.circle.com/stablecoins/eurc-contract-addresses
-- x402 payment protocol: https://x402.org
-- AP2 agent payments protocol: https://ap2-protocol.org
-- A2A protocol: https://a2a-protocol.org
-- AIsa docs: https://aisa.one/docs/llms-full.txt
+## Prove & mint flow (`/moves`)
 
----
+1. Build move metadata (and optionally pin a clip via Pinata).
+2. **Prove & mint move NFT** calls `append-entry` (MoveRegistry), then `move-nft-mint` with the CID/URI and owner bytes.
+3. Gallery / market UIs read the Undeployed MoveNft mirror (`src/data/move-nft-state.undeployed.json`) plus indexer-backed receipts.
 
-## Lessons learned
+## Verify an anchor
 
-A short, polished post-mortem covering both the hackathon sprint and the product architecture.
+```graphql
+query($addr: HexEncoded!) {
+  contractAction(address: $addr) {
+    ... on ContractCall {
+      entryPoint
+      transaction { hash block { height } }
+    }
+  }
+}
+```
 
-### What worked
+Indexer tx hashes and midnight-js `txId` strings differ — use the indexer as source of truth.
 
-- **One contract, one rail, four modes.** Keeping H2H, H2A, A2A and A2H payments on the same Arc testnet contract made the demo coherent and gave judges a single explorer link to verify every flow.
-- **Circle SCP + pinned solc.** Compiling, deploying and verifying `DanceMoveTokens.sol` through one script path, with `solc 0.8.24` pinned to the version Arcscan expects, saved hours of verifier mismatch.
-- **Public RPC proxy.** Routing all client JSON-RPC through `/api/public/arc-rpc` let us use an Alchemy endpoint without leaking keys in the browser bundle or mobile preview.
-- **Live FX feed.** Caching Frankfurter/CoinGecko rates server-side for five minutes made stablecoin prices feel real while staying inside free-tier limits.
-- **Real A2H payouts.** Moving the A2H inbox from mocked data to on-chain `MoveLogged` events plus Circle treasury transfers turned the agent-to-human mode from theatre into a verifiable flow.
-- **Ed25519 mandates.** Signing AP2 mandates with canonical JSON and `@noble/curves` gave the protocol layer non-repudiation without pulling in heavy crypto libraries.
+## Notes
 
-### What broke
+- **mUSDC is experimental** — no peg, never deploy to Mainnet.
+- Arc ERC-721 mint / market paths remain in the repo for reference but are paused in favor of Compact MoveNft on Undeployed.
+- Cloudflare production builds stub Midnight Node modules; local `vite dev` keeps real server-append (`midnightSsrStub` uses `apply: "build"`).
+- Nested `@midnight-ntwrk/onchain-runtime-v3` is removed in `postinstall` to avoid `expected instance of StateValue` / `ChargedState` crashes.
 
-- **Privy app ID propagation.** Mobile previews intermittently lost `PRIVY_APP_ID`, so we added a build-time fallback and a soft-failure wallet chip instead of crashing the whole page.
-- **Circle entity secret registration.** Generating a fresh 32-byte secret and registering its ciphertext is a one-way, write-only step. A mismatch between the generated secret and the registered ciphertext blocks all SCP calls and the error looks like an auth failure.
-- **Zod negotiation schemas.** The first `SellerQuoteSchema` required fields that AIsa sometimes omitted, causing empty negotiation transcripts until we normalized optional fields.
-- **Multi-decimal arithmetic.** Mixing USDC/EURC (6 decimals) with cirBTC (8 decimals) produced off-by-100 quote bugs; we centralized `toAtomic`/`fromAtomic` helpers per token.
-- **Seeded A2H data.** The inbox initially showed fake payouts with fake transaction hashes; users rightly called it simulated, so we replaced it with live event logs.
-- **Discovery API shape drift.** Circle's marketplace response is undocumented and sparse on Arc Testnet resources; a defensive normaliser plus a local fallback prevents the agent run from failing when the catalog shape changes.
-- **18-decimal USDC balances.** Some RPCs return native USDC `eth_getBalance` in 18-decimal atomic units even though Arc USDC is 6 decimals. Reading balances through ERC-20 `balanceOf` and adding a re-normalisation guard fixed wallet chips showing trillions of dollars.
+## License
 
-### Best practices
-
-- **Keep secrets server-side.** `CIRCLE_API_KEY`, `CIRCLE_ENTITY_SECRET`, `ARC_RPC_URL`, and `AISA_API_KEY` never ship to the browser. The only client-side credential is `PRIVY_APP_ID`, which is publishable.
-- **Use deterministic canonical JSON before signing anything.** It prevents key-order and whitespace attacks in AP2/UCP mandates.
-- **Proxy, do not embed.** Any RPC or AI key should go through a same-origin server route or server function.
-- **Treat testnet like mainnet.** Decimals, gas limits, and receipts deserve the same rigor even when the tokens have no financial value.
-- **Keep the contract small.** `DanceMoveTokens.sol` stays under 100 lines, which makes verification, auditing, and explaining it to judges easier.
-- **Demo UX should be prose-first, JSON-second.** Judges are not parsers. Collapsing raw payloads behind toggles and leading with the Arcscan receipt made agent runs dramatically easier to follow.
-- **Keep the cart drawer focused on checkout.** Inlining the full transaction history pushed the checkout button below the fold and cluttered the UX. A compact "Recent settlements →" link to a dedicated `/judge` history page keeps the drawer scannable while the authoritative ledger lives on its own surface.
-
-### What we would do differently next time
-
-- **Build the judge ledger and deterministic negotiation fallback on day one.** We added the settlement list and the best-in-policy quote fallback after seeing live demos fail due to hardcoded budgets and hidden transaction hashes. Having both from the start would have saved repeated judge-run debugging.
-- **Start schema-first for A2A messages.** We iterated the agent-card/AP2/UCP payloads while building the UI; a shared Zod/JSON Schema contract from day one would have prevented several integration rewrites.
-- **Separate the move-registry fee from merch payments earlier.** The registry currently charges a fee to log a CID; for a production merch-first product we would make provenance logging optional or sponsor it from the treasury.
-- **Add a testnet faucet and monitoring page.** Judges and new users should be able to see their balance and get gas USDC without leaving the app.
-- **Build agent e2e tests.** We validated A2A flows manually; a headless agent-client test suite would catch mandate and signature regressions.
-- **Package the chain config.** Token addresses, decimals, and ABIs should live in a generated config package rather than being scattered across `src/lib/tokens.ts` and the deployment scripts.
-- **Add a dedicated A2H notification channel.** Today the inbox polls on-chain logs; a push channel such as webhooks, email, or XMTP would make agent-to-human payouts feel immediate.
+MIT (see `LICENSE` if present) / project source as published on GitHub.
