@@ -16,6 +16,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Section, SectionHead } from "@/components/layout/Section";
 import { JsonBlock } from "@/components/gx/JsonBlock";
 import { ContractsPanel } from "@/components/dance/ContractsPanel";
+import { TxHistoryPanel } from "@/components/dance/TxHistoryPanel";
 
 import { useWallet } from "@/lib/wallet-context";
 import { usePayToken } from "@/lib/pay-token";
@@ -307,6 +308,18 @@ function JudgePage() {
             </StepShell>
           </div>
         </Section>
+
+        <Section tone="base">
+          <SectionHead
+            eyebrow="Receipts"
+            title="Everything that settled"
+            blurb="Live ledger of this session's Arc Testnet transfers across all four modes, with Arcscan receipts."
+          />
+          <div className="mt-6">
+            <TxHistoryPanel title="Settlement history" />
+          </div>
+        </Section>
+
 
         <Section tone="raised">
           <SectionHead

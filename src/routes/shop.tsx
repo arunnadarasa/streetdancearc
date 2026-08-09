@@ -6,6 +6,7 @@ import { CartDrawer } from "@/components/shop/CartDrawer";
 import { useCartSync } from "@/hooks/useCartSync";
 import { Loader2 } from "lucide-react";
 import { Header } from "@/components/dance/Header";
+import { TxHistoryPanel } from "@/components/dance/TxHistoryPanel";
 import { Section, SectionHead } from "@/components/layout/Section";
 import { Reveal } from "@/components/layout/Reveal";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -112,6 +113,17 @@ function ShopPage() {
                   </div>
                 </>
               )}
+            </Section>
+
+            <Section tone="base">
+              <SectionHead
+                eyebrow="Receipts"
+                title="Your Arc settlements"
+                blurb="Every shop checkout paid on Arc Testnet, with a link to the Arcscan receipt."
+              />
+              <div className="mt-8">
+                <TxHistoryPanel mode="H2H" title="Shop settlements" />
+              </div>
             </Section>
           </>
         </ModeSurface>

@@ -10,6 +10,7 @@ import { JsonBlock } from "./JsonBlock";
 import { DEMO_SCALE } from "@/lib/agent-card";
 import { usePayToken } from "@/lib/pay-token";
 import { settleOnArc } from "@/lib/settle";
+import { recordSettlement } from "@/lib/tx-log";
 import { TOKENS, getTokenUsdRate, type FxRates } from "@/lib/tokens";
 import {
   STOREFRONT_QUERY,
@@ -217,6 +218,15 @@ export function AgentNegotiation() {
         BigInt(requirement.amount),
       );
       const { hash, from } = settled;
+      recordSettlement({
+        hash,
+        mode: "A2A",
+        label: `Agent deal · ${finalQuote.sku} ×${finalQuote.quantity}`,
+        token: payToken,
+        atomic: String(requirement.amount),
+        to: requirement.payTo,
+        from,
+      });
 
 
       const xPayment = btoa(JSON.stringify({ txHash: hash, from, nonce: requirement.nonce }));

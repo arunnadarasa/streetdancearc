@@ -21,6 +21,8 @@ import { getPublicConfig } from "@/lib/config.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchFxRates } from "@/lib/fx.functions";
 import { LiveTotalCalculator } from "@/components/fx/LiveTotalCalculator";
+import { recordSettlement, useTxLog } from "@/lib/tx-log";
+import { TxHistoryPanel } from "@/components/dance/TxHistoryPanel";
 
 
 export function CartDrawer() {
@@ -49,6 +51,7 @@ export function CartDrawer() {
   const { authenticated, login, wallets, available } = useWallet();
   const [treasury, setTreasury] = useState("");
   const [fx, setFx] = useState<FxRates | null>(null);
+  const { entries: settlements } = useTxLog("H2H");
   const getFx = useServerFn(fetchFxRates);
 
   const [arcState, setArcState] = useState<
@@ -109,6 +112,18 @@ export function CartDrawer() {
         treasury as Address,
         arcAtomic,
       );
+      recordSettlement({
+        hash: res.hash,
+        mode: "H2H",
+        label:
+          items.length === 1 && items[0]
+            ? `${items[0].product.node.title} ×${items[0].quantity}`
+            : `Cart checkout · ${totalItems} item${totalItems === 1 ? "" : "s"}`,
+        token: payToken,
+        atomic: res.atomic,
+        to: res.to,
+        from: res.from,
+      });
       setArcState({
         phase: "paid",
         url: res.explorer,
@@ -267,6 +282,15 @@ export function CartDrawer() {
                   >
                     Settled {arcState.amount} — view receipt on Arcscan
                   </a>
+                )}
+
+                {settlements.length > 0 && (
+                  <TxHistoryPanel
+                    mode="H2H"
+                    limit={3}
+                    title="Recent Arc settlements"
+                    blurb="Your last shop payments on Arc Testnet."
+                  />
                 )}
                 {arcState.phase === "error" && (
                   <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-foreground">

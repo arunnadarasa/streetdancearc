@@ -15,6 +15,21 @@ import { usePayToken } from "@/lib/pay-token";
 import { setMandateExpiry } from "@/components/a2h/a2h-feed";
 import { OnChainAuthRow, type OnChainAuthView } from "./OnChainAuthRow";
 import type { A2hMessage } from "./a2h-feed";
+import { isTokenKey } from "@/lib/tokens";
+import { recordSettlement } from "@/lib/tx-log";
+
+/** Pull the tx hash out of an Arcscan receipt URL and log it for the judge list. */
+function logA2h(receiptUrl: string | undefined, label: string, value?: string, token?: string) {
+  const hash = receiptUrl?.match(/0x[0-9a-fA-F]{64}/)?.[0];
+  if (!hash) return;
+  recordSettlement({
+    hash,
+    mode: "A2H",
+    label,
+    token: isTokenKey(token ?? "") ? (token as never) : "USDC",
+    amountFormatted: value ? `${value} ${token ?? "USDC"}` : undefined,
+  });
+}
 
 const KIND: Record<
   A2hMessage["kind"],
@@ -136,6 +151,7 @@ export function InboxCard({
         },
       });
       if (res.ok) {
+        logA2h(res.receiptUrl, `Offer claimed · ${msg.title}`, res.value, res.token);
         setClaimed({
           claimCode: res.claimCode,
           value: res.value,
@@ -170,6 +186,7 @@ export function InboxCard({
         },
       });
       if (res.ok) {
+        logA2h(res.receiptUrl, `Royalty payout · ${msg.title}`, res.value, res.token);
         setResult({
           ok: true,
           receiptUrl: res.receiptUrl,
