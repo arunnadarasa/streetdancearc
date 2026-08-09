@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useWallet } from "@/lib/wallet-context";
 import { usePayToken } from "@/lib/pay-token";
 import { settleOnArc, settlementNote } from "@/lib/settle";
+import { recordSettlement } from "@/lib/tx-log";
 import { TOKENS, formatAmount, isTokenKey, getTokenUsdRate, type TokenKey, type FxRates } from "@/lib/tokens";
 import type { Address } from "viem";
 import {
@@ -234,6 +235,15 @@ export function useAgentRun(policy: SpendPolicy) {
           BigInt(requirement.amount),
         );
         const { hash, from } = result;
+        recordSettlement({
+          hash,
+          mode: "H2A",
+          label: `Agent purchase · ${requirement.description ?? "x402 resource"}`,
+          token: payToken,
+          atomic: String(requirement.amount),
+          to: requirement.payTo,
+          from,
+        });
         patch("settle", {
           status: "ok",
           tone: "green",
