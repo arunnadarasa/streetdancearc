@@ -1,4 +1,11 @@
 import { useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useWallet } from "@/lib/wallet-context";
 import { usePayToken } from "@/lib/pay-token";
 import { useArcBalances, shortBalance } from "@/lib/use-arc-balances";
