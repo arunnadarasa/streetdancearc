@@ -38,14 +38,10 @@ export const Route = createFileRoute("/markets")({
 const GREEN = "var(--glow)";
 
 function MarketsPage() {
-  const [mode] = useGxMode();
-
   return (
     <>
     <div className="min-h-screen bg-background text-foreground">
     <Header />
-    <ModeSurface mode={mode}>
-    <>
     <section className="aurora-bg relative">
       <div className="rail relative py-16 sm:py-24">
       <Reveal>
