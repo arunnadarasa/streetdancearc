@@ -387,36 +387,49 @@ export function InboxCard({
             </button>
           </div>
 
-          {open && (
+          {(open || rawAll) && (
             <div className="mt-3 space-y-3">
               <JsonBlock
+                key={`env-${rawAll}-${errored}`}
                 label="A2A 0.3 · message/send (agent → human)"
                 value={msg.envelope}
                 tone={msg.kind === "approval" ? "amber" : "green"}
+                collapsible
+                defaultOpen={rawAll || errored}
               />
               {result?.ok && (
                 <JsonBlock
+                  key={`mandate-${rawAll}`}
                   label="AP2 payout mandate · Ed25519 signed"
                   value={result.mandate}
                   tone="green"
+                  collapsible
+                  defaultOpen={rawAll}
                 />
               )}
               {claimed && (
                 <JsonBlock
+                  key={`claim-${rawAll}`}
                   label="AP2 offer claim · Ed25519 signed, logged on Arc"
                   value={claimed.claim}
                   tone="green"
+                  collapsible
+                  defaultOpen={rawAll}
                 />
               )}
               {renewed && (
                 <JsonBlock
+                  key={`renew-${rawAll}`}
                   label="AP2 payout mandate · renewed, Ed25519 signed"
                   value={renewed.mandate}
                   tone="green"
+                  collapsible
+                  defaultOpen={rawAll}
                 />
               )}
             </div>
           )}
+
         </div>
       </div>
     </article>
