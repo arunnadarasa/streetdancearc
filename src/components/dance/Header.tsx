@@ -50,6 +50,10 @@ export function Header({
   const [mobileOpen, setMobileOpen] = useState(false);
   const walletRef = useRef<HTMLDivElement | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // The mode toggle only belongs on pages that actually render per-mode surfaces.
+  const showModeToggle = !["/markets", "/moves", "/primer", "/deck", "/judge"].some((p) =>
+    pathname.startsWith(p),
+  );
 
   useEffect(() => {
     if (!walletOpen) return;
@@ -167,9 +171,11 @@ export function Header({
             <PayTokenToggle />
           </span>
 
-          <span className="hidden shrink-0 xl:inline-flex">
-            <ModeToggle />
-          </span>
+          {showModeToggle ? (
+            <span className="hidden shrink-0 xl:inline-flex">
+              <ModeToggle />
+            </span>
+          ) : null}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <button
@@ -239,9 +245,11 @@ export function Header({
         </div>
       </div>
 
-      <div className="rail pb-2 pt-0.5 xl:hidden">
-        <ModeToggle full />
-      </div>
+      {showModeToggle ? (
+        <div className="rail pb-2 pt-0.5 xl:hidden">
+          <ModeToggle full />
+        </div>
+      ) : null}
     </header>
 
   );
