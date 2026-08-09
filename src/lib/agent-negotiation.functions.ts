@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { callAisaJson } from "@/lib/aisa.server";
+import { deriveBudget } from "@/lib/negotiation-budget";
+
 
 const CatalogItemSchema = z.object({
   sku: z.string(),
