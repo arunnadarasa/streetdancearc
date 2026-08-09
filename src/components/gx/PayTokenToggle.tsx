@@ -12,7 +12,7 @@ import { fetchFxRates } from "@/lib/fx.functions";
  * inbox. Balances are read live off Arc through the same-origin RPC proxy and
  * shared with the header balances panel.
  */
-export function PayTokenToggle() {
+export function PayTokenToggle({ compact = false }: { compact?: boolean }) {
   const [token, setToken] = usePayToken();
   const { user, authenticated } = useWallet();
   const address = user?.wallet?.address;
