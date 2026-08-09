@@ -1,7 +1,13 @@
 import { useWallet } from "@/lib/wallet-context";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Menu } from "lucide-react";
+import { Menu, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "@/components/gx/ModeToggle";
 import { PayTokenToggle } from "@/components/gx/PayTokenToggle";
 import { BalancePanel } from "@/components/wallet/BalancePanel";
