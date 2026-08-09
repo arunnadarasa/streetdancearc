@@ -154,6 +154,10 @@ export function Header({ extra }: { extra?: React.ReactNode }) {
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 md:gap-2.5">
           {extra ? <span className="hidden md:inline-flex">{extra}</span> : null}
+          <span className="hidden md:inline-flex">
+            <ContractsSheet />
+          </span>
+
           <span className="hidden sm:inline-flex 2xl:hidden">
             <PayTokenToggle compact />
           </span>
