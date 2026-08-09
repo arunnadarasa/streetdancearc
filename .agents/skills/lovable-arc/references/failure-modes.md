@@ -36,4 +36,6 @@
 | Prefilled agent goal fails against live prices | Budget hardcoded in the goal string | Derive it from the catalog; dirty-flag the input so edits stick |
 | Run ledger reads as a wall of code | Every payload rendered expanded | Collapsible payloads + a summary bar with the receipt button |
 | Judges ask "did anything actually settle?" | No cross-mode transaction list | One shared client ledger written by every settlement path |
+| Cart drawer feels crowded / pushes pay button below fold | Inline transaction history or settlement list inside the cart | Move history to a dedicated route; keep the cart footer to totals, pay button, and a compact history link |
+
 
