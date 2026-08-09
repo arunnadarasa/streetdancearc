@@ -40,7 +40,7 @@ export function AgentNegotiation() {
   const { authenticated, login, wallets } = useWallet();
   const [payToken] = usePayToken();
 
-  const [goal, setGoal] = useState("Buy a snapback cap under 0.03 in the selected stablecoin for practice sessions");
+  const [goal, setGoal] = useState("Buy a snapback cap in the selected stablecoin for practice sessions");
   const [products, setProducts] = useState<any[]>([]);
   const [loadingCatalog, setLoadingCatalog] = useState(true);
   const [running, setRunning] = useState(false);
