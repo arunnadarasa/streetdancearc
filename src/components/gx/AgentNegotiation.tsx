@@ -311,9 +311,10 @@ export function AgentNegotiation() {
 
               {!finalQuote && (
                 <p className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-300">
-                  The agents did not reach a deal. Try a different goal or budget.
+                  No deal. {noDealReason || "Try a different goal or budget."}
                 </p>
               )}
+
             </section>
           )}
         </div>
