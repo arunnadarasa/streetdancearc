@@ -237,7 +237,7 @@ export function A2hHome() {
 
         <div className="space-y-3">
           {feed.map((m) => (
-            <InboxCard key={m.id} msg={m} address={address} onSettled={refresh} />
+            <InboxCard key={m.id} msg={m} address={address} onSettled={refresh} rawAll={rawAll} />
           ))}
         </div>
       </section>
