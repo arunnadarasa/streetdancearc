@@ -26,6 +26,9 @@ The A2A negotiation pre-fills the buyer goal from the live catalog with a 10% bu
 
 The header is responsive: desktop shows a full nav bar with the mode and currency toggles; mobile collapses navigation into a hamburger sheet so the wallet chip and toggles stay reachable.
 
+Editorial/reference routes (`/markets`, `/moves`, `/primer`, `/deck`, `/judge`) are mode-independent: they always render their own content regardless of the saved GX mode, and the mode toggle is hidden while viewing them so the persisted mode does not accidentally swap the page content.
+
+
 ### Judge demo ledger
 
 A browser-side settlement ledger captures every Arc transfer so judges can see the full demo trail in one place:
@@ -35,7 +38,7 @@ A browser-side settlement ledger captures every Arc transfer so judges can see t
 - **A2A** negotiation → recorded once the buyer agent signs and posts the x402 payment.
 - **A2H** payout or claim → recorded when the treasury pushes the on-chain transfer.
 
-The ledger is surfaced on `/judge` ("Everything that settled") and on `/shop`. The cart drawer links to `/judge` instead of duplicating the list, so checkout stays focused. Each row shows the mode chip, relative time, item label, token amount, and a clickable Arcscan link. Pending rows are polled against Arcscan via `fetchTxStatuses` and updated to confirmed or failed. A copy-hash button and a clear action are included for repeat demos.
+The ledger is surfaced on `/judge` ("Everything that settled") and on `/shop`. The cart drawer links to `/judge` instead of duplicating the list, so checkout stays focused. Each row shows the mode chip, relative time, item label, token amount, and a clickable Arcscan link. Pending rows are polled against Arcscan via `fetchTxStatuses` and updated to confirmed or failed. A copy-hash button and a clear action are included for repeat demos. The list paginates at 10 transactions per page with numbered page controls, so long judge runs stay scannable.
 
 ### Demo UX
 
@@ -78,6 +81,8 @@ The `/moves` page is now a full registry console:
 
 - **Live total calculator.** Product pages, the cart drawer and the move-mint form show the real-time Arc token amount for the selected stablecoin, the listed fiat equivalent, the USD value, and the raw atomic value. Switching USDC/EURC/cirBTC updates the total instantly against the live FX feed.
 - **FX price widget.** The footer displays the last-updated time of the FX feed and the CoinGecko mode being used (`demo`, `pro`, or none). It turns amber when rates go stale and has a manual refresh button.
+- **Marketing metric rounding.** The homepage "USDC settled through the rail" stat is rounded to 2 decimals so the number reads cleanly in a hero stat rather than showing 4-decimal precision.
+
 
 ### Primer for dancers new to web3
 
@@ -203,7 +208,7 @@ Testnet tokens have no financial value.
 | `/moves`             | On-chain move registry: preview metadata, log a CID, receipt history |
 | `/market`            | Move Rights secondary market — browse (search, filters, sorting), list, buy, cancel, transfer on Arc |
 | `/agent-negotiation` | AIsa-powered buyer/seller negotiation transcript                   |
-| `/markets`           | FX-volatility research — why stablecoin rails matter in NGN/ARS/PHP markets |
+| `/markets`           | FX-volatility research — why stablecoin rails matter in NGN/ARS/PHP markets (mode-independent content page) |
 | `/primer`            | Web3 for dancers — concept cards + interactive glossary            |
 | `/deck`              | Interactive judges' slide deck (native React, mobile-friendly)     |
 | `/judge`             | Judge demo ledger — every Arc settlement across all four modes, with Arcscan links |
