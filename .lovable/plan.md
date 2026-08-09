@@ -25,6 +25,7 @@ Each row also shows a confirmation state pulled from Arcscan (pending / success 
 
 **3. Where it appears**
 - `/judge` — a new final "Everything that settled" section, so the guided run ends on the evidence.
+- `/shop` — a section below the rack showing the H2H settlements made from the shop (same panel, filtered to H2H), so a judge sees the purchase land without leaving the store.
 - Cart drawer — the last three settlements under the pay button, so the receipt does not vanish when the drawer closes.
 
 ## Technical notes
