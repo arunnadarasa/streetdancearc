@@ -296,6 +296,7 @@ A short, polished post-mortem covering both the hackathon sprint and the product
 
 ### What we would do differently next time
 
+- **Build the judge ledger and deterministic negotiation fallback on day one.** We added the settlement list and the best-in-policy quote fallback after seeing live demos fail due to hardcoded budgets and hidden transaction hashes. Having both from the start would have saved repeated judge-run debugging.
 - **Start schema-first for A2A messages.** We iterated the agent-card/AP2/UCP payloads while building the UI; a shared Zod/JSON Schema contract from day one would have prevented several integration rewrites.
 - **Separate the move-registry fee from merch payments earlier.** The registry currently charges a fee to log a CID; for a production merch-first product we would make provenance logging optional or sponsor it from the treasury.
 - **Add a testnet faucet and monitoring page.** Judges and new users should be able to see their balance and get gas USDC without leaving the app.
