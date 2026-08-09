@@ -50,6 +50,10 @@ export function Header({
   const [mobileOpen, setMobileOpen] = useState(false);
   const walletRef = useRef<HTMLDivElement | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // The mode toggle only belongs on pages that actually render per-mode surfaces.
+  const showModeToggle = !["/markets", "/moves", "/primer", "/deck", "/judge"].some((p) =>
+    pathname.startsWith(p),
+  );
 
   useEffect(() => {
     if (!walletOpen) return;
