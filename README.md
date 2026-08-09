@@ -169,6 +169,10 @@ Circle's pre-audited ERC-721 SCP template (`76b83278-50e2-4006-8b63-5b1a2a814533
 - A2H payouts and mandate renewals carry an `onChainAuth` block; the inbox shows the ERC-1271 magic value `0x1626ba7e` when the digest is approved on-chain.
 - Public status endpoint: `/api/public/erc1271/authorizer`.
 
+### Contracts drawer
+
+A dedicated panel (`ContractsPanel.tsx` / `ContractsSheet.tsx`) summarizes all four deployed StreetRail contracts in one place: `DanceMoveTokens`, `StreetRailAuthorizer`, the Move Rights NFT, and `MoveMarket`. Each card shows the contract name, standards, verification badge, shortened address with a copy button, and a direct Arcscan link. The panel is reachable from the homepage header on large screens, the mobile hamburger sheet, and the footer.
+
 ---
 
 ## Arc network config
