@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   Sheet,
   SheetContent,
@@ -9,7 +10,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Minus, Plus, Trash2, ExternalLink, Loader2, Zap } from "lucide-react";
+import { ShoppingCart, Minus, Plus, Trash2, ExternalLink, Loader2, Zap, History } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
 import { usePayToken } from "@/lib/pay-token";
 import { useWallet } from "@/lib/wallet-context";
@@ -21,8 +22,7 @@ import { getPublicConfig } from "@/lib/config.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchFxRates } from "@/lib/fx.functions";
 import { LiveTotalCalculator } from "@/components/fx/LiveTotalCalculator";
-import { recordSettlement, useTxLog } from "@/lib/tx-log";
-import { TxHistoryPanel } from "@/components/dance/TxHistoryPanel";
+import { recordSettlement } from "@/lib/tx-log";
 
 
 export function CartDrawer() {
@@ -51,7 +51,6 @@ export function CartDrawer() {
   const { authenticated, login, wallets, available } = useWallet();
   const [treasury, setTreasury] = useState("");
   const [fx, setFx] = useState<FxRates | null>(null);
-  const { entries: settlements } = useTxLog("H2H");
   const getFx = useServerFn(fetchFxRates);
 
   const [arcState, setArcState] = useState<
@@ -284,14 +283,14 @@ export function CartDrawer() {
                   </a>
                 )}
 
-                {settlements.length > 0 && (
-                  <TxHistoryPanel
-                    mode="H2H"
-                    limit={3}
-                    title="Recent Arc settlements"
-                    blurb="Your last shop payments on Arc Testnet."
-                  />
-                )}
+                <Link
+                  to="/judge"
+                  onClick={() => setOpen(false)}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-glow underline decoration-glow/50 underline-offset-4 transition hover:text-primary"
+                >
+                  <History className="h-3.5 w-3.5" />
+                  Recent settlements
+                </Link>
                 {arcState.phase === "error" && (
                   <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-foreground">
                     {arcState.message}
