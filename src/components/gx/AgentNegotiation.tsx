@@ -46,6 +46,8 @@ export function AgentNegotiation() {
   const [running, setRunning] = useState(false);
   const [transcript, setTranscript] = useState<ChatTurn[]>([]);
   const [finalQuote, setFinalQuote] = useState<NegotiationTurn["quote"]>(null);
+  const [noDealReason, setNoDealReason] = useState<string>("");
+
   const [settling, setSettling] = useState(false);
   const [receipt, setReceipt] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
