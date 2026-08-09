@@ -187,7 +187,21 @@ export function A2hHome() {
             </span>
           )}
           {loading && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+          <button
+            type="button"
+            onClick={() => setRawAll((v) => !v)}
+            aria-pressed={rawAll}
+            className={`ml-auto inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${
+              rawAll
+                ? "border-glow/50 bg-glow/10 text-foreground"
+                : "border-border bg-background/60 text-muted-foreground hover:bg-secondary hover:text-foreground"
+            }`}
+          >
+            <Braces className="h-3.5 w-3.5" />
+            {rawAll ? "Hide raw JSON" : "Raw JSON"}
+          </button>
         </div>
+
         <p className="text-xs text-muted-foreground">
           Every settled entry below is a real Arc transaction sent by the agent, read back from the
           registry's on-chain events. Nothing here started with a click.
