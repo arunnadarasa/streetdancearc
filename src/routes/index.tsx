@@ -79,7 +79,7 @@ function Index() {
           <>
             {/* HERO */}
             <section className="aurora-bg relative">
-              <div className="rail relative flex min-h-[60vh] flex-col justify-center py-12 sm:min-h-[78vh] sm:py-28 lg:min-h-[calc(100svh-6rem)] lg:py-20">
+              <div className="rail relative flex min-h-[60vh] flex-col justify-center py-12 sm:min-h-[78vh] sm:py-28 lg:min-h-[88svh] lg:py-16">
                 <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-14">
                   <div>
                     <Reveal>
