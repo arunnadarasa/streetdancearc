@@ -239,7 +239,7 @@ export function Header({
         </div>
       </div>
 
-      <div className={`rail pb-2 xl:hidden ${scrolled ? "pt-0" : "pt-0.5"}`}>
+      <div className="rail pb-2 pt-0.5 xl:hidden">
         <ModeToggle full />
       </div>
     </header>
