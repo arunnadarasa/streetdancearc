@@ -160,23 +160,23 @@ export function Header({
           </DropdownMenu>
         </nav>
 
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 md:gap-2.5">
-          {extra ? <span className="hidden md:inline-flex">{extra}</span> : null}
-          <span className="hidden md:inline-flex">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:gap-2.5">
+          {extra ? <span className="hidden lg:inline-flex">{extra}</span> : null}
+          <span className="hidden shrink-0 lg:inline-flex">
             <ContractsSheet />
           </span>
           {quickContracts ? (
             <QuickContractLinks keys={["moveNft", "market"]} />
           ) : null}
 
-          <span className="hidden sm:inline-flex 2xl:hidden">
+          <span className="hidden shrink-0 lg:inline-flex 2xl:hidden">
             <PayTokenToggle compact />
           </span>
-          <span className="hidden 2xl:inline-flex">
+          <span className="hidden shrink-0 2xl:inline-flex">
             <PayTokenToggle />
           </span>
 
-          <span className="hidden md:inline-flex">
+          <span className="hidden shrink-0 lg:inline-flex">
             <ModeToggle />
           </span>
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -184,11 +184,12 @@ export function Header({
               <button
                 type="button"
                 aria-label="Open menu"
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-background/60 text-foreground transition hover:bg-secondary md:hidden"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-background/60 text-foreground transition hover:bg-secondary lg:hidden"
               >
                 <Menu className="h-5 w-5" />
               </button>
             </SheetTrigger>
+
 
             <SheetContent
               side="right"
