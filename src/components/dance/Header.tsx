@@ -83,7 +83,7 @@ export function Header({
       }`}
     >
       <div
-        className={`rail grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 transition-all duration-300 sm:gap-3 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-4 ${
+        className={`rail grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 transition-all duration-300 sm:gap-3 xl:grid-cols-[auto_minmax(0,1fr)_auto] xl:gap-4 ${
           scrolled ? "py-2" : "py-2.5 sm:py-4"
         }`}
       >
@@ -118,7 +118,7 @@ export function Header({
         </Link>
 
 
-        <nav className="hidden min-w-0 items-center justify-center gap-0.5 lg:flex lg:gap-1">
+        <nav className="hidden min-w-0 items-center justify-center gap-0.5 xl:flex xl:gap-1">
           {PRIMARY_NAV.map((n) => {
 
             const active = pathname.startsWith(n.to);
@@ -162,21 +162,21 @@ export function Header({
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:gap-2.5">
           {extra ? <span className="hidden lg:inline-flex">{extra}</span> : null}
-          <span className="hidden shrink-0 lg:inline-flex">
+          <span className="hidden shrink-0 xl:inline-flex">
             <ContractsSheet />
           </span>
           {quickContracts ? (
             <QuickContractLinks keys={["moveNft", "market"]} />
           ) : null}
 
-          <span className="hidden shrink-0 lg:inline-flex 2xl:hidden">
+          <span className="hidden shrink-0 xl:inline-flex 2xl:hidden">
             <PayTokenToggle compact />
           </span>
           <span className="hidden shrink-0 2xl:inline-flex">
             <PayTokenToggle />
           </span>
 
-          <span className="hidden shrink-0 lg:inline-flex">
+          <span className="hidden shrink-0 xl:inline-flex">
             <ModeToggle />
           </span>
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -184,7 +184,7 @@ export function Header({
               <button
                 type="button"
                 aria-label="Open menu"
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-background/60 text-foreground transition hover:bg-secondary lg:hidden"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-background/60 text-foreground transition hover:bg-secondary xl:hidden"
               >
                 <Menu className="h-5 w-5" />
               </button>
@@ -248,7 +248,7 @@ export function Header({
         </div>
       </div>
 
-      <div className={`rail pb-2 lg:hidden ${scrolled ? "pt-0" : "pt-0.5"}`}>
+      <div className={`rail pb-2 xl:hidden ${scrolled ? "pt-0" : "pt-0.5"}`}>
         <ModeToggle full />
       </div>
     </header>
