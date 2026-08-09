@@ -35,7 +35,7 @@ A browser-side settlement ledger captures every Arc transfer so judges can see t
 - **A2A** negotiation → recorded once the buyer agent signs and posts the x402 payment.
 - **A2H** payout or claim → recorded when the treasury pushes the on-chain transfer.
 
-The ledger is surfaced on `/judge` ("Everything that settled"), in the cart drawer, and on `/shop`. Each row shows the mode chip, relative time, item label, token amount, and a clickable Arcscan link. Pending rows are polled against Arcscan via `fetchTxStatuses` and updated to confirmed or failed. A copy-hash button and a clear action are included for repeat demos.
+The ledger is surfaced on `/judge` ("Everything that settled") and on `/shop`. The cart drawer links to `/judge` instead of duplicating the list, so checkout stays focused. Each row shows the mode chip, relative time, item label, token amount, and a clickable Arcscan link. Pending rows are polled against Arcscan via `fetchTxStatuses` and updated to confirmed or failed. A copy-hash button and a clear action are included for repeat demos.
 
 ### Demo UX
 
