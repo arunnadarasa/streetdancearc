@@ -171,9 +171,11 @@ export function Header({
             <PayTokenToggle />
           </span>
 
-          <span className="hidden shrink-0 xl:inline-flex">
-            <ModeToggle />
-          </span>
+          {showModeToggle ? (
+            <span className="hidden shrink-0 xl:inline-flex">
+              <ModeToggle />
+            </span>
+          ) : null}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <button
