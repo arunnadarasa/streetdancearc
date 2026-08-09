@@ -1,4 +1,4 @@
-import { Inbox, Loader2, ShieldCheck, Zap } from "lucide-react";
+import { Braces, Inbox, Loader2, ShieldCheck, Zap } from "lucide-react";
 import { JsonBlock } from "@/components/gx/JsonBlock";
 import { InboxCard } from "./InboxCard";
 import { TreasuryPanel } from "./TreasuryPanel";
@@ -46,6 +46,8 @@ export function A2hHome() {
   const [loading, setLoading] = useState(true);
   const [chainError, setChainError] = useState<string | null>(null);
   const [lowGas, setLowGas] = useState(false);
+  const [rawAll, setRawAll] = useState(false);
+
 
   const getFx = useServerFn(fetchFxRates);
   const getPayouts = useServerFn(listPayouts);
@@ -158,7 +160,15 @@ export function A2hHome() {
             </dl>
 
             <div className="mt-4">
-              <JsonBlock label="AP2 payout mandate" value={mandate} tone="green" />
+              <JsonBlock
+                label="AP2 payout mandate"
+                value={mandate}
+                tone="green"
+                collapsible
+                defaultOpen={rawAll}
+                key={rawAll ? "open" : "closed"}
+              />
+
             </div>
 
             <p className="mt-3 text-[11px] text-muted-foreground">
@@ -187,7 +197,21 @@ export function A2hHome() {
             </span>
           )}
           {loading && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+          <button
+            type="button"
+            onClick={() => setRawAll((v) => !v)}
+            aria-pressed={rawAll}
+            className={`ml-auto inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${
+              rawAll
+                ? "border-glow/50 bg-glow/10 text-foreground"
+                : "border-border bg-background/60 text-muted-foreground hover:bg-secondary hover:text-foreground"
+            }`}
+          >
+            <Braces className="h-3.5 w-3.5" />
+            {rawAll ? "Hide raw JSON" : "Raw JSON"}
+          </button>
         </div>
+
         <p className="text-xs text-muted-foreground">
           Every settled entry below is a real Arc transaction sent by the agent, read back from the
           registry's on-chain events. Nothing here started with a click.
@@ -213,7 +237,7 @@ export function A2hHome() {
 
         <div className="space-y-3">
           {feed.map((m) => (
-            <InboxCard key={m.id} msg={m} address={address} onSettled={refresh} />
+            <InboxCard key={m.id} msg={m} address={address} onSettled={refresh} rawAll={rawAll} />
           ))}
         </div>
       </section>

@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { JsonBlock } from "@/components/gx/JsonBlock";
+import { ReceiptButton } from "@/components/gx/ReceiptButton";
+
 import { approvePayout, claimOffer, renewMandate } from "@/lib/a2h.functions";
 import { usePayToken } from "@/lib/pay-token";
 import { setMandateExpiry } from "@/components/a2h/a2h-feed";
@@ -67,11 +69,15 @@ export function InboxCard({
   msg,
   address,
   onSettled,
+  rawAll = false,
 }: {
   msg: A2hMessage;
   address?: string;
   onSettled?: () => void | Promise<void>;
+  /** Master toggle: expand every protocol payload on the page. */
+  rawAll?: boolean;
 }) {
+
   const [open, setOpen] = useState(false);
   const [acted, setActed] = useState<"declined" | "claimed" | "dismissed" | "deferred" | null>(
     null,
@@ -207,6 +213,8 @@ export function InboxCard({
   }
 
   const receipt = result?.ok ? result.receiptUrl : (claimed?.receiptUrl ?? msg.receiptUrl);
+  const errored = Boolean((result && !result.ok) || claimError || renewError);
+
 
   return (
     <article className={`min-w-0 rounded-2xl border bg-card/70 p-4 sm:p-5 ${k.ring}`}>
@@ -281,18 +289,18 @@ export function InboxCard({
           {renewed?.onChainAuth ? <OnChainAuthRow auth={renewed.onChainAuth} /> : null}
           {claimed?.onChainAuth ? <OnChainAuthRow auth={claimed.onChainAuth} /> : null}
 
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {receipt && (
-              <a
+          {receipt && (
+            <div className="mt-3">
+              <ReceiptButton
                 href={receipt}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-foreground hover:bg-primary/20"
-              >
-                <BadgeCheck className="h-3.5 w-3.5 text-glow" />
-                {claimed ? "View claim on Arcscan" : "View receipt on Arcscan"}
-              </a>
-            )}
+                label={claimed ? "View claim on Arcscan" : "View receipt on Arcscan"}
+              />
+            </div>
+          )}
+
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+
+
 
             {msg.registryUrl && (
               <a
@@ -383,36 +391,49 @@ export function InboxCard({
             </button>
           </div>
 
-          {open && (
+          {(open || rawAll) && (
             <div className="mt-3 space-y-3">
               <JsonBlock
+                key={`env-${rawAll}-${errored}`}
                 label="A2A 0.3 · message/send (agent → human)"
                 value={msg.envelope}
                 tone={msg.kind === "approval" ? "amber" : "green"}
+                collapsible
+                defaultOpen={rawAll || errored}
               />
               {result?.ok && (
                 <JsonBlock
+                  key={`mandate-${rawAll}`}
                   label="AP2 payout mandate · Ed25519 signed"
                   value={result.mandate}
                   tone="green"
+                  collapsible
+                  defaultOpen={rawAll}
                 />
               )}
               {claimed && (
                 <JsonBlock
+                  key={`claim-${rawAll}`}
                   label="AP2 offer claim · Ed25519 signed, logged on Arc"
                   value={claimed.claim}
                   tone="green"
+                  collapsible
+                  defaultOpen={rawAll}
                 />
               )}
               {renewed && (
                 <JsonBlock
+                  key={`renew-${rawAll}`}
                   label="AP2 payout mandate · renewed, Ed25519 signed"
                   value={renewed.mandate}
                   tone="green"
+                  collapsible
+                  defaultOpen={rawAll}
                 />
               )}
             </div>
           )}
+
         </div>
       </div>
     </article>
