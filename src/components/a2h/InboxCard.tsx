@@ -186,6 +186,7 @@ export function InboxCard({
         },
       });
       if (res.ok) {
+        logA2h(res.receiptUrl, `Royalty payout · ${msg.title}`, res.value, res.token);
         setResult({
           ok: true,
           receiptUrl: res.receiptUrl,
