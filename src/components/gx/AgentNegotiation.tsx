@@ -24,6 +24,34 @@ import { deriveBudget, displayBudget, recommendedGoal } from "@/lib/negotiation-
 import { payWithNanopayments } from "@/lib/circle-rails.functions";
 import { CircleRailsPanel } from "./CircleRailsPanel";
 import { DiscoveryPanel } from "./DiscoveryPanel";
+import { ReceiptButton } from "./ReceiptButton";
+
+/** Reference material stays one click away instead of between the run and its receipt. */
+function Disclosure({
+  label,
+  defaultOpen = false,
+  children,
+}: {
+  label: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="min-w-0">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+      >
+        <ChevronRight className={`h-3 w-3 transition-transform ${open ? "rotate-90" : ""}`} aria-hidden />
+        {label}
+      </button>
+      {open && <div className="mt-3">{children}</div>}
+    </div>
+  );
+}
 
 function explorerUrl(value: unknown): string | null {
   try {
