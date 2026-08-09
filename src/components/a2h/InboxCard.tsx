@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { JsonBlock } from "@/components/gx/JsonBlock";
+import { ReceiptButton } from "@/components/gx/ReceiptButton";
+
 import { approvePayout, claimOffer, renewMandate } from "@/lib/a2h.functions";
 import { usePayToken } from "@/lib/pay-token";
 import { setMandateExpiry } from "@/components/a2h/a2h-feed";
