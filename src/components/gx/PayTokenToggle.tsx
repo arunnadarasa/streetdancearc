@@ -34,8 +34,48 @@ export function PayTokenToggle({ compact = false }: { compact?: boolean }) {
   const activeBalance = balances[token];
   const empty = authenticated && activeBalance !== undefined && Number(activeBalance ?? 0) === 0;
 
+  if (compact) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label={`Settlement currency: ${active.symbol}`}
+            className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-border/80 bg-surface/70 px-3 text-[11px] font-bold tracking-wide text-foreground transition hover:bg-secondary"
+          >
+            {active.symbol}
+            {authenticated && activeBalance !== undefined && activeBalance !== null ? (
+              <span className="tabular-nums opacity-70">{shortBalance(activeBalance)}</span>
+            ) : null}
+            <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-44">
+          {TOKEN_KEYS.map((k) => {
+            const bal = balances[k];
+            return (
+              <DropdownMenuItem
+                key={k}
+                onSelect={() => setToken(k)}
+                className={`flex items-center justify-between gap-4 text-xs font-semibold ${
+                  k === token ? "text-foreground" : "text-muted-foreground"
+                }`}
+              >
+                <span>{TOKENS[k].symbol}</span>
+                <span className="tabular-nums opacity-70">
+                  {bal === undefined || bal === null ? "—" : shortBalance(bal)}
+                </span>
+              </DropdownMenuItem>
+            );
+          })}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
   return (
     <div className="flex shrink-0 items-center gap-1 rounded-full border border-border/80 bg-surface/70 p-0.5">
+
       {TOKEN_KEYS.map((k) => {
         const on = k === token;
         const bal = balances[k];
