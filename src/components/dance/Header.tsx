@@ -161,7 +161,7 @@ export function Header({
         </nav>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:gap-2.5">
-          {extra ? <span className="hidden lg:inline-flex">{extra}</span> : null}
+          {extra ? <span className="hidden xl:inline-flex">{extra}</span> : null}
           <span className="hidden shrink-0 xl:inline-flex">
             <ContractsSheet />
           </span>
@@ -223,7 +223,7 @@ export function Header({
                   onClick={() => (authenticated ? setWalletOpen((v) => !v) : void login())}
                   aria-expanded={authenticated ? walletOpen : undefined}
                   aria-haspopup={authenticated ? "dialog" : undefined}
-                  className="lift flex h-11 shrink-0 items-center rounded-full bg-linear-to-r from-primary to-glow px-3 text-[11px] font-bold text-primary-foreground shadow-glow-sm sm:px-4 sm:text-xs lg:h-auto lg:py-2"
+                  className="lift flex h-11 shrink-0 items-center rounded-full bg-linear-to-r from-primary to-glow px-3 text-[11px] font-bold text-primary-foreground shadow-glow-sm sm:px-4 sm:text-xs xl:h-auto xl:py-2"
 
                 >
                   {authenticated
