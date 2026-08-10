@@ -50,6 +50,7 @@ export function Header({
   const [mobileOpen, setMobileOpen] = useState(false);
   const walletRef = useRef<HTMLDivElement | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // The mode toggle only belongs on pages that actually render per-mode surfaces.
   const showModeToggle = !["/markets", "/moves", "/primer", "/deck", "/judge"].some((p) =>
     pathname.startsWith(p),
   );
@@ -105,7 +106,7 @@ export function Header({
               StreetRail
             </span>
             <span className="hidden truncate text-[11px] tracking-wide text-muted-foreground sm:block">
-              Street dance merch · Midnight Undeployed
+              Street dance merch · settled on Arc
             </span>
 
           </span>
@@ -193,7 +194,7 @@ export function Header({
             >
               <SheetHeader className="shrink-0 border-b border-border p-4 text-left">
                 <SheetTitle className="display text-left text-sm">StreetRail</SheetTitle>
-                <p className="text-xs text-muted-foreground">Street dance merch · Midnight Undeployed</p>
+                <p className="text-xs text-muted-foreground">Street dance merch · settled on Arc</p>
               </SheetHeader>
               <MobileDrawer
                 pathname={pathname}
@@ -205,37 +206,41 @@ export function Header({
           </Sheet>
 
 
-          <div ref={walletRef} className="relative shrink-0">
-            <button
-              onClick={() => (authenticated ? setWalletOpen((v) => !v) : void login())}
-              disabled={!available && !ready}
-              aria-expanded={authenticated ? walletOpen : undefined}
-              aria-haspopup={authenticated ? "dialog" : undefined}
-              title={
-                authenticated
-                  ? "Midnight wallet"
-                  : "Connect Lace on Undeployed, or connect without Lace for genesis server-append"
-              }
-              className="lift flex h-11 shrink-0 items-center rounded-full bg-linear-to-r from-primary to-glow px-3 text-[11px] font-bold text-primary-foreground shadow-glow-sm disabled:opacity-60 sm:px-4 sm:text-xs xl:h-auto xl:py-2"
+          {!available ? (
+            <span
+              title="No Privy app ID resolved (server secret PRIVY_APP_ID and build-time VITE_PRIVY_APP_ID are both empty)."
+              className="shrink-0 rounded-full border border-border/80 bg-secondary/60 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground sm:px-4 sm:py-2 sm:text-xs"
             >
-              {!ready && !authenticated
-                ? "Loading…"
-                : authenticated
-                  ? addr
-                    ? `${addr.slice(0, 6)}…${addr.slice(-4)}`
-                    : "Connected"
-                  : (
-                    <>
-                      Connect<span className="hidden sm:inline">&nbsp;Lace</span>
-                    </>
-                  )}
-            </button>
-            {authenticated && walletOpen && (
-              <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50">
-                <BalancePanel onClose={() => setWalletOpen(false)} />
+              Wallet unavailable
+            </span>
+          ) : (
+            ready && (
+              <div ref={walletRef} className="relative shrink-0">
+                <button
+                  onClick={() => (authenticated ? setWalletOpen((v) => !v) : void login())}
+                  aria-expanded={authenticated ? walletOpen : undefined}
+                  aria-haspopup={authenticated ? "dialog" : undefined}
+                  className="lift flex h-11 shrink-0 items-center rounded-full bg-linear-to-r from-primary to-glow px-3 text-[11px] font-bold text-primary-foreground shadow-glow-sm sm:px-4 sm:text-xs xl:h-auto xl:py-2"
+
+                >
+                  {authenticated
+                    ? addr
+                      ? `${addr.slice(0, 4)}…${addr.slice(-4)}`
+                      : "Wallet"
+                    : (
+                      <>
+                        Sign in<span className="hidden sm:inline">&nbsp;with Google</span>
+                      </>
+                    )}
+                </button>
+                {authenticated && walletOpen && (
+                  <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50">
+                    <BalancePanel onClose={() => setWalletOpen(false)} />
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            )
+          )}
 
         </div>
       </div>

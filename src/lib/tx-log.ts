@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { txExplorerUrl as indexerTxUrl, type TokenKey } from "@/lib/tokens";
+import { ARC_EXPLORER, type TokenKey } from "@/lib/tokens";
 
 /**
- * Browser-side settlement ledger for Midnight Undeployed settles
- * (H2H cart, H2A, A2A negotiation, etc.).
+ * Browser-side settlement ledger.
+ *
+ * Every real Arc transfer the app makes (H2H cart checkout, H2A agent run,
+ * A2A negotiation, A2H payout) is appended here so a judge can see the whole
+ * demo's on-chain footprint in one list, with links back to Arcscan.
  */
 
 export type TxMode = "H2H" | "H2A" | "A2A" | "A2H";
@@ -51,28 +54,18 @@ function write(entries: TxEntry[]) {
 }
 
 export function txExplorerUrl(hash: string): string {
-  return indexerTxUrl(hash);
-}
-
-function looksConfirmed(hash: string, status?: TxStatus): TxStatus {
-  if (status) return status;
-  const h = hash.replace(/^0x/i, "");
-  if (!h || /^0*SIMULATED$/i.test(hash) || /SIMULATED/i.test(hash)) return "pending";
-  // Real Undeployed settle returns a ledger hash once the proof landed.
-  if (/^[0-9a-fA-F]{64}$/.test(h)) return "success";
-  return "pending";
+  return `${ARC_EXPLORER}/tx/${hash}`;
 }
 
 /** Append a settlement. Re-recording the same hash updates the existing row. */
 export function recordSettlement(
-  entry: Omit<TxEntry, "at" | "status" | "explorer"> &
-    Partial<Pick<TxEntry, "at" | "status" | "explorer">>,
+  entry: Omit<TxEntry, "at" | "status" | "explorer"> & Partial<Pick<TxEntry, "at" | "status">>,
 ): void {
   const full: TxEntry = {
     ...entry,
     at: entry.at ?? Date.now(),
-    status: looksConfirmed(entry.hash, entry.status),
-    explorer: entry.explorer ?? txExplorerUrl(entry.hash),
+    status: entry.status ?? "pending",
+    explorer: txExplorerUrl(entry.hash),
   };
   const rest = read().filter((e) => e.hash.toLowerCase() !== full.hash.toLowerCase());
   write([full, ...rest]);

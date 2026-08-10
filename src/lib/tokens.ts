@@ -1,70 +1,30 @@
-// Midnight Undeployed settlement tokens.
-// mUSDC is an experimental Compact mimic (no peg). USDC/EURC/cirBTC keys remain for
-// catalog FX display, but on-chain settle always goes through mUSDC server-append.
+// src/lib/tokens.ts - the three stablecoins every Creative Blockchain app must support
+export const ARC_CHAIN_ID = 5042002;
+// Browser calls go through a same-origin proxy so the provider key stays server-side.
+export const ARC_RPC_URL  = "/api/public/arc-rpc";
+export const ARC_EXPLORER = "https://testnet.arcscan.app";
 
-export const NETWORK_ID = (import.meta.env.VITE_NETWORK_ID as string) || "undeployed";
-export const INDEXER_URL =
-  (import.meta.env.VITE_INDEXER_URL as string) || "http://localhost:8088/api/v4/graphql";
-export const INDEXER_WS_URL =
-  (import.meta.env.VITE_INDEXER_WS_URL as string) || "ws://localhost:8088/api/v4/graphql/ws";
-export const PROOF_SERVER_URL =
-  (import.meta.env.VITE_PROOF_SERVER_URL as string) || "http://localhost:6300";
-
-/** Indexer GraphQL is the explorer surface on Undeployed (no Arcscan). */
-export const MIDNIGHT_EXPLORER = INDEXER_URL;
-/** @deprecated use MIDNIGHT_EXPLORER */
-export const ARC_EXPLORER = MIDNIGHT_EXPLORER;
-/** Legacy Arc chain id — unused on Midnight; kept so old imports don't explode. */
-export const ARC_CHAIN_ID = 0;
-export const ARC_RPC_URL = "";
-
+/**
+ * `native: true` means the token IS Arc's gas token, so paying it is a plain
+ * value transfer. Everything else is an ERC-20 and settles via transfer().
+ *
+ * FX conversion is handled by src/lib/fx.ts using live Frankfurter (fiat) and
+ * CoinGecko (BTC/USD) rates, with hardcoded fallbacks for offline demos.
+ */
 export const TOKENS = {
-  USDC: {
-    symbol: "mUSDC",
-    address: "midnight:musdc",
-    decimals: 6,
-    native: true,
-    label: "Midnight USDC (experimental mimic)",
-  },
-  EURC: {
-    symbol: "mUSDC",
-    address: "midnight:musdc",
-    decimals: 6,
-    native: true,
-    label: "Priced in EUR → settled as mUSDC",
-  },
-  cirBTC: {
-    symbol: "mUSDC",
-    address: "midnight:musdc",
-    decimals: 6,
-    native: true,
-    label: "Priced in BTC → settled as mUSDC",
-  },
+  USDC:   { symbol: "USDC",   address: "0x3600000000000000000000000000000000000000", decimals: 6, native: true,  label: "US Dollar (native gas)" },
+  EURC:   { symbol: "EURC",   address: "0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a", decimals: 6, native: false, label: "Euro Coin" },
+  cirBTC: { symbol: "cirBTC", address: "0xf0C4a4CE82A5746AbAAd9425360Ab04fbBA432BF", decimals: 8, native: false, label: "Circle Wrapped BTC" },
 } as const;
 export type TokenKey = keyof typeof TOKENS;
 
 export const TOKEN_KEYS = Object.keys(TOKENS) as TokenKey[];
 
-/**
- * Distinct settle assets for UI toggles. On Undeployed, USDC/EURC/cirBTC all
- * settle as experimental mUSDC — so the switcher collapses to one key.
- */
-export const SETTLE_TOKEN_KEYS: TokenKey[] = (() => {
-  const seen = new Set<string>();
-  const out: TokenKey[] = [];
-  for (const k of TOKEN_KEYS) {
-    const sym = TOKENS[k].symbol;
-    if (seen.has(sym)) continue;
-    seen.add(sym);
-    out.push(k);
-  }
-  return out;
-})();
-
 export function isTokenKey(v: unknown): v is TokenKey {
   return typeof v === "string" && v in TOKENS;
 }
 
+/** Convert a decimal token amount to atomic units, honouring per-token decimals. */
 export function toAtomic(amount: number | string, token: TokenKey): bigint {
   const { decimals } = TOKENS[token];
   const s = typeof amount === "number" ? amount.toFixed(decimals) : amount.trim();
@@ -75,6 +35,7 @@ export function toAtomic(amount: number | string, token: TokenKey): bigint {
   return neg ? -v : v;
 }
 
+/** Atomic units back to a decimal string with the token's full precision. */
 export function fromAtomic(atomic: bigint | string, token: TokenKey): string {
   const { decimals } = TOKENS[token];
   const v = typeof atomic === "bigint" ? atomic : BigInt(atomic);
@@ -82,20 +43,21 @@ export function fromAtomic(atomic: bigint | string, token: TokenKey): string {
   return `${s.slice(0, -decimals)}.${s.slice(-decimals)}`;
 }
 
+/** Display string, e.g. "2.400000 EURC" — trimmed to a sane number of places. */
 export function formatAmount(atomic: bigint | string, token: TokenKey): string {
-  const places = 6;
+  const places = TOKENS[token].decimals === 8 ? 8 : 6;
   const n = Number(fromAtomic(atomic, token));
-  return `${n.toFixed(places)} mUSDC`;
+  return `${n.toFixed(places)} ${TOKENS[token].symbol}`;
 }
 
+// Re-export FX helpers so callers only need one import path.
 export type { FxRates } from "./fx";
 export { getTokenUsdRate, fiatToUsd, convertFromFiat, convertFromUsd, FALLBACK_RATES } from "./fx";
 
-/** CAIP-19-style asset id for Midnight mUSDC overlays. */
-export function caip19(_token: TokenKey): string {
-  return `midnight:${NETWORK_ID}/musdc`;
-}
-
-export function txExplorerUrl(txHash: string): string {
-  return `${INDEXER_URL}#tx=${encodeURIComponent(txHash)}`;
+/** CAIP-19 asset id used in x402 / AP2 / UCP payloads. */
+export function caip19(token: TokenKey): string {
+  const t = TOKENS[token];
+  return t.native
+    ? `eip155:${ARC_CHAIN_ID}/slip44:60`
+    : `eip155:${ARC_CHAIN_ID}/erc20:${t.address}`;
 }

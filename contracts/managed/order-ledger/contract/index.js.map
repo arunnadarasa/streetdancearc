@@ -1,8 +1,0 @@
-{
-  "version": 3,
-  "file": "index.js",
-  "sourceRoot": "../../../../",
-  "sources": ["contracts/OrderLedger.compact", "compiler/standard-library.compact"],
-  "names": [],
-  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAYA;;;;;;;;;;;;;MAEA,AAAA,gBAYC;;;;;cAZ+B,KAAc;;;;;;;;;;;;;;;;;;yCAAd,KAAc;;;;;;;;;kDAAd,KAAc;;;OAY7C;MAED,AAAA,WAWC;;;;;cAVC,SAAkB;cAClB,UAAmB;cACnB,OAAgB;cAChB,QAAgB;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;yCAHhB,SAAkB,+BAClB,UAAmB,+BACnB,OAAgB,+BAChB,QAAgB;;;;;;;;;6CAHhB,SAAkB;6CAClB,UAAmB;6CACnB,OAAgB;6CAChB,QAAgB;;;OAOjB;;;;;;;;;;GA3B0C;EAA3C;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;IATA;;;;;;;;;yEAAmC;IACnC;;;;;;;;;yEAAuC;IACvC;;;;;;;;;yEAAwC;IACxC;;;;;;;;;yEAAoC;IACpC;;;;;;;;;yEAAoC;IACpC;;;;;;;;;yEAAyC;UAIzB,KAAW;IAAX;;;;;;;;;;6FAAA,KAAW;;;;wEAAA;;;;;;;GAAgB;ECZ3C,AAAA,kBAAA;oEAAA;;;EDUA,AAAA,iBAAoC;;0DAApC,cAAoC;;;;;;;;;;;;;;GAAA;EAIpC,AAAA,mBAYC,4BAZ+B,KAAc;UACtC,IAAqB;UACrB,IAA2E;yCAAJ,IAAE;UAGzE,OAAmB;8CACrB;;;;;;;;;;;mHAAe;sBAAI,OAAK;;MAC1B;;;;;;;6HAA2B,KAAG;;2EAAf;;4CAER,IAAE;oEAAI;;;;;;;;;;;yIAAe;;MAC5B;;;;;;;6HAA2B,KAAG;;2EAAf;;;GAElB;EAED,AAAA,cAWC;;iBAVC,SAAkB;iBAClB,UAAmB;iBACnB,OAAgB;iBAChB,QAAgB;;IAEhB;;;;;;;2HAAyB,SAAO;;yEAAnB;IACb;;;;;;;2HAA0B,UAAQ;;yEAApB;IACd;;;;;;;2HAAsB,OAAK;;yEAAjB;IACV;;;;;;;2HAAuB,QAAM;;yEAAlB;UACX,KAAW;IAAX;;;;;;;;;;6FAAA,KAAW;;;;wEAAA;;GACZ;;;;;;;;;;;;;;;;;;;;;;;;IApCD;qCAAA;;;;;;;;;;;0GAAmC;KAAA;IACnC;qCAAA;;;;;;;;;;;0GAAuC;KAAA;IACvC;qCAAA;;;;;;;;;;;0GAAwC;KAAA;IACxC;qCAAA;;;;;;;;;;;0GAAoC;KAAA;IACpC;qCAAA;;;;;;;;;;;0GAAoC;KAAA;IACpC;qCAAA;;;;;;;;;;;0GAAyC;KAAA;;;;;;;;;;"
-}

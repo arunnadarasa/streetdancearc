@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -20,13 +20,14 @@ import { TxHistoryPanel } from "@/components/dance/TxHistoryPanel";
 
 import { useWallet } from "@/lib/wallet-context";
 import { usePayToken } from "@/lib/pay-token";
+import { getPublicConfig } from "@/lib/config.functions";
 import { fetchX402Challenge } from "@/lib/judge.functions";
-import { recordSettlement } from "@/lib/tx-log";
-import { txExplorerUrl } from "@/lib/tokens";
+import { pushPayout } from "@/lib/a2h.functions";
+import { ARC_EXPLORER } from "@/lib/tokens";
 
-const TITLE = "Judge run · StreetRail — all four modes on Midnight Undeployed";
+const TITLE = "Judge run · StreetRail — all four modes on Arc";
 const DESCRIPTION =
-  "A guided four-step run through StreetRail's H2H, H2A, A2A and A2H modes on Midnight Local Undeployed, with live x402 challenges and indexer receipts.";
+  "A guided four-step run through StreetRail's H2H, H2A, A2A and A2H modes on Circle's Arc Testnet, with live x402 challenges and on-chain Arcscan receipts.";
 
 export const Route = createFileRoute("/judge")({
   head: () => ({
@@ -45,8 +46,6 @@ export const Route = createFileRoute("/judge")({
 /** Plays needed to cross the $0.50 nanopayment batch threshold at $0.001/play. */
 const JUDGE_PLAYS = 600;
 const JUDGE_MOVE = "krump-2024-w32";
-/** Demo scale ×0.001 — same micro settle used in the shop cart. */
-const JUDGE_AMOUNT_ATOMIC = Math.round(JUDGE_PLAYS * 0.001 * 1e6 * 0.001);
 
 type StepState = "idle" | "running" | "done" | "failed";
 
@@ -87,22 +86,29 @@ function StepShell({
   );
 }
 
-async function sha256Hex(input: string): Promise<string> {
-  const data = new TextEncoder().encode(input);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
 function JudgePage() {
   const wallet = useWallet();
   const [payToken] = usePayToken();
+  const [treasury, setTreasury] = useState<string>("");
 
+  const getConfig = useServerFn(getPublicConfig);
   const runChallenge = useServerFn(fetchX402Challenge);
+  const runPayout = useServerFn(pushPayout);
+
+  useEffect(() => {
+    let mounted = true;
+    void getConfig({ data: undefined } as never)
+      .then((cfg: { treasuryAddress?: string }) => {
+        if (mounted) setTreasury(cfg?.treasuryAddress ?? "");
+      })
+      .catch(() => undefined);
+    return () => {
+      mounted = false;
+    };
+  }, [getConfig]);
 
   const payee =
-    wallet.wallets[0]?.address ?? wallet.user?.wallet?.address ?? "";
+    wallet.wallets[0]?.address ?? wallet.user?.wallet?.address ?? treasury ?? "";
 
   // --- Step 3: live x402 handshake ---------------------------------------
   const [a2aState, setA2aState] = useState<StepState>("idle");
@@ -132,79 +138,38 @@ function JudgePage() {
     }
   }, [runChallenge, payToken]);
 
-  // --- Step 4: real Undeployed A2H payout (mUSDC + MoveRegistry) ----------
+  // --- Step 4: real on-chain A2H payout ----------------------------------
   const [a2hState, setA2hState] = useState<StepState>("idle");
   const [a2hResult, setA2hResult] = useState<unknown>(null);
   const [a2hTx, setA2hTx] = useState<string | null>(null);
   const [a2hError, setA2hError] = useState<string | null>(null);
 
   const doA2h = useCallback(async () => {
+    if (!payee) {
+      setA2hError("No payout address yet — connect a wallet or wait for the treasury to load.");
+      setA2hState("failed");
+      return;
+    }
     setA2hState("running");
     setA2hError(null);
     setA2hTx(null);
     try {
-      const toHex = await sha256Hex(payee || `streetrail:a2h:${JUDGE_MOVE}`);
-      const memo = `a2h:${JUDGE_MOVE}:${JUDGE_PLAYS}plays`;
-
-      const transferRes = await fetch("/api/public/musdc-transfer", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          toHex,
-          amountAtomic: JUDGE_AMOUNT_ATOMIC,
-          memo,
-        }),
-      });
-      const transfer = (await transferRes.json()) as {
-        midnightTxHash?: string;
-        error?: string;
-        amount?: string;
-        network?: string;
-        faucetTopUp?: boolean;
-      };
-      if (!transferRes.ok || !transfer.midnightTxHash) {
-        throw new Error(transfer.error ?? "mUSDC transfer did not settle.");
-      }
-
-      let registry: unknown = null;
-      try {
-        const appendRes = await fetch("/api/public/append-entry", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            message: memo,
-            payload: {
-              mode: "A2H",
-              moveCid: JUDGE_MOVE,
-              plays: JUDGE_PLAYS,
-              payee: payee || null,
-              settleTx: transfer.midnightTxHash,
-              amountAtomic: JUDGE_AMOUNT_ATOMIC,
-            },
-          }),
-        });
-        registry = await appendRes.json();
-      } catch {
-        registry = { skipped: true };
-      }
-
-      const hash = transfer.midnightTxHash;
+      const res = (await runPayout({
+        data: { address: payee, token: payToken, moveCid: JUDGE_MOVE, plays: JUDGE_PLAYS },
+      })) as { ok?: boolean; txHash?: string; detail?: string; reason?: string };
+      setA2hResult(res);
+      const hash = typeof res?.txHash === "string" ? res.txHash : null;
       setA2hTx(hash);
-      setA2hResult({ ok: true, transfer, registry });
-      recordSettlement({
-        hash,
-        mode: "A2H",
-        label: `A2H royalty batch · ${JUDGE_MOVE}`,
-        token: payToken,
-        atomic: String(JUDGE_AMOUNT_ATOMIC),
-        to: payee || undefined,
-      });
-      setA2hState("done");
+      if (res?.ok) setA2hState("done");
+      else {
+        setA2hState("failed");
+        setA2hError(res?.detail ?? res?.reason ?? "The payout did not settle.");
+      }
     } catch (e) {
       setA2hState("failed");
       setA2hError(e instanceof Error ? e.message : "The payout failed.");
     }
-  }, [payee, payToken]);
+  }, [runPayout, payee, payToken]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -214,7 +179,7 @@ function JudgePage() {
           <SectionHead
             eyebrow="For judges"
             title="Four modes, one run"
-            blurb="Merch commerce first, agent rails underneath. Steps 1 and 2 use Lace or the Undeployed server-append session. Steps 3 and 4 run agent-side against Midnight Local Undeployed right here — Compact proofs, experimental mUSDC, indexer receipts."
+            blurb="Merch commerce first, agent rails underneath. Steps 1 and 2 are signed by your own wallet. Steps 3 and 4 run agent-side against Arc Testnet right here — no wallet needed."
           />
 
           <div className="mt-8 space-y-4">
@@ -222,8 +187,8 @@ function JudgePage() {
               index={1}
               mode="H2H"
               icon={<ShoppingBag className="h-5 w-5" />}
-              title="Buy streetwear with experimental mUSDC"
-              blurb="The human path: browse the drop, connect Lace or use the Undeployed server-append session, and settle checkout through the x402 facilitator as experimental mUSDC."
+              title="Buy streetwear with stablecoins"
+              blurb="The human path: browse the drop, pick USDC, EURC or cirBTC, and pay from your wallet. USDC is the gas token, so there is no second asset to hold."
             >
               <Link
                 to="/shop"
@@ -232,8 +197,7 @@ function JudgePage() {
                 Open the shop <ArrowRight className="h-4 w-4" />
               </Link>
               <p className="text-xs text-muted-foreground">
-                Requires Midnight Local Undeployed (Docker node + indexer + proof server). Connect shows a{" "}
-                <span className="font-mono">mn_add…</span> session even without Lace.
+                Requires a funded Arc Testnet wallet. Top up at faucet.circle.com.
               </p>
             </StepShell>
 
@@ -251,8 +215,7 @@ function JudgePage() {
                 Run the agent under policy <ArrowRight className="h-4 w-4" />
               </a>
               <p className="text-xs text-muted-foreground">
-                Settlement lands as mUSDC on Undeployed; the mandate is AP2-shaped and can be
-                anchored in MandateVault.
+                Settlement is signed by your wallet; the mandate is AP2-shaped.
               </p>
             </StepShell>
 
@@ -261,7 +224,7 @@ function JudgePage() {
               mode="A2A"
               icon={<Handshake className="h-5 w-5" />}
               title="Live x402 payment challenge"
-              blurb="A buyer agent posts an order to StreetRail's merchant endpoint and gets back a machine-readable 402 challenge: exact amount, midnight:undeployed/musdc asset, and where to settle on Midnight."
+              blurb="A buyer agent posts an order to StreetRail's merchant endpoint and gets back a machine-readable 402 challenge: exact amount, CAIP-19 asset, and where to pay on Arc."
             >
               <div className="flex flex-wrap gap-2">
                 <button
@@ -298,8 +261,8 @@ function JudgePage() {
               index={4}
               mode="A2H"
               icon={<Inbox className="h-5 w-5" />}
-              title="Agent pays a choreographer on Midnight"
-              blurb={`A rights agent accrues ${JUDGE_PLAYS} plays at $0.001 each off-chain, crosses the $0.50 batch threshold, then settles once as experimental mUSDC via genesis server-append and anchors the batch on Compact MoveRegistry.`}
+              title="Agent pays a choreographer on Arc"
+              blurb={`A rights agent accrues ${JUDGE_PLAYS} plays at $0.001 each off-chain, crosses the $0.50 batch threshold, then settles once on Arc from the Circle treasury and logs it to the rights registry.`}
             >
               <div className="flex flex-wrap gap-2">
                 <button
@@ -314,7 +277,7 @@ function JudgePage() {
                     <CheckCircle2 className="h-4 w-4" />
                   ) : null}
                   {a2hState === "running"
-                    ? "Settling on Midnight…"
+                    ? "Settling on Arc…"
                     : a2hState === "done"
                       ? "Payout settled"
                       : "Settle a real payout"}
@@ -327,24 +290,21 @@ function JudgePage() {
                 </a>
               </div>
               <p className="break-all text-xs text-muted-foreground">
-                {payee
-                  ? `Paying toward ${payee.slice(0, 10)}…${payee.slice(-6)} (your session)`
-                  : "Paying via genesis server-append — connect to personalize the payee commitment"}
+                Paying to {payee ? `${payee.slice(0, 10)}…${payee.slice(-6)}` : "…"}{" "}
+                {wallet.wallets[0]?.address ? "(your wallet)" : "(treasury, connect a wallet to redirect)"}
               </p>
               {a2hError ? <p className="text-xs text-red-300">{a2hError}</p> : null}
               {a2hTx ? (
                 <a
-                  href={txExplorerUrl(a2hTx)}
+                  href={`${ARC_EXPLORER}/tx/${a2hTx}`}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-2 text-sm font-semibold text-primary underline underline-offset-4"
                 >
-                  View the receipt on the indexer <ExternalLink className="h-4 w-4" />
+                  View the receipt on Arcscan <ExternalLink className="h-4 w-4" />
                 </a>
               ) : null}
-              {a2hResult ? (
-                <JsonBlock label="Settlement" value={a2hResult} tone={a2hState === "done" ? "green" : "amber"} />
-              ) : null}
+              {a2hResult ? <JsonBlock label="Settlement" value={a2hResult} tone={a2hState === "done" ? "green" : "amber"} /> : null}
             </StepShell>
           </div>
         </Section>
@@ -353,21 +313,23 @@ function JudgePage() {
           <SectionHead
             eyebrow="Receipts"
             title="Everything that settled"
-            blurb="Live ledger of this session's Midnight Undeployed settlements across all four modes, with indexer links."
+            blurb="Live ledger of this session's Arc Testnet transfers across all four modes, with Arcscan receipts."
           />
           <div className="mt-6">
             <TxHistoryPanel title="Settlement history" />
           </div>
         </Section>
 
+
         <Section tone="raised">
           <SectionHead
             eyebrow="Verify"
             title="The four deployed contracts"
-            blurb="Compact contracts on Midnight Local Undeployed — verify via the local indexer."
+            blurb="Every address below is live on Arc Testnet and verified on Arcscan."
           />
           <ContractsPanel className="mt-6 md:grid md:grid-cols-2 md:gap-3 md:space-y-0" />
         </Section>
+
       </main>
 
       <SiteFooter />

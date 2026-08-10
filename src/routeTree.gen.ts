@@ -19,24 +19,10 @@ import { Route as DeckRouteImport } from './routes/deck'
 import { Route as AgentNegotiationRouteImport } from './routes/agent-negotiation'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
-import { Route as ApiPublicX402VerifyRouteImport } from './routes/api/public/x402-verify'
-import { Route as ApiPublicX402SettleRouteImport } from './routes/api/public/x402-settle'
-import { Route as ApiPublicX402ProxyRouteImport } from './routes/api/public/x402-proxy'
-import { Route as ApiPublicX402ChallengeRouteImport } from './routes/api/public/x402-challenge'
-import { Route as ApiPublicUcpRecordOrderRouteImport } from './routes/api/public/ucp-record-order'
 import { Route as ApiPublicPurchaseRouteImport } from './routes/api/public/purchase'
 import { Route as ApiPublicPinRouteImport } from './routes/api/public/pin'
-import { Route as ApiPublicMusdcTransferRouteImport } from './routes/api/public/musdc-transfer'
-import { Route as ApiPublicMusdcFaucetRouteImport } from './routes/api/public/musdc-faucet'
-import { Route as ApiPublicMoveNftTransferRouteImport } from './routes/api/public/move-nft-transfer'
-import { Route as ApiPublicMoveNftMintRouteImport } from './routes/api/public/move-nft-mint'
-import { Route as ApiPublicMoveNftListRouteImport } from './routes/api/public/move-nft-list'
-import { Route as ApiPublicMoveNftCancelRouteImport } from './routes/api/public/move-nft-cancel'
-import { Route as ApiPublicMoveNftBuyRouteImport } from './routes/api/public/move-nft-buy'
 import { Route as ApiPublicCatalogRouteImport } from './routes/api/public/catalog'
 import { Route as ApiPublicArcRpcRouteImport } from './routes/api/public/arc-rpc'
-import { Route as ApiPublicAppendEntryRouteImport } from './routes/api/public/append-entry'
-import { Route as ApiPublicAp2AnchorRouteImport } from './routes/api/public/ap2-anchor'
 import { Route as ApiPublicAgentCardRouteImport } from './routes/api/public/agent-card'
 import { Route as ApiPublicX402ResourcesRouteImport } from './routes/api/public/x402/resources'
 import { Route as ApiPublicUcpSelfTestRouteImport } from './routes/api/public/ucp/self-test'
@@ -95,31 +81,6 @@ const ProductHandleRoute = ProductHandleRouteImport.update({
   path: '/product/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicX402VerifyRoute = ApiPublicX402VerifyRouteImport.update({
-  id: '/api/public/x402-verify',
-  path: '/api/public/x402-verify',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicX402SettleRoute = ApiPublicX402SettleRouteImport.update({
-  id: '/api/public/x402-settle',
-  path: '/api/public/x402-settle',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicX402ProxyRoute = ApiPublicX402ProxyRouteImport.update({
-  id: '/api/public/x402-proxy',
-  path: '/api/public/x402-proxy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicX402ChallengeRoute = ApiPublicX402ChallengeRouteImport.update({
-  id: '/api/public/x402-challenge',
-  path: '/api/public/x402-challenge',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicUcpRecordOrderRoute = ApiPublicUcpRecordOrderRouteImport.update({
-  id: '/api/public/ucp-record-order',
-  path: '/api/public/ucp-record-order',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicPurchaseRoute = ApiPublicPurchaseRouteImport.update({
   id: '/api/public/purchase',
   path: '/api/public/purchase',
@@ -130,42 +91,6 @@ const ApiPublicPinRoute = ApiPublicPinRouteImport.update({
   path: '/api/public/pin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicMusdcTransferRoute = ApiPublicMusdcTransferRouteImport.update({
-  id: '/api/public/musdc-transfer',
-  path: '/api/public/musdc-transfer',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicMusdcFaucetRoute = ApiPublicMusdcFaucetRouteImport.update({
-  id: '/api/public/musdc-faucet',
-  path: '/api/public/musdc-faucet',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicMoveNftTransferRoute =
-  ApiPublicMoveNftTransferRouteImport.update({
-    id: '/api/public/move-nft-transfer',
-    path: '/api/public/move-nft-transfer',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicMoveNftMintRoute = ApiPublicMoveNftMintRouteImport.update({
-  id: '/api/public/move-nft-mint',
-  path: '/api/public/move-nft-mint',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicMoveNftListRoute = ApiPublicMoveNftListRouteImport.update({
-  id: '/api/public/move-nft-list',
-  path: '/api/public/move-nft-list',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicMoveNftCancelRoute = ApiPublicMoveNftCancelRouteImport.update({
-  id: '/api/public/move-nft-cancel',
-  path: '/api/public/move-nft-cancel',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicMoveNftBuyRoute = ApiPublicMoveNftBuyRouteImport.update({
-  id: '/api/public/move-nft-buy',
-  path: '/api/public/move-nft-buy',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicCatalogRoute = ApiPublicCatalogRouteImport.update({
   id: '/api/public/catalog',
   path: '/api/public/catalog',
@@ -174,16 +99,6 @@ const ApiPublicCatalogRoute = ApiPublicCatalogRouteImport.update({
 const ApiPublicArcRpcRoute = ApiPublicArcRpcRouteImport.update({
   id: '/api/public/arc-rpc',
   path: '/api/public/arc-rpc',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicAppendEntryRoute = ApiPublicAppendEntryRouteImport.update({
-  id: '/api/public/append-entry',
-  path: '/api/public/append-entry',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicAp2AnchorRoute = ApiPublicAp2AnchorRouteImport.update({
-  id: '/api/public/ap2-anchor',
-  path: '/api/public/ap2-anchor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicAgentCardRoute = ApiPublicAgentCardRouteImport.update({
@@ -235,24 +150,10 @@ export interface FileRoutesByFullPath {
   '/shop': typeof ShopRoute
   '/product/$handle': typeof ProductHandleRoute
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
-  '/api/public/ap2-anchor': typeof ApiPublicAp2AnchorRoute
-  '/api/public/append-entry': typeof ApiPublicAppendEntryRoute
   '/api/public/arc-rpc': typeof ApiPublicArcRpcRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
-  '/api/public/move-nft-buy': typeof ApiPublicMoveNftBuyRoute
-  '/api/public/move-nft-cancel': typeof ApiPublicMoveNftCancelRoute
-  '/api/public/move-nft-list': typeof ApiPublicMoveNftListRoute
-  '/api/public/move-nft-mint': typeof ApiPublicMoveNftMintRoute
-  '/api/public/move-nft-transfer': typeof ApiPublicMoveNftTransferRoute
-  '/api/public/musdc-faucet': typeof ApiPublicMusdcFaucetRoute
-  '/api/public/musdc-transfer': typeof ApiPublicMusdcTransferRoute
   '/api/public/pin': typeof ApiPublicPinRoute
   '/api/public/purchase': typeof ApiPublicPurchaseRoute
-  '/api/public/ucp-record-order': typeof ApiPublicUcpRecordOrderRoute
-  '/api/public/x402-challenge': typeof ApiPublicX402ChallengeRoute
-  '/api/public/x402-proxy': typeof ApiPublicX402ProxyRoute
-  '/api/public/x402-settle': typeof ApiPublicX402SettleRoute
-  '/api/public/x402-verify': typeof ApiPublicX402VerifyRoute
   '/api/public/a2a/message': typeof ApiPublicA2aMessageRoute
   '/api/public/ap2/mandate': typeof ApiPublicAp2MandateRoute
   '/api/public/erc1271/authorizer': typeof ApiPublicErc1271AuthorizerRoute
@@ -272,24 +173,10 @@ export interface FileRoutesByTo {
   '/shop': typeof ShopRoute
   '/product/$handle': typeof ProductHandleRoute
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
-  '/api/public/ap2-anchor': typeof ApiPublicAp2AnchorRoute
-  '/api/public/append-entry': typeof ApiPublicAppendEntryRoute
   '/api/public/arc-rpc': typeof ApiPublicArcRpcRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
-  '/api/public/move-nft-buy': typeof ApiPublicMoveNftBuyRoute
-  '/api/public/move-nft-cancel': typeof ApiPublicMoveNftCancelRoute
-  '/api/public/move-nft-list': typeof ApiPublicMoveNftListRoute
-  '/api/public/move-nft-mint': typeof ApiPublicMoveNftMintRoute
-  '/api/public/move-nft-transfer': typeof ApiPublicMoveNftTransferRoute
-  '/api/public/musdc-faucet': typeof ApiPublicMusdcFaucetRoute
-  '/api/public/musdc-transfer': typeof ApiPublicMusdcTransferRoute
   '/api/public/pin': typeof ApiPublicPinRoute
   '/api/public/purchase': typeof ApiPublicPurchaseRoute
-  '/api/public/ucp-record-order': typeof ApiPublicUcpRecordOrderRoute
-  '/api/public/x402-challenge': typeof ApiPublicX402ChallengeRoute
-  '/api/public/x402-proxy': typeof ApiPublicX402ProxyRoute
-  '/api/public/x402-settle': typeof ApiPublicX402SettleRoute
-  '/api/public/x402-verify': typeof ApiPublicX402VerifyRoute
   '/api/public/a2a/message': typeof ApiPublicA2aMessageRoute
   '/api/public/ap2/mandate': typeof ApiPublicAp2MandateRoute
   '/api/public/erc1271/authorizer': typeof ApiPublicErc1271AuthorizerRoute
@@ -310,24 +197,10 @@ export interface FileRoutesById {
   '/shop': typeof ShopRoute
   '/product/$handle': typeof ProductHandleRoute
   '/api/public/agent-card': typeof ApiPublicAgentCardRoute
-  '/api/public/ap2-anchor': typeof ApiPublicAp2AnchorRoute
-  '/api/public/append-entry': typeof ApiPublicAppendEntryRoute
   '/api/public/arc-rpc': typeof ApiPublicArcRpcRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
-  '/api/public/move-nft-buy': typeof ApiPublicMoveNftBuyRoute
-  '/api/public/move-nft-cancel': typeof ApiPublicMoveNftCancelRoute
-  '/api/public/move-nft-list': typeof ApiPublicMoveNftListRoute
-  '/api/public/move-nft-mint': typeof ApiPublicMoveNftMintRoute
-  '/api/public/move-nft-transfer': typeof ApiPublicMoveNftTransferRoute
-  '/api/public/musdc-faucet': typeof ApiPublicMusdcFaucetRoute
-  '/api/public/musdc-transfer': typeof ApiPublicMusdcTransferRoute
   '/api/public/pin': typeof ApiPublicPinRoute
   '/api/public/purchase': typeof ApiPublicPurchaseRoute
-  '/api/public/ucp-record-order': typeof ApiPublicUcpRecordOrderRoute
-  '/api/public/x402-challenge': typeof ApiPublicX402ChallengeRoute
-  '/api/public/x402-proxy': typeof ApiPublicX402ProxyRoute
-  '/api/public/x402-settle': typeof ApiPublicX402SettleRoute
-  '/api/public/x402-verify': typeof ApiPublicX402VerifyRoute
   '/api/public/a2a/message': typeof ApiPublicA2aMessageRoute
   '/api/public/ap2/mandate': typeof ApiPublicAp2MandateRoute
   '/api/public/erc1271/authorizer': typeof ApiPublicErc1271AuthorizerRoute
@@ -349,24 +222,10 @@ export interface FileRouteTypes {
     | '/shop'
     | '/product/$handle'
     | '/api/public/agent-card'
-    | '/api/public/ap2-anchor'
-    | '/api/public/append-entry'
     | '/api/public/arc-rpc'
     | '/api/public/catalog'
-    | '/api/public/move-nft-buy'
-    | '/api/public/move-nft-cancel'
-    | '/api/public/move-nft-list'
-    | '/api/public/move-nft-mint'
-    | '/api/public/move-nft-transfer'
-    | '/api/public/musdc-faucet'
-    | '/api/public/musdc-transfer'
     | '/api/public/pin'
     | '/api/public/purchase'
-    | '/api/public/ucp-record-order'
-    | '/api/public/x402-challenge'
-    | '/api/public/x402-proxy'
-    | '/api/public/x402-settle'
-    | '/api/public/x402-verify'
     | '/api/public/a2a/message'
     | '/api/public/ap2/mandate'
     | '/api/public/erc1271/authorizer'
@@ -386,24 +245,10 @@ export interface FileRouteTypes {
     | '/shop'
     | '/product/$handle'
     | '/api/public/agent-card'
-    | '/api/public/ap2-anchor'
-    | '/api/public/append-entry'
     | '/api/public/arc-rpc'
     | '/api/public/catalog'
-    | '/api/public/move-nft-buy'
-    | '/api/public/move-nft-cancel'
-    | '/api/public/move-nft-list'
-    | '/api/public/move-nft-mint'
-    | '/api/public/move-nft-transfer'
-    | '/api/public/musdc-faucet'
-    | '/api/public/musdc-transfer'
     | '/api/public/pin'
     | '/api/public/purchase'
-    | '/api/public/ucp-record-order'
-    | '/api/public/x402-challenge'
-    | '/api/public/x402-proxy'
-    | '/api/public/x402-settle'
-    | '/api/public/x402-verify'
     | '/api/public/a2a/message'
     | '/api/public/ap2/mandate'
     | '/api/public/erc1271/authorizer'
@@ -423,24 +268,10 @@ export interface FileRouteTypes {
     | '/shop'
     | '/product/$handle'
     | '/api/public/agent-card'
-    | '/api/public/ap2-anchor'
-    | '/api/public/append-entry'
     | '/api/public/arc-rpc'
     | '/api/public/catalog'
-    | '/api/public/move-nft-buy'
-    | '/api/public/move-nft-cancel'
-    | '/api/public/move-nft-list'
-    | '/api/public/move-nft-mint'
-    | '/api/public/move-nft-transfer'
-    | '/api/public/musdc-faucet'
-    | '/api/public/musdc-transfer'
     | '/api/public/pin'
     | '/api/public/purchase'
-    | '/api/public/ucp-record-order'
-    | '/api/public/x402-challenge'
-    | '/api/public/x402-proxy'
-    | '/api/public/x402-settle'
-    | '/api/public/x402-verify'
     | '/api/public/a2a/message'
     | '/api/public/ap2/mandate'
     | '/api/public/erc1271/authorizer'
@@ -461,24 +292,10 @@ export interface RootRouteChildren {
   ShopRoute: typeof ShopRoute
   ProductHandleRoute: typeof ProductHandleRoute
   ApiPublicAgentCardRoute: typeof ApiPublicAgentCardRoute
-  ApiPublicAp2AnchorRoute: typeof ApiPublicAp2AnchorRoute
-  ApiPublicAppendEntryRoute: typeof ApiPublicAppendEntryRoute
   ApiPublicArcRpcRoute: typeof ApiPublicArcRpcRoute
   ApiPublicCatalogRoute: typeof ApiPublicCatalogRoute
-  ApiPublicMoveNftBuyRoute: typeof ApiPublicMoveNftBuyRoute
-  ApiPublicMoveNftCancelRoute: typeof ApiPublicMoveNftCancelRoute
-  ApiPublicMoveNftListRoute: typeof ApiPublicMoveNftListRoute
-  ApiPublicMoveNftMintRoute: typeof ApiPublicMoveNftMintRoute
-  ApiPublicMoveNftTransferRoute: typeof ApiPublicMoveNftTransferRoute
-  ApiPublicMusdcFaucetRoute: typeof ApiPublicMusdcFaucetRoute
-  ApiPublicMusdcTransferRoute: typeof ApiPublicMusdcTransferRoute
   ApiPublicPinRoute: typeof ApiPublicPinRoute
   ApiPublicPurchaseRoute: typeof ApiPublicPurchaseRoute
-  ApiPublicUcpRecordOrderRoute: typeof ApiPublicUcpRecordOrderRoute
-  ApiPublicX402ChallengeRoute: typeof ApiPublicX402ChallengeRoute
-  ApiPublicX402ProxyRoute: typeof ApiPublicX402ProxyRoute
-  ApiPublicX402SettleRoute: typeof ApiPublicX402SettleRoute
-  ApiPublicX402VerifyRoute: typeof ApiPublicX402VerifyRoute
   ApiPublicA2aMessageRoute: typeof ApiPublicA2aMessageRoute
   ApiPublicAp2MandateRoute: typeof ApiPublicAp2MandateRoute
   ApiPublicErc1271AuthorizerRoute: typeof ApiPublicErc1271AuthorizerRoute
@@ -559,41 +376,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/x402-verify': {
-      id: '/api/public/x402-verify'
-      path: '/api/public/x402-verify'
-      fullPath: '/api/public/x402-verify'
-      preLoaderRoute: typeof ApiPublicX402VerifyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/x402-settle': {
-      id: '/api/public/x402-settle'
-      path: '/api/public/x402-settle'
-      fullPath: '/api/public/x402-settle'
-      preLoaderRoute: typeof ApiPublicX402SettleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/x402-proxy': {
-      id: '/api/public/x402-proxy'
-      path: '/api/public/x402-proxy'
-      fullPath: '/api/public/x402-proxy'
-      preLoaderRoute: typeof ApiPublicX402ProxyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/x402-challenge': {
-      id: '/api/public/x402-challenge'
-      path: '/api/public/x402-challenge'
-      fullPath: '/api/public/x402-challenge'
-      preLoaderRoute: typeof ApiPublicX402ChallengeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/ucp-record-order': {
-      id: '/api/public/ucp-record-order'
-      path: '/api/public/ucp-record-order'
-      fullPath: '/api/public/ucp-record-order'
-      preLoaderRoute: typeof ApiPublicUcpRecordOrderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/purchase': {
       id: '/api/public/purchase'
       path: '/api/public/purchase'
@@ -608,55 +390,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPinRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/musdc-transfer': {
-      id: '/api/public/musdc-transfer'
-      path: '/api/public/musdc-transfer'
-      fullPath: '/api/public/musdc-transfer'
-      preLoaderRoute: typeof ApiPublicMusdcTransferRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/musdc-faucet': {
-      id: '/api/public/musdc-faucet'
-      path: '/api/public/musdc-faucet'
-      fullPath: '/api/public/musdc-faucet'
-      preLoaderRoute: typeof ApiPublicMusdcFaucetRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/move-nft-transfer': {
-      id: '/api/public/move-nft-transfer'
-      path: '/api/public/move-nft-transfer'
-      fullPath: '/api/public/move-nft-transfer'
-      preLoaderRoute: typeof ApiPublicMoveNftTransferRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/move-nft-mint': {
-      id: '/api/public/move-nft-mint'
-      path: '/api/public/move-nft-mint'
-      fullPath: '/api/public/move-nft-mint'
-      preLoaderRoute: typeof ApiPublicMoveNftMintRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/move-nft-list': {
-      id: '/api/public/move-nft-list'
-      path: '/api/public/move-nft-list'
-      fullPath: '/api/public/move-nft-list'
-      preLoaderRoute: typeof ApiPublicMoveNftListRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/move-nft-cancel': {
-      id: '/api/public/move-nft-cancel'
-      path: '/api/public/move-nft-cancel'
-      fullPath: '/api/public/move-nft-cancel'
-      preLoaderRoute: typeof ApiPublicMoveNftCancelRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/move-nft-buy': {
-      id: '/api/public/move-nft-buy'
-      path: '/api/public/move-nft-buy'
-      fullPath: '/api/public/move-nft-buy'
-      preLoaderRoute: typeof ApiPublicMoveNftBuyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/catalog': {
       id: '/api/public/catalog'
       path: '/api/public/catalog'
@@ -669,20 +402,6 @@ declare module '@tanstack/react-router' {
       path: '/api/public/arc-rpc'
       fullPath: '/api/public/arc-rpc'
       preLoaderRoute: typeof ApiPublicArcRpcRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/append-entry': {
-      id: '/api/public/append-entry'
-      path: '/api/public/append-entry'
-      fullPath: '/api/public/append-entry'
-      preLoaderRoute: typeof ApiPublicAppendEntryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/ap2-anchor': {
-      id: '/api/public/ap2-anchor'
-      path: '/api/public/ap2-anchor'
-      fullPath: '/api/public/ap2-anchor'
-      preLoaderRoute: typeof ApiPublicAp2AnchorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/agent-card': {
@@ -749,24 +468,10 @@ const rootRouteChildren: RootRouteChildren = {
   ShopRoute: ShopRoute,
   ProductHandleRoute: ProductHandleRoute,
   ApiPublicAgentCardRoute: ApiPublicAgentCardRoute,
-  ApiPublicAp2AnchorRoute: ApiPublicAp2AnchorRoute,
-  ApiPublicAppendEntryRoute: ApiPublicAppendEntryRoute,
   ApiPublicArcRpcRoute: ApiPublicArcRpcRoute,
   ApiPublicCatalogRoute: ApiPublicCatalogRoute,
-  ApiPublicMoveNftBuyRoute: ApiPublicMoveNftBuyRoute,
-  ApiPublicMoveNftCancelRoute: ApiPublicMoveNftCancelRoute,
-  ApiPublicMoveNftListRoute: ApiPublicMoveNftListRoute,
-  ApiPublicMoveNftMintRoute: ApiPublicMoveNftMintRoute,
-  ApiPublicMoveNftTransferRoute: ApiPublicMoveNftTransferRoute,
-  ApiPublicMusdcFaucetRoute: ApiPublicMusdcFaucetRoute,
-  ApiPublicMusdcTransferRoute: ApiPublicMusdcTransferRoute,
   ApiPublicPinRoute: ApiPublicPinRoute,
   ApiPublicPurchaseRoute: ApiPublicPurchaseRoute,
-  ApiPublicUcpRecordOrderRoute: ApiPublicUcpRecordOrderRoute,
-  ApiPublicX402ChallengeRoute: ApiPublicX402ChallengeRoute,
-  ApiPublicX402ProxyRoute: ApiPublicX402ProxyRoute,
-  ApiPublicX402SettleRoute: ApiPublicX402SettleRoute,
-  ApiPublicX402VerifyRoute: ApiPublicX402VerifyRoute,
   ApiPublicA2aMessageRoute: ApiPublicA2aMessageRoute,
   ApiPublicAp2MandateRoute: ApiPublicAp2MandateRoute,
   ApiPublicErc1271AuthorizerRoute: ApiPublicErc1271AuthorizerRoute,

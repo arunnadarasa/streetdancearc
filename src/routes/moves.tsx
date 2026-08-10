@@ -9,19 +9,19 @@ export const Route = createFileRoute("/moves")({
   loader: () => getPublicConfig(),
   head: () => ({
     meta: [
-      { title: "Marketplace for Moves — Midnight MoveRegistry" },
+      { title: "Marketplace for Moves — License Choreography On-Chain" },
       {
         name: "description",
         content:
-          "Register choreography on Compact MoveRegistry — prove, append the CID, verify via the local Midnight Undeployed indexer.",
+          "Register, license and settle dance moves as on-chain rights records with IPFS metadata — paid in USDC, EURC or cirBTC on Circle's Arc Testnet.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:title", content: "Marketplace for Moves — Midnight MoveRegistry" },
+      { property: "og:title", content: "Marketplace for Moves — License Choreography On-Chain" },
       {
         property: "og:description",
         content:
-          "License choreography as Compact MoveRegistry entries on Midnight Local Undeployed.",
+          "License choreography as on-chain rights records, settled in stablecoins on Arc.",
       },
     ],
   }),
@@ -29,12 +29,14 @@ export const Route = createFileRoute("/moves")({
 });
 
 function MovesPage() {
+  const { treasuryAddress } = Route.useLoaderData();
+
   return (
     <>
       <div className="min-h-screen bg-background text-foreground">
         <Header />
         <Section tone="base" lines>
-          <MoveRegistry />
+          <MoveRegistry treasuryAddress={treasuryAddress} />
         </Section>
         <SiteFooter />
       </div>

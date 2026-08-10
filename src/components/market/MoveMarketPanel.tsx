@@ -575,8 +575,7 @@ export function MoveMarketPanel() {
 
         {listings.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
-            {detail ??
-              "No moves are listed yet. List one of yours below and it appears here for anyone to buy."}
+            {detail ?? "No moves are listed yet. List one of yours below and it appears here for anyone to buy."}
           </p>
         ) : visible.length === 0 ? (
           <div className="mt-4 rounded-xl border border-border/60 bg-surface p-4">
@@ -711,19 +710,6 @@ export function MoveMarketPanel() {
         </div>
       )}
 
-      {!cfg?.configured || detail?.includes("paused") ? (
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
-          <p className="text-sm font-semibold text-amber-200">
-            NFT list / transfer is paused on Midnight Undeployed
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Prove &amp; append on <a href="/moves" className="text-glow hover:underline">/moves</a>{" "}
-            anchors a Compact MoveRegistry receipt (mUSDC / indexer). It does not mint an Arc ERC-721,
-            so there is nothing for this marketplace dropdown to sell. Use Receipt history and My
-            anchored moves for your appends; shop / A2A / A2H still settle in mUSDC.
-          </p>
-        </div>
-      ) : (
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="space-y-3 rounded-2xl border border-border bg-card/70 p-5">
           <div className="flex items-center gap-2">
@@ -860,7 +846,7 @@ export function MoveMarketPanel() {
                   </li>
                 )}
               </ul>
-              <p className="text-[11px] text-muted-foreground">Transfers are irreversible once confirmed on-chain.</p>
+              <p className="text-[11px] text-muted-foreground">Transfers are irreversible once confirmed on Arc.</p>
 
               <div className="flex flex-wrap gap-2 pt-1">
                 <button
@@ -897,12 +883,11 @@ export function MoveMarketPanel() {
           )}
 
           <p className="text-[11px] text-muted-foreground">
-            Listing and transfer use the move-rights NFT contract when that rail is enabled.
+            Gas is paid in USDC on Arc, so no ETH is needed for any of these steps.
           </p>
 
         </div>
       </div>
-      )}
 
       {(status || error || txHash || staleListing) && (
         <div className="min-w-0 rounded-xl border border-border bg-surface p-4 text-sm">

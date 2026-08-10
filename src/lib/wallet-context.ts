@@ -9,8 +9,9 @@ export type WalletLike = {
   getEthereumProvider: () => Promise<any>;
 };
 
+
 export type WalletApi = {
-  /** false when Lace is unavailable and Undeployed server-append is the only path. */
+  /** false when no Privy app ID could be resolved — wallet features are disabled. */
   available: boolean;
   ready: boolean;
   authenticated: boolean;
@@ -18,10 +19,6 @@ export type WalletApi = {
   wallets: WalletLike[];
   login: () => Promise<void> | void;
   logout: () => Promise<void> | void;
-  /** Midnight-specific extras (optional consumers). */
-  network?: string | null;
-  unshieldedAddress?: string | null;
-  dustBalance?: bigint | null;
 };
 
 const noop = async () => {};
@@ -34,26 +31,9 @@ export const WALLET_UNAVAILABLE: WalletApi = {
   wallets: [],
   login: noop,
   logout: noop,
-  network: null,
-  unshieldedAddress: null,
-  dustBalance: null,
 };
 
-/** SSR / ClientOnly fallback for Undeployed — never flash "Wallet unavailable". */
-export const UNDEPLOYED_WALLET_BOOT: WalletApi = {
-  available: true,
-  ready: true,
-  authenticated: false,
-  user: null,
-  wallets: [],
-  login: noop,
-  logout: noop,
-  network: "undeployed",
-  unshieldedAddress: null,
-  dustBalance: null,
-};
-
-export const WalletContext = createContext<WalletApi>(UNDEPLOYED_WALLET_BOOT);
+export const WalletContext = createContext<WalletApi>(WALLET_UNAVAILABLE);
 
 export function useWallet(): WalletApi {
   return useContext(WalletContext);

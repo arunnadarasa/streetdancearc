@@ -19,13 +19,8 @@ const b64url = (bytes: Uint8Array) => {
 
 function seed(): Uint8Array {
   const raw = process.env["MANDATE_SIGNING_SEED"];
-  if (raw) return sha256(new TextEncoder().encode(raw));
-  // Undeployed local demos: deterministic seed so A2H inbox can sign without secrets.
-  const undeployed = (process.env.VITE_NETWORK_ID ?? "undeployed") === "undeployed";
-  if (undeployed) {
-    return sha256(new TextEncoder().encode("streetrail:undeployed:mandate-signing:v1"));
-  }
-  throw new Error("missing_secret:MANDATE_SIGNING_SEED");
+  if (!raw) throw new Error("missing_secret:MANDATE_SIGNING_SEED");
+  return sha256(new TextEncoder().encode(raw));
 }
 
 /** Deterministic JSON so signer and verifier hash the same bytes. */

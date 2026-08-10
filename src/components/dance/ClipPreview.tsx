@@ -17,7 +17,6 @@ interface Props {
 }
 
 const ACCEPT = "video/mp4,video/quicktime,video/webm,image/jpeg,image/png,image/webp,image/gif";
-const ALLOWED = new Set(ACCEPT.split(","));
 
 interface Staged {
   file: File;
@@ -84,11 +83,6 @@ export function ClipPreview({ media, maxUploadBytes, onPinned, onClear }: Props)
     setVerification(null);
     if (file.size > maxUploadBytes) {
       setError(`Clip is too large (max ${Math.round(maxUploadBytes / 1024 / 1024)} MB).`);
-      return;
-    }
-    if (!ALLOWED.has(file.type)) {
-      setError(`Unsupported file type: ${file.type || "unknown"}. Use MP4, MOV, WebM, or an image.`);
-      if (fileRef.current) fileRef.current.value = "";
       return;
     }
     setHashing(true);

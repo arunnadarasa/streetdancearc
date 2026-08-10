@@ -54,12 +54,12 @@ function StatusChip({ status }: { status: TxEntry["status"] }) {
 }
 
 /**
- * Judge-facing list of everything this browser settled on Midnight — mode, item,
- * amount, counterparty, and the indexer link.
+ * Judge-facing list of everything this browser settled on Arc — mode, item,
+ * amount, counterparty, and the Arcscan receipt.
  */
 export function TxHistoryPanel({
   mode,
-  title = "Settled on Midnight",
+  title = "Settled on Arc",
   blurb,
   limit,
 }: {
@@ -115,7 +115,7 @@ export function TxHistoryPanel({
       setCopied(hash);
       window.setTimeout(() => setCopied((c) => (c === hash ? null : c)), 1500);
     } catch {
-      /* clipboard blocked — the indexer link still works */
+      /* clipboard blocked — the Arcscan link still works */
     }
   }
 
@@ -126,7 +126,7 @@ export function TxHistoryPanel({
           <h3 className="display text-lg text-foreground sm:text-xl">{title}</h3>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             {blurb ??
-              "Every transfer this browser settled on Midnight Undeployed, newest first. Each row links to the indexer."}
+              "Every transfer this browser settled on Arc Testnet, newest first. Each row links to the Arcscan receipt."}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
@@ -194,7 +194,7 @@ export function TxHistoryPanel({
                     className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-foreground transition hover:bg-primary/20"
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
-                    Indexer
+                    Arcscan
                   </a>
                   <button
                     type="button"

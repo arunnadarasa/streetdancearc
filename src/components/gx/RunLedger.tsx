@@ -39,7 +39,7 @@ function summarise(steps: RunStep[]): {
 
 const STATE_CHIP: Record<RunState, { label: string; cls: string }> = {
   running: { label: "Agent working", cls: "border-glow/50 bg-glow/10 text-glow" },
-  settled: { label: "Settled on Midnight", cls: "border-primary/50 bg-primary/15 text-foreground" },
+  settled: { label: "Settled on Arc", cls: "border-primary/50 bg-primary/15 text-foreground" },
   blocked: { label: "Waiting on you", cls: "border-amber-500/50 bg-amber-500/10 text-amber-200" },
   failed: { label: "Run failed", cls: "border-red-500/50 bg-red-500/10 text-red-300" },
   done: { label: "Run complete", cls: "border-border bg-background/60 text-muted-foreground" },
@@ -106,7 +106,7 @@ export function RunLedger({ steps }: { steps: RunStep[] }) {
           <div className="mt-3.5">
             <ReceiptButton href={receipt.href} />
             <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
-              {receipt.detail ?? "The agent's transfer is confirmed on Midnight Undeployed."}
+              {receipt.detail ?? "The agent's transfer is confirmed on Arc Testnet."}
             </p>
           </div>
         )}
@@ -140,7 +140,7 @@ export function RunLedger({ steps }: { steps: RunStep[] }) {
                     <p className="text-xs leading-relaxed text-muted-foreground">{step.detail}</p>
                   )}
 
-                  {step.href && <ReceiptButton href={step.href} label="View on indexer" />}
+                  {step.href && <ReceiptButton href={step.href} label="View on Arcscan" />}
 
                   {step.payload !== undefined && (
                     <JsonBlock

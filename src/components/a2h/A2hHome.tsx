@@ -1,8 +1,10 @@
 import { Braces, Inbox, Loader2, ShieldCheck, Zap } from "lucide-react";
 import { JsonBlock } from "@/components/gx/JsonBlock";
 import { InboxCard } from "./InboxCard";
+import { TreasuryPanel } from "./TreasuryPanel";
 
 import {
+  RIGHTS_REGISTRY,
   approvalMessage,
   mandateFor,
   noticeMessages,
@@ -10,8 +12,7 @@ import {
   type A2hMessage,
   type ChainPayout,
 } from "./a2h-feed";
-import { INDEXER_URL, TOKENS, getTokenUsdRate } from "@/lib/tokens";
-import { CONTRACTS } from "@/lib/contracts";
+import { ARC_EXPLORER, TOKENS, getTokenUsdRate } from "@/lib/tokens";
 import { formatMinor } from "@/lib/fx";
 import { usePayToken } from "@/lib/pay-token";
 import { useServerFn } from "@tanstack/react-start";
@@ -44,6 +45,7 @@ export function A2hHome() {
   const [chain, setChain] = useState<ChainPayout[]>([]);
   const [loading, setLoading] = useState(true);
   const [chainError, setChainError] = useState<string | null>(null);
+  const [lowGas, setLowGas] = useState(false);
   const [rawAll, setRawAll] = useState(false);
 
 
@@ -73,6 +75,7 @@ export function A2hHome() {
     } catch {
       setChainError("Registry history could not be read from the RPC provider right now.");
     } finally {
+
       setLoading(false);
     }
   }, [getPayouts, address]);
@@ -98,10 +101,8 @@ export function A2hHome() {
     { k: "Settle token", v: TOKENS[payToken].symbol },
     { k: "Per payout", v: `${mandate.per_payout_cap} ${payToken}` },
     { k: "Daily cap", v: `${mandate.daily_cap} ${payToken}` },
-    { k: "Settled on Midnight", v: String(chain.length) },
+    { k: "Settled on Arc", v: String(chain.length) },
   ];
-
-  const moveRegistry = CONTRACTS.find((c) => c.key === "registry") ?? CONTRACTS[0];
 
   return (
     <div className="space-y-6">
@@ -116,11 +117,12 @@ export function A2hHome() {
         </h2>
         <p className="mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
           A2H flips the direction. Nobody opens an app. The Rights Agent watches the rail, sees
-          your move earn, settles experimental mUSDC via genesis server-append on Midnight
-          Undeployed, and drops the indexer receipt in your inbox. When it wants to act outside
-          its mandate, it asks — and waits.
+          your move earn, sends the {payToken} from the Circle treasury wallet and drops the Arc
+          receipt in your inbox. When it wants to act outside its mandate, it asks — and waits.
         </p>
       </section>
+
+      <TreasuryPanel onLowGas={setLowGas} />
 
       <section className="rounded-2xl border border-border bg-card/70 p-5">
 
@@ -170,18 +172,16 @@ export function A2hHome() {
             </div>
 
             <p className="mt-3 text-[11px] text-muted-foreground">
-              Payouts can be anchored on Compact MoveRegistry{" "}
+              Payouts are anchored in the rights registry at{" "}
               <a
-                href={moveRegistry.explorerUrl || INDEXER_URL}
+                href={`${ARC_EXPLORER}/address/${RIGHTS_REGISTRY}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-glow underline decoration-glow/50 underline-offset-2"
               >
-                {moveRegistry.address
-                  ? `${moveRegistry.address.slice(0, 10)}…${moveRegistry.address.slice(-6)}`
-                  : "indexer"}
+                {RIGHTS_REGISTRY.slice(0, 10)}…{RIGHTS_REGISTRY.slice(-6)}
               </a>{" "}
-              on Midnight Local Undeployed.
+              on Arc Testnet.
             </p>
           </div>
         </div>
@@ -213,13 +213,20 @@ export function A2hHome() {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Settled entries below come from Midnight Undeployed writes (mUSDC + MoveRegistry) sent by
-          the agent — nothing here started with a click.
+          Every settled entry below is a real Arc transaction sent by the agent, read back from the
+          registry's on-chain events. Nothing here started with a click.
         </p>
+
+        {lowGas && (
+          <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-200">
+            Treasury is low on USDC gas, so approvals and sweeps will fail until it is topped up
+            at faucet.circle.com (Arc Testnet).
+          </p>
+        )}
 
         {chainError && (
           <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-200">
-            {chainError} New Undeployed settlements still appear here when they land.
+            {chainError} Payouts still settle on Arc — new settlements appear here immediately.
           </p>
         )}
 
@@ -239,7 +246,7 @@ export function A2hHome() {
 }
 
 /**
- * Nanopayments accrue off-chain; one Undeployed settle lands the batch.
+ * Nanopayments accrue off-chain; one Arc transaction settles the batch.
  * A real agent runs this on a cron — the button lets a judge make it act now.
  */
 function SweepTrigger({
@@ -333,8 +340,8 @@ function SweepTrigger({
         <Zap className="h-4 w-4 shrink-0 text-glow" />
         <p className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted-foreground">
           Each licensed play is worth a fraction of a cent, so the agent accrues nanopayments
-          off-chain and settles the whole batch as experimental mUSDC on Midnight Undeployed. Run a
-          sweep to add {SWEEP_PLAYS.toLocaleString()} plays.
+          off-chain and settles the whole batch in one Arc transaction. Run a sweep to add{" "}
+          {SWEEP_PLAYS.toLocaleString()} plays.
         </p>
         <button
           onClick={() => void runSweep()}
@@ -376,7 +383,7 @@ function SweepTrigger({
               className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-primary to-glow px-4 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
             >
               {busy === "settle" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-              {busy === "settle" ? "Settling on Midnight…" : "Settle now"}
+              {busy === "settle" ? "Settling on Arc…" : "Settle now"}
             </button>
           </div>
         </div>
@@ -411,16 +418,16 @@ function shortFailure(text: string, fallback: string): string {
   const t = text.trim();
   if (!t) return "That step failed. Nothing left the treasury — try again.";
   if (/circle_/.test(t) || /API parameter invalid/i.test(t)) {
-    return "The settle request was rejected. Nothing left the wallet — try again in a moment.";
+    return "Circle rejected the request, so nothing left the treasury. Try the sweep again in a moment.";
   }
   if (/rate.?limit|429/i.test(t)) {
-    return "The local node or indexer is busy — wait a few seconds and retry.";
+    return "The Arc RPC is rate-limiting right now — wait a few seconds and retry.";
   }
   if (/insufficient/i.test(t)) {
-    return "mUSDC transfer failed on Undeployed — retry after the proof server is warm.";
+    return "The treasury is out of USDC gas. Top it up at faucet.circle.com and retry.";
   }
   if (/timeout/i.test(t)) {
-    return "The Midnight transaction is still proving — check the indexer in a moment.";
+    return "The Arc transaction is still pending at Circle — check the treasury in a moment.";
   }
   if (t.length <= 140 && !t.includes("{")) return t;
   return fallback === "accrue_failed"

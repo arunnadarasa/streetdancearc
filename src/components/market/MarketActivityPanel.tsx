@@ -2,98 +2,256 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowLeftRight,
+  CheckCircle2,
+  CircleDashed,
+  Copy,
   ExternalLink,
   Loader2,
   RefreshCw,
   Sparkles,
   Tag,
+  XCircle,
 } from "lucide-react";
-import { listMidnightMoveActivity } from "@/lib/move-nft.functions";
+import { listMarketActivity } from "@/lib/market.functions";
+import type { ActivityKind, MarketActivity, MarketActivityEvent } from "@/lib/market-activity.server";
 import { useWallet } from "@/lib/wallet-context";
 
-type ActivityItem = Awaited<ReturnType<typeof listMidnightMoveActivity>>["items"][number];
-type Kind = ActivityItem["kind"];
-
-const KIND_STYLE: Record<Kind, string> = {
-  list: "bg-primary/15 text-primary",
-  buy: "bg-glow/15 text-glow",
-  cancel: "bg-secondary text-muted-foreground",
+const KIND_STYLE: Record<ActivityKind, string> = {
+  listed: "bg-primary/15 text-primary",
+  sold: "bg-glow/15 text-glow",
+  cancelled: "bg-secondary text-muted-foreground",
   transfer: "bg-amber-500/15 text-amber-400",
   mint: "bg-emerald-500/15 text-emerald-400",
 };
 
-const FILTERS: Array<{ id: "all" | Kind; label: string }> = [
+const FILTERS: Array<{ id: "all" | ActivityKind; label: string }> = [
   { id: "all", label: "All" },
-  { id: "list", label: "Listed" },
-  { id: "buy", label: "Sold" },
-  { id: "cancel", label: "Cancelled" },
+  { id: "listed", label: "Listed" },
+  { id: "sold", label: "Sold" },
+  { id: "cancelled", label: "Cancelled" },
   { id: "transfer", label: "Transfers" },
   { id: "mint", label: "Mints" },
 ];
 
-function short(a: string | undefined) {
+function short(a: string | null) {
   if (!a) return "—";
-  return a.length > 14 ? `${a.slice(0, 8)}…${a.slice(-4)}` : a;
+  return `${a.slice(0, 6)}…${a.slice(-4)}`;
 }
 
 function shortHash(h: string) {
   return h ? `${h.slice(0, 10)}…${h.slice(-8)}` : "—";
 }
 
-function KindIcon({ kind }: { kind: Kind }) {
-  if (kind === "list" || kind === "cancel") return <Tag className="h-3.5 w-3.5" aria-hidden />;
-  if (kind === "buy" || kind === "mint") return <Sparkles className="h-3.5 w-3.5" aria-hidden />;
+function shortCid(cid: string) {
+  return cid.length > 24 ? `${cid.slice(0, 12)}…${cid.slice(-8)}` : cid;
+}
+
+function KindIcon({ kind }: { kind: ActivityKind }) {
+  if (kind === "listed" || kind === "cancelled") return <Tag className="h-3.5 w-3.5" aria-hidden />;
+  if (kind === "sold") return <Sparkles className="h-3.5 w-3.5" aria-hidden />;
+  if (kind === "mint") return <Sparkles className="h-3.5 w-3.5" aria-hidden />;
   return <ArrowLeftRight className="h-3.5 w-3.5" aria-hidden />;
 }
 
-function summarise(e: ActivityItem, me: string): string {
-  const mine = (a: string | undefined) => Boolean(a && me && a === me);
+function StatusPill({ status }: { status: MarketActivityEvent["status"] }) {
+  if (status === "success") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-400">
+        <CheckCircle2 className="h-3 w-3" aria-hidden /> Success
+      </span>
+    );
+  }
+  if (status === "failed") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-destructive/15 px-2 py-0.5 text-[11px] font-semibold text-destructive">
+        <XCircle className="h-3 w-3" aria-hidden /> Failed
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+      <CircleDashed className="h-3 w-3" aria-hidden /> Confirmed
+    </span>
+  );
+}
+
+/** Plain-English one-liner for a row, written from the connected wallet's view. */
+function summarise(e: MarketActivityEvent, me: string): string {
+  const mine = (a: string | null) => Boolean(a && me && a.toLowerCase() === me.toLowerCase());
   const move = `move #${e.tokenId}`;
-  const amount = e.priceAtomic
-    ? `${(Number(e.priceAtomic) / 1e6).toFixed(6).replace(/0+$/, "").replace(/\.$/, "")} mUSDC`
-    : null;
+  const amount = e.price && e.symbol ? `${e.price} ${e.symbol}` : null;
 
   switch (e.kind) {
-    case "list":
-      return mine(e.actor)
+    case "listed":
+      return mine(e.from)
         ? `You listed ${move}${amount ? ` for ${amount}` : ""}`
-        : `${short(e.actor)} listed ${move}${amount ? ` for ${amount}` : ""}`;
-    case "cancel":
-      return mine(e.actor) ? `You cancelled ${move}` : `${short(e.actor)} cancelled ${move}`;
-    case "buy":
-      return mine(e.actor)
-        ? `You bought ${move}${amount ? ` for ${amount}` : ""}`
-        : `${short(e.actor)} bought ${move}${amount ? ` for ${amount}` : ""}`;
+        : `${short(e.from)} listed ${move}${amount ? ` for ${amount}` : ""}`;
+    case "cancelled":
+      return mine(e.from) ? `You cancelled the listing for ${move}` : `${short(e.from)} cancelled the listing for ${move}`;
+    case "sold":
+      if (mine(e.to)) return `You bought ${move} from ${short(e.from)}${amount ? ` for ${amount}` : ""}`;
+      if (mine(e.from)) return `You sold ${move} to ${short(e.to)}${amount ? ` for ${amount}` : ""}`;
+      return `${short(e.to)} bought ${move} from ${short(e.from)}${amount ? ` for ${amount}` : ""}`;
     case "mint":
-      return mine(e.actor) ? `You minted ${move}` : `${short(e.actor)} minted ${move}`;
+      return mine(e.to) ? `You minted ${move}` : `${short(e.to)} minted ${move}`;
     default:
-      return mine(e.actor)
-        ? `You transferred ${move} to ${short(e.counterparty)}`
-        : `${short(e.actor)} transferred ${move} to ${short(e.counterparty)}`;
+      if (mine(e.from)) return `You transferred ${move} to ${short(e.to)}`;
+      if (mine(e.to)) return `You received ${move} from ${short(e.from)}`;
+      return `${short(e.from)} transferred ${move} to ${short(e.to)}`;
   }
 }
 
-export function MarketActivityPanel() {
-  const { wallets, unshieldedAddress } = useWallet();
-  const fetchActivity = useServerFn(listMidnightMoveActivity);
-  const [items, setItems] = useState<ActivityItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | Kind>("all");
-  const [scope, setScope] = useState<"mine" | "all">("all");
+function timeAgo(seconds: number): string {
+  const diff = Math.max(0, Math.floor(Date.now() / 1000) - seconds);
+  if (diff < 60) return "just now";
+  const mins = Math.floor(diff / 60);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return days < 30 ? `${days}d ago` : `${Math.floor(days / 30)}mo ago`;
+}
 
-  const me =
-    unshieldedAddress ||
-    wallets.find((w) => w.walletClientType === "privy")?.address ||
-    wallets[0]?.address ||
-    "";
+function CopyButton({ value, label }: { value: string; label: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(value);
+          setDone(true);
+          setTimeout(() => setDone(false), 1500);
+        } catch {
+          /* clipboard blocked — the full value is still visible in the link */
+        }
+      }}
+      className="inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+      aria-label={`Copy ${label}`}
+    >
+      <Copy className="h-3 w-3" aria-hidden />
+      {done ? "Copied" : "Copy"}
+    </button>
+  );
+}
+
+function ActivityRow({ event, me }: { event: MarketActivityEvent; me: string }) {
+  return (
+    <li className="min-w-0 rounded-xl border border-border/60 bg-surface p-3">
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
+        <span
+          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ${KIND_STYLE[event.kind]}`}
+        >
+          <KindIcon kind={event.kind} />
+          {event.label}
+        </span>
+        <StatusPill status={event.status} />
+        <span className="text-[11px] text-muted-foreground">
+          Block {event.blockNumber}
+          {event.atSeconds > 0 ? ` · ${timeAgo(event.atSeconds)}` : ""}
+        </span>
+      </div>
+
+      <p className="mt-2 min-w-0 break-words text-sm font-semibold text-foreground">{summarise(event, me)}</p>
+
+      <dl className="mt-2 grid grid-cols-1 gap-x-4 gap-y-1 text-[12px] sm:grid-cols-2">
+        <div className="flex min-w-0 gap-2">
+          <dt className="shrink-0 text-muted-foreground">Token ID</dt>
+          <dd className="min-w-0 break-all text-foreground">
+            <a href={event.tokenUrl} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline">
+              #{event.tokenId}
+            </a>
+          </dd>
+        </div>
+        <div className="flex min-w-0 gap-2">
+          <dt className="shrink-0 text-muted-foreground">Price</dt>
+          <dd className="min-w-0 break-all text-foreground">
+            {event.price && event.symbol ? `${event.price} ${event.symbol}` : "—"}
+          </dd>
+        </div>
+        <div className="flex min-w-0 gap-2">
+          <dt className="shrink-0 text-muted-foreground">Payment token</dt>
+          <dd className="min-w-0 break-all text-foreground">
+            {event.symbol ? `${event.symbol} · ${short(event.payToken)}` : "—"}
+          </dd>
+        </div>
+        <div className="flex min-w-0 gap-2">
+          <dt className="shrink-0 text-muted-foreground">Counterparty</dt>
+          <dd className="min-w-0 break-all text-foreground">{short(event.to ?? event.from)}</dd>
+        </div>
+        {event.royalty && event.symbol ? (
+          <div className="flex min-w-0 gap-2 sm:col-span-2">
+            <dt className="shrink-0 text-muted-foreground">Creator royalty</dt>
+            <dd className="min-w-0 break-all text-foreground">
+              {event.royalty} {event.symbol} to {short(event.royaltyReceiver)}
+            </dd>
+          </div>
+        ) : null}
+        <div className="flex min-w-0 gap-2 sm:col-span-2">
+          <dt className="shrink-0 text-muted-foreground">Metadata CID</dt>
+          <dd className="flex min-w-0 flex-wrap items-center gap-1 text-foreground">
+            {event.cid ? (
+              <>
+                <a
+                  href={event.cidUrl ?? "#"}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="min-w-0 break-all font-mono underline-offset-2 hover:underline"
+                  title={event.cid}
+                >
+                  {shortCid(event.cid)}
+                </a>
+                <CopyButton value={event.cid} label="metadata CID" />
+              </>
+            ) : (
+              <span className="text-muted-foreground">Not available</span>
+            )}
+          </dd>
+        </div>
+      </dl>
+
+      <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+        <a
+          href={event.explorerUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1 text-[12px] font-semibold text-primary underline-offset-2 hover:underline"
+        >
+          View on Arcscan <ExternalLink className="h-3 w-3" aria-hidden />
+        </a>
+        <span className="min-w-0 break-all font-mono text-[11px] text-muted-foreground">{shortHash(event.txHash)}</span>
+      </div>
+    </li>
+  );
+}
+
+export function MarketActivityPanel({ className = "" }: { className?: string }) {
+  const { wallets } = useWallet();
+  const fetchActivity = useServerFn(listMarketActivity);
+
+  const [data, setData] = useState<MarketActivity | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [scope, setScope] = useState<"mine" | "all">("mine");
+  const [kind, setKind] = useState<"all" | ActivityKind>("all");
+
+  const address = (wallets.find((w) => w.walletClientType === "privy")?.address ?? wallets[0]?.address ?? "") as string;
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetchActivity({ data: undefined });
-      setItems(res.items);
+      const res = await fetchActivity({ data: { limit: 40 } });
+      setData(res as MarketActivity);
     } catch {
-      setItems([]);
+      setData({
+        events: [],
+        market: "",
+        nft: "",
+        configured: true,
+        source: "none",
+        degraded: true,
+        detail: "Marketplace activity could not be loaded right now.",
+        scannedBlocks: 0,
+      });
     } finally {
       setLoading(false);
     }
@@ -103,119 +261,114 @@ export function MarketActivityPanel() {
     void load();
   }, [load]);
 
-  const rows = useMemo(() => {
-    return items.filter((e) => {
-      if (filter !== "all" && e.kind !== filter) return false;
-      if (scope === "mine" && me) {
-        return e.actor === me || e.counterparty === me;
-      }
-      return true;
-    });
-  }, [items, filter, scope, me]);
+  const filtered = useMemo(() => {
+    const all = data?.events ?? [];
+    const byScope =
+      scope === "mine" && address
+        ? all.filter(
+            (e) =>
+              e.from?.toLowerCase() === address.toLowerCase() ||
+              e.to?.toLowerCase() === address.toLowerCase(),
+          )
+        : all;
+    return kind === "all" ? byScope : byScope.filter((e) => e.kind === kind);
+  }, [data, scope, kind, address]);
 
   return (
-    <div className="rounded-2xl border border-border bg-card/70 p-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            Market activity
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Mint, list, buy, cancel and transfer of Compact MoveNfts on Midnight Undeployed.
+    <section className={`min-w-0 rounded-2xl border border-border bg-card p-4 sm:p-5 ${className}`}>
+      <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="text-lg font-black tracking-tight text-foreground">Market activity</h3>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            Every list, buy, cancel and transfer of a Move Rights NFT, read straight from Arc Testnet.
           </p>
         </div>
         <button
           type="button"
           onClick={() => void load()}
           disabled={loading}
-          className="inline-flex h-9 items-center gap-2 rounded-full border border-border px-3 text-xs font-semibold text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+          className="inline-flex min-h-[40px] items-center gap-2 rounded-lg border border-border px-3 text-[13px] font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-60"
         >
-          {loading ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-          ) : (
-            <RefreshCw className="h-3.5 w-3.5" aria-hidden />
-          )}
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <RefreshCw className="h-4 w-4" aria-hidden />}
           Refresh
         </button>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => setScope("mine")}
-          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-            scope === "mine" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
-          }`}
-        >
-          Mine
-        </button>
-        <button
-          type="button"
-          onClick={() => setScope("all")}
-          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-            scope === "all" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
-          }`}
-        >
-          All
-        </button>
-      </div>
-
-      <div className="mt-2 flex flex-wrap gap-2">
-        {FILTERS.map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            onClick={() => setFilter(f.id)}
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${
-              filter === f.id
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-4 space-y-2">
-        {loading && items.length === 0 ? (
-          <p className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Reading MoveNft activity…
-          </p>
-        ) : rows.length === 0 ? (
-          <p className="py-6 text-sm text-muted-foreground">
-            No marketplace activity yet. Mint on /moves, then list or transfer here.
-          </p>
-        ) : (
-          rows.map((e) => (
-            <div
-              key={`${e.kind}-${e.tokenId}-${e.txId}-${e.at}`}
-              className="rounded-xl border border-border bg-background/40 p-3"
+      <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2">
+        <div className="inline-flex rounded-lg border border-border p-0.5">
+          {(["mine", "all"] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setScope(s)}
+              className={`min-h-[34px] rounded-md px-3 text-[12px] font-bold uppercase tracking-wide transition-colors ${
+                scope === s ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
             >
-              <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${KIND_STYLE[e.kind]}`}
-                >
-                  <KindIcon kind={e.kind} />
-                  {e.kind}
-                </span>
-                <span className="ml-auto text-[11px] text-muted-foreground">
-                  {new Date(e.at).toLocaleString()}
-                </span>
-              </div>
-              <p className="mt-2 text-sm font-semibold text-foreground">{summarise(e, me)}</p>
-              <a
-                href={e.explorerUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-2 inline-flex items-center gap-1 text-xs text-glow hover:underline"
-              >
-                {shortHash(e.txId)} <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-          ))
-        )}
+              {s === "mine" ? "Mine" : "All"}
+            </button>
+          ))}
+        </div>
+        <div className="flex min-w-0 flex-wrap gap-1.5">
+          {FILTERS.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setKind(f.id)}
+              className={`min-h-[34px] rounded-full border px-3 text-[12px] font-semibold transition-colors ${
+                kind === f.id
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
       </div>
-    </div>
+
+      {scope === "mine" && !address && (
+        <p className="mt-4 rounded-lg border border-border/60 bg-surface px-3 py-2 text-[13px] text-muted-foreground">
+          Connect your wallet to see only your own receipts, or switch to <span className="font-semibold">All</span>.
+        </p>
+      )}
+
+      {data?.detail && (
+        <p className="mt-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[13px] text-amber-300">
+          {data.detail}
+        </p>
+      )}
+
+      {loading && !data ? (
+        <p className="mt-4 flex items-center gap-2 text-[13px] text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Reading Arc Testnet logs…
+        </p>
+      ) : filtered.length === 0 ? (
+        !data?.detail && (
+          <p className="mt-4 rounded-lg border border-border/60 bg-surface px-3 py-2 text-[13px] text-muted-foreground">
+            {scope === "mine" && address
+              ? "No marketplace activity for this wallet yet. List, buy or transfer a move and it will show up here."
+              : data?.source === "explorer"
+                ? "No marketplace activity on Arc Testnet yet."
+                : "No marketplace activity in the recent block window yet."}
+          </p>
+        )
+      ) : (
+        <ul className="mt-4 grid min-w-0 gap-2.5">
+          {filtered.map((e) => (
+            <ActivityRow key={e.id} event={e} me={address} />
+          ))}
+        </ul>
+      )}
+
+      {data && !data.degraded && (data.source === "explorer" || data.scannedBlocks > 0) && (
+        <p className="mt-3 text-[11px] text-muted-foreground">
+          {data.source === "explorer"
+            ? "Full history indexed by Arcscan"
+            : `Scanned the last ${data.scannedBlocks.toLocaleString()} Arc blocks`}{" "}
+          · market {short(data.market)} · collection {short(data.nft)}
+        </p>
+      )}
+    </section>
   );
 }

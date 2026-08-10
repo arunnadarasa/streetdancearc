@@ -44,7 +44,7 @@ export function ContractsSheet() {
         <SheetHeader className="shrink-0 border-b border-border p-4 text-left">
           <SheetTitle className="display text-left text-sm">Deployed contracts</SheetTitle>
           <p className="text-xs text-muted-foreground">
-            Four Compact contracts on Midnight Local Undeployed. Verify via the local indexer.
+            Four contracts power StreetRail. Every one is verified on Arcscan.
           </p>
         </SheetHeader>
         <div className="min-h-0 flex-1 overflow-y-auto p-4">

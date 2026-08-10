@@ -8,9 +8,9 @@ export const Route = createFileRoute("/deck")({
   head: () => ({
     meta: [
       { title: "Judges Deck · StreetRail" },
-      { name: "description", content: "Interactive pitch deck for StreetRail — Midnight Local Undeployed · Compact · mUSDC · x402 / AP2 / UCP." },
+      { name: "description", content: "Interactive pitch deck for StreetRail — the Encode Club Programmable Money Hackathon — Build on Arc." },
       { property: "og:title", content: "Judges Deck · StreetRail" },
-      { property: "og:description", content: "Interactive pitch deck for StreetRail — Midnight Local Undeployed · Compact · mUSDC · x402 / AP2 / UCP." },
+      { property: "og:description", content: "Interactive pitch deck for StreetRail — the Encode Club Programmable Money Hackathon — Build on Arc." },
     ],
   }),
   component: DeckPage,
@@ -24,7 +24,7 @@ function DeckPage() {
         <div className="rail flex flex-col gap-6 py-8 sm:py-12">
           <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
             <div className="min-w-0">
-              <p className="eyebrow">Midnight Local Undeployed · Compact · mUSDC · H2H · H2A · A2A · A2H</p>
+              <p className="eyebrow">Encode Club · Programmable Money Hackathon · Build on Arc</p>
               <h1 className="display mt-3 text-[clamp(1.75rem,7vw,2.25rem)] sm:text-5xl">Judges Deck</h1>
             </div>
             <div className="grid grid-cols-2 items-center gap-2 sm:flex sm:flex-wrap">

@@ -22,19 +22,19 @@ export const Route = createFileRoute("/")({
   loader: () => getPublicConfig(),
   head: () => ({
     meta: [
-      { title: "StreetRail — Street Dance Merch on Midnight" },
+      { title: "StreetRail — Street Dance Merch, Paid in Stablecoins" },
       {
         name: "description",
         content:
-          "Streetwear built for cyphers and battles. Checkout in experimental mUSDC on Midnight Local Undeployed, plus a private-by-default Compact move registry.",
+          "Streetwear built for cyphers and battles — sneakers, snapbacks, jackets and tees. Checkout in USDC, EURC or cirBTC on Circle's Arc, plus an on-chain marketplace for dance moves.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:title", content: "StreetRail — Street Dance Merch on Midnight" },
+      { property: "og:title", content: "StreetRail — Street Dance Merch, Paid in Stablecoins" },
       {
         property: "og:description",
         content:
-          "Streetwear built for cyphers and battles. Checkout in experimental mUSDC on Midnight Local Undeployed, plus a private-by-default Compact move registry.",
+          "Streetwear built for cyphers and battles — sneakers, snapbacks, jackets and tees. Checkout in USDC, EURC or cirBTC on Circle's Arc, plus an on-chain marketplace for dance moves.",
       },
     ],
   }),
@@ -42,7 +42,9 @@ export const Route = createFileRoute("/")({
 });
 
 const THESIS =
-  "Streetwear checkout and dance-move rights on Midnight Local Undeployed — Compact circuits keep witnesses private, disclose() puts only what must be public on the ledger, and settlement uses experimental mUSDC via genesis server-append.";
+  "Streetwear checkout and dance-move royalties, settled in stablecoins on Circle's Arc — where a $0.001 payment is worth making because gas is a rounding error and paid in the same asset.";
+
+
 
 const STEPS = [
   {
@@ -52,13 +54,13 @@ const STEPS = [
   },
   {
     n: "02",
-    t: "Settle on Midnight",
-    d: "Cart and agent flows settle experimental mUSDC through the Undeployed genesis wallet. First proof can take up to ~4 min cold.",
+    t: "Pay in stablecoins",
+    d: "Checkout in USDC, EURC or cirBTC. Gas is USDC on Arc, so there's no second asset to top up.",
   },
   {
     n: "03",
-    t: "Anchor the move",
-    d: "Log choreography CIDs on MoveRegistry — author commitment stays ZK-bound; verify via the local indexer.",
+    t: "The move travels with it",
+    d: "Every drop is tied to choreography with an on-chain rights record, so the creators behind the move get paid too.",
   },
 ];
 

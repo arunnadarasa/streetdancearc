@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   Sheet,
@@ -14,14 +14,15 @@ import { ShoppingCart, Minus, Plus, Trash2, ExternalLink, Loader2, Zap, History 
 import { useCartStore } from "@/stores/cartStore";
 import { usePayToken } from "@/lib/pay-token";
 import { useWallet } from "@/lib/wallet-context";
-import { settleOnMidnight, settlementNote } from "@/lib/settle";
+import { settleOnArc, settlementNote } from "@/lib/settle";
 import { DEMO_SCALE } from "@/lib/agent-card";
 import { TOKENS, formatAmount, toAtomic, convertFromFiat, type FxRates } from "@/lib/tokens";
+import type { Address } from "viem";
+import { getPublicConfig } from "@/lib/config.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchFxRates } from "@/lib/fx.functions";
 import { LiveTotalCalculator } from "@/components/fx/LiveTotalCalculator";
 import { recordSettlement } from "@/lib/tx-log";
-import { formatElapsed, useElapsed } from "@/lib/use-elapsed";
 
 
 export function CartDrawer() {
@@ -48,19 +49,15 @@ export function CartDrawer() {
   const [payToken] = usePayToken();
   const tokenCfg = TOKENS[payToken];
   const { authenticated, login, wallets, available } = useWallet();
+  const [treasury, setTreasury] = useState("");
   const [fx, setFx] = useState<FxRates | null>(null);
   const getFx = useServerFn(fetchFxRates);
 
   const [arcState, setArcState] = useState<
-    | { phase: "idle" }
-    | { phase: "paying" }
-    | { phase: "paid"; url: string; amount: string; elapsedLabel: string }
-    | { phase: "error"; message: string; elapsedLabel: string }
+    { phase: "idle" } | { phase: "paying" } | { phase: "paid"; url: string; amount: string } | { phase: "error"; message: string }
   >({ phase: "idle" });
-  const payStartedRef = useRef<number | null>(null);
-  const { label: payingLabel } = useElapsed(arcState.phase === "paying");
 
-  // Live FX: convert the listed GBP total into mUSDC atomic units.
+  // Live FX: convert the listed GBP total into the selected token's atomic units.
   const currencyCode = items[0]?.price.currencyCode ?? "GBP";
   const arcAtomic = toAtomic(
     convertFromFiat(totalPrice * DEMO_SCALE, currencyCode, payToken, fx),
@@ -70,6 +67,11 @@ export function CartDrawer() {
   useEffect(() => {
     if (open) syncCart();
   }, [open, syncCart]);
+
+  useEffect(() => {
+    if (!open || treasury) return;
+    void getPublicConfig().then((c) => setTreasury(c.treasuryAddress));
+  }, [open, treasury]);
 
   useEffect(() => {
     let mounted = true;
@@ -92,19 +94,22 @@ export function CartDrawer() {
       await login();
       return;
     }
-    const embedded = wallets[0] ?? { address: "server-append" };
-    payStartedRef.current = Date.now();
+    if (!treasury) {
+      setArcState({ phase: "error", message: "No merchant treasury address configured." });
+      return;
+    }
+    const embedded = wallets.find((w) => w.walletClientType === "privy") ?? wallets[0];
+    if (!embedded?.address) {
+      setArcState({ phase: "error", message: "No embedded wallet available." });
+      return;
+    }
     setArcState({ phase: "paying" });
     try {
-      const res = await settleOnMidnight(
-        embedded,
+      const res = await settleOnArc(
+        embedded as Parameters<typeof settleOnArc>[0],
         payToken,
-        "streetrail:treasury:v1",
+        treasury as Address,
         arcAtomic,
-        "h2h-cart",
-      );
-      const elapsedLabel = formatElapsed(
-        Math.floor((Date.now() - (payStartedRef.current ?? Date.now())) / 1000),
       );
       recordSettlement({
         hash: res.hash,
@@ -117,23 +122,14 @@ export function CartDrawer() {
         atomic: res.atomic,
         to: res.to,
         from: res.from,
-        status: res.simulated ? "pending" : "success",
       });
       setArcState({
         phase: "paid",
         url: res.explorer,
         amount: formatAmount(arcAtomic, payToken),
-        elapsedLabel,
       });
     } catch (e) {
-      const elapsedLabel = formatElapsed(
-        Math.floor((Date.now() - (payStartedRef.current ?? Date.now())) / 1000),
-      );
-      setArcState({
-        phase: "error",
-        message: e instanceof Error ? e.message : String(e),
-        elapsedLabel,
-      });
+      setArcState({ phase: "error", message: e instanceof Error ? e.message : String(e) });
     }
   };
 
@@ -154,16 +150,16 @@ export function CartDrawer() {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="flex h-full w-full flex-col border-border bg-popover text-popover-foreground sm:max-w-lg">
-        <SheetHeader className="shrink-0 text-left">
-          <SheetTitle className="text-popover-foreground">Your Cart</SheetTitle>
+      <SheetContent className="w-full sm:max-w-lg flex flex-col h-full bg-surface-2 text-foreground border-border">
+        <SheetHeader className="flex-shrink-0">
+          <SheetTitle className="text-foreground">Your Cart</SheetTitle>
           <SheetDescription className="text-muted-foreground">
             {totalItems === 0
               ? "Your cart is empty"
               : `${totalItems} item${totalItems !== 1 ? "s" : ""} in your cart`}
           </SheetDescription>
         </SheetHeader>
-        <div className="flex min-h-0 flex-1 flex-col pt-6 text-popover-foreground">
+        <div className="flex flex-col flex-1 pt-6 min-h-0">
           {items.length === 0 ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
@@ -173,74 +169,63 @@ export function CartDrawer() {
             </div>
           ) : (
             <>
-              <div className="min-h-[7.5rem] flex-1 overflow-y-auto pr-2">
-                <div className="space-y-3">
+              <div className="flex-1 overflow-y-auto pr-2 min-h-0">
+                <div className="space-y-4">
                   {items.map((item) => {
                     const img = item.product.node.images?.edges?.[0]?.node;
-                    const options = item.selectedOptions.map((o) => o.value).filter(Boolean);
                     return (
-                      <div
-                        key={item.variantId}
-                        className="flex gap-3 rounded-xl border border-border/80 bg-secondary/80 p-3"
-                      >
-                        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-background">
-                          {img ? (
+                      <div key={item.variantId} className="flex gap-4 p-2">
+                        <div className="w-16 h-16 bg-secondary rounded-md overflow-hidden flex-shrink-0">
+                          {img && (
                             <img
                               src={img.url}
                               alt={item.product.node.title}
-                              className="h-full w-full object-cover"
+                              className="w-full h-full object-cover"
                             />
-                          ) : (
-                            <ShoppingCart className="h-6 w-6 text-muted-foreground" aria-hidden />
                           )}
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="truncate text-sm font-bold tracking-tight text-white">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium truncate text-foreground">
                             {item.product.node.title}
                           </h4>
-                          {options.length > 0 ? (
-                            <p className="mt-0.5 text-xs text-white/70">
-                              {options.join(" · ")}
-                            </p>
-                          ) : null}
-                          <p className="mt-1 text-sm font-semibold tabular-nums text-glow">
+                          <p className="text-sm text-muted-foreground">
+                            {item.selectedOptions.map((o) => o.value).join(" • ")}
+                          </p>
+                          <p className="font-semibold text-glow">
                             {item.price.currencyCode}{" "}
                             {parseFloat(item.price.amount).toFixed(2)}
                           </p>
                         </div>
-                        <div className="flex shrink-0 flex-col items-end gap-2">
+                        <div className="flex flex-col items-end gap-2 flex-shrink-0">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-white/70 hover:bg-background hover:text-white"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
                             onClick={() => removeItem(item.variantId)}
-                            aria-label={`Remove ${item.product.node.title}`}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
-                          <div className="flex items-center gap-1 rounded-full border border-border bg-background p-0.5">
+                          <div className="flex items-center gap-1">
                             <Button
-                              variant="ghost"
+                              variant="outline"
                               size="icon"
-                              className="h-7 w-7 text-white hover:bg-secondary"
+                              className="h-8 w-8 border-border bg-surface"
                               onClick={() =>
                                 updateQuantity(item.variantId, item.quantity - 1)
                               }
-                              aria-label="Decrease quantity"
                             >
                               <Minus className="h-3.5 w-3.5" />
                             </Button>
-                            <span className="w-6 text-center text-sm font-bold tabular-nums text-white">
+                            <span className="w-6 text-center text-sm">
                               {item.quantity}
                             </span>
                             <Button
-                              variant="ghost"
+                              variant="outline"
                               size="icon"
-                              className="h-7 w-7 text-white hover:bg-secondary"
+                              className="h-8 w-8 border-border bg-surface"
                               onClick={() =>
                                 updateQuantity(item.variantId, item.quantity + 1)
                               }
-                              aria-label="Increase quantity"
                             >
                               <Plus className="h-3.5 w-3.5" />
                             </Button>
@@ -251,10 +236,10 @@ export function CartDrawer() {
                   })}
                 </div>
               </div>
-              <div className="shrink-0 space-y-2 border-t border-border pt-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-semibold text-white">Total</span>
-                  <span className="text-base font-black tabular-nums text-glow">
+              <div className="flex-shrink-0 space-y-3 pt-4 border-t border-border">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold">Total</span>
+                  <span className="text-xl font-black text-glow">
                     {items[0]?.price.currencyCode || "£"} {totalPrice.toFixed(2)}
                   </span>
                 </div>
@@ -275,25 +260,16 @@ export function CartDrawer() {
                     disabled={items.length === 0 || arcState.phase === "paying"}
                   >
                     {arcState.phase === "paying" ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Settling… {payingLabel}
-                      </>
+                      <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <>
-                        <Zap className="mr-2 h-4 w-4" />
+                        <Zap className="w-4 h-4 mr-2" />
                         {authenticated
-                          ? `Pay ${tokenCfg.symbol} on Midnight`
-                          : "Connect to pay on Midnight"}
+                          ? `Pay ${tokenCfg.symbol} on Arc`
+                          : "Sign in to pay on Arc"}
                       </>
                     )}
                   </Button>
-                )}
-
-                {arcState.phase === "paying" && (
-                  <p className="text-[11px] leading-snug text-muted-foreground">
-                    Proving mUSDC · first proof can take up to ~4 min · elapsed {payingLabel}
-                  </p>
                 )}
 
                 {arcState.phase === "paid" && (
@@ -303,7 +279,7 @@ export function CartDrawer() {
                     rel="noreferrer"
                     className="block rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs font-semibold text-foreground underline decoration-glow/60 underline-offset-4"
                   >
-                    Settled {arcState.amount} in {arcState.elapsedLabel} — view receipt on indexer
+                    Settled {arcState.amount} — view receipt on Arcscan
                   </a>
                 )}
 
@@ -317,7 +293,7 @@ export function CartDrawer() {
                 </Link>
                 {arcState.phase === "error" && (
                   <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-foreground">
-                    Failed after {arcState.elapsedLabel}: {arcState.message}
+                    {arcState.message}
                   </p>
                 )}
                 {arcState.phase === "idle" && (

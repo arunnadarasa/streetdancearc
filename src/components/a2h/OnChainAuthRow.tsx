@@ -15,8 +15,8 @@ export interface OnChainAuthView {
 const short = (v: string) => `${v.slice(0, 10)}…${v.slice(-6)}`;
 
 /**
- * Compact authorization row for AP2 mandates. On Undeployed this is usually
- * off-chain Ed25519 + optional Compact MandateVault anchor (legacy ERC-1271 paused).
+ * Compact "contract authorization" row: proves the treasury authorized this
+ * action on Arc via ERC-1271, with no EOA delegate in the loop.
  */
 export function OnChainAuthRow({ auth }: { auth: OnChainAuthView }) {
   const Icon = auth.valid ? ShieldCheck : ShieldAlert;
@@ -29,14 +29,23 @@ export function OnChainAuthRow({ auth }: { auth: OnChainAuthView }) {
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <Icon className={`h-3.5 w-3.5 ${auth.valid ? "text-glow" : "text-amber-300"}`} />
         <span className="font-black uppercase tracking-[0.14em] text-foreground">
-          {auth.valid ? "On-chain authorization" : "Mandate authorization"}
+          ERC-1271 authorization
         </span>
         <span className="text-muted-foreground">
-          {auth.valid ? `verified · ${auth.magicValue}` : "Ed25519 / Compact — Midnight Undeployed"}
+          {auth.valid ? `isValidSignature → ${auth.magicValue}` : "off-chain mandate only"}
         </span>
       </div>
       <p className="mt-1 break-all leading-relaxed text-muted-foreground">
-        Digest {short(auth.hash)}
+        Contract wallet{" "}
+        <a
+          href={auth.authorizerUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold text-foreground underline underline-offset-2"
+        >
+          {short(auth.authorizer)}
+        </a>{" "}
+        · digest {short(auth.hash)}
         {auth.expiresAt
           ? ` · valid through ${new Date(auth.expiresAt).toLocaleDateString(undefined, {
               year: "numeric",
@@ -52,7 +61,7 @@ export function OnChainAuthRow({ auth }: { auth: OnChainAuthView }) {
           rel="noopener noreferrer"
           className="mt-1 inline-block font-semibold text-foreground underline underline-offset-2"
         >
-          View approval on indexer
+          Approval tx on Arcscan
         </a>
       )}
       {!auth.valid && auth.detail ? (

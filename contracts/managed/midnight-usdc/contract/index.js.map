@@ -1,8 +1,0 @@
-{
-  "version": 3,
-  "file": "index.js",
-  "sourceRoot": "../../../../",
-  "sources": ["contracts/MidnightUSDC.compact", "compiler/standard-library.compact"],
-  "names": [],
-  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAAA;;;;;;;;;;;;;MASA,AAAA,MAKC;;;;;;;;;;;;;;;;;;;;;;OAAA;MAED,AAAA,QAeC;;;;;cAfuB,IAAa;cAAE,QAAgB;cAAE,OAAgB;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;yCAAjD,IAAa,+BAAE,QAAgB,+BAAE,OAAgB;;;;;;;;;0CAAjD,IAAa;0CAAE,QAAgB;0CAAE,OAAgB;;;OAexE;;;;;;;;;;GACA;EAhCD;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;IAIA;;;;;;;;;;yEAAiD;IACjD;;;;;;;;;;yEAA2C;;;;;;;GA2B1C;EChCD,AAAA,kBAAA;oEAAA;;;EDOA,AAAA,iBAAoC;;0DAApC,cAAoC;;;;;;;;;;;;;;GAAA;EAEpC,AAAA,SAKC;UAJO,IAAqB;UACrB,IAA2E;yCAAJ,IAAE;qDACvE;;;;;;;;;;;4KAAyB,IAAE;;;;0HAAnB;;UAChB,KAAQ;IAAR;;;;;;;;;;2HAAyB,IAAE;;;2HAA3B,KAAQ;;;wEAAA;;GACT;EAED,AAAA,WAeC,4BAfuB,IAAa,EAAE,QAAgB,EAAE,OAAgB;UACjE,IAAqB;UACrB,QAA+E;6CAAJ,IAAE;qDAC3E;;;;;;;;;;;4KAA6B,OAAK;;;;0HAAtB;;oDACb;;;;;;;;;;;2KAAyB,QAAM;;;;yHAAvB;;UACT,SAA2C,2BAAjC;;;;;;;;;;;;;;yIAAyB,QAAM;;;mHAAvB;4BACjB,SAAO,IAAI,QAAM;IACxB;;;;;;;;;;2HAA6B,OAAK;;;;;wEAAtB;UACZ,KAAQ,4BAAoC,SAAO,IAAG,QAAM;;mBAAhB,SAAO,GAAG,QAAM;IAA5D;;;;;;;;;;2HAAyB,QAAM;;;2HAA/B,KAAQ;;;wEAAA;gCACJ;;;;;;;;;;;uJAAyB,IAAE;;;;qGAAnB;;YACJ,OAAqC,2BAA7B;;;;;;;;;;;;;;yIAAyB,IAAE;;;mHAAnB;YACtB,KAAQ;;;;;uBAAgC,OAAK,GAAG,QAAM;MAAtD;;;;;;;;;;6HAAyB,IAAE;;;6HAA3B,KAAQ;;;0EAAA;;MAER;;;;;;;;;;6HAAyB,IAAE;;;6HAAY,QAAM;;;0EAArC;;;GAEX;;;;;;;;;;;;;;;;IA3BD;;;;;uCAAA;;;;;;;;;;;;;;;;4GAAiD;;;;;;uCAAjD;;;;;;;;;;;;4GAAiD;;;;;;;;;;;;;;uCAAjD;;;;;;;;;;;;;;;4GAAiD;;;;;;;;;;;;;;uCAAjD;;;;;;;;;;;;;;;;;4GAAiD;;;;;;;;;KAAA;IACjD;;;;;uCAAA;;;;;;;;;;;;;;;;4GAA2C;;;;;;uCAA3C;;;;;;;;;;;;4GAA2C;;;;;;;;;;;;;;uCAA3C;;;;;;;;;;;;;;;4GAA2C;;;;;;;;;KAAA;;;;;;;;;;"
-}

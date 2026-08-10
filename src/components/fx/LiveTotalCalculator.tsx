@@ -78,30 +78,30 @@ export function LiveTotalCalculator({
 
   return (
     <div
-      className={`rounded-xl border border-border bg-surface/60 p-3 backdrop-blur-sm ${className}`}
+      className={`rounded-2xl border border-border bg-surface/60 p-4 backdrop-blur-sm ${className}`}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-          Live Midnight total
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          Live Arc total
         </span>
         {loading && !fx ? (
-          <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
         ) : fx?.stale ? (
-          <span className="rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold text-amber-400">
-            Fallback
+          <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-400">
+            Fallback rate
           </span>
         ) : fx ? (
-          <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold text-emerald-400">
+          <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
             Live FX
           </span>
         ) : null}
       </div>
 
-      <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-        <span className="text-lg font-black tabular-nums text-foreground">
+      <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span className="display text-3xl font-black text-foreground sm:text-4xl">
           {tokenAmount.toFixed(tokenPlaces)} {tokenCfg.symbol}
         </span>
-        <span className="text-[11px] text-muted-foreground">
+        <span className="text-sm text-muted-foreground">
           ≈ {symbol}
           {scaledFiat.toFixed(2)} listed
           {scale !== 1 && (
@@ -110,7 +110,7 @@ export function LiveTotalCalculator({
         </span>
       </div>
 
-      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground">
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
         <span>
           1 USD ≈{" "}
           <span className="font-mono font-semibold text-foreground">
@@ -119,19 +119,22 @@ export function LiveTotalCalculator({
           {tokenCfg.symbol}
         </span>
         <span>
-          Listed USD:{" "}
+          Listed USD value:{" "}
           <span className="font-mono font-semibold text-foreground">
             ${usdEquivalent.toFixed(2)}
           </span>
         </span>
-        <span className="font-mono text-glow">{formatAmount(atomic, payToken)}</span>
       </div>
 
-      {note && <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">{note}</p>}
+      <div className="mt-3 rounded-lg border border-border/60 bg-background/40 px-3 py-2 font-mono text-[11px] text-glow">
+        {formatAmount(atomic, payToken)}
+      </div>
+
+      {note && <p className="mt-3 text-[11px] leading-snug text-muted-foreground">{note}</p>}
 
       {fx?.stale && (
-        <p className="mt-1 text-[10px] leading-snug text-amber-400/90">
-          FX feed offline — using fallback rates.
+        <p className="mt-2 text-[11px] leading-snug text-amber-400/90">
+          FX feed is offline; using cached/fallback rates. Totals may differ from market prices.
         </p>
       )}
     </div>

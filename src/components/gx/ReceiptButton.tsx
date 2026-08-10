@@ -1,23 +1,15 @@
 import { useState } from "react";
 import { Copy, ExternalLink } from "lucide-react";
 
-/** Pull a 64-char hex hash from an indexer URL, Arcscan URL, or raw hash. */
 function hashFromUrl(url?: string): string | undefined {
-  if (!url) return undefined;
-  const evm = url.match(/0x([0-9a-fA-F]{64})/i);
-  if (evm) return `0x${evm[1]}`;
-  const bare = url.match(/(?:tx=|#tx=|\/tx\/)([0-9a-fA-F]{64})/i);
-  if (bare) return bare[1];
-  if (/^[0-9a-fA-F]{64}$/.test(url)) return url;
-  return undefined;
+  return url?.match(/0x[0-9a-fA-F]{64}/)?.[0];
 }
 
 function shortHash(h: string): string {
-  const hex = h.replace(/^0x/i, "");
-  return `${hex.slice(0, 8)}…${hex.slice(-6)}`;
+  return `${h.slice(0, 8)}…${h.slice(-6)}`;
 }
 
-/** Receipt-first indexer link with a copy-hash affordance. */
+/** Receipt-first Arcscan link with a copy-hash affordance. */
 export function ReceiptButton({ href, label }: { href: string; label?: string }) {
   const hash = hashFromUrl(href);
   const [copied, setCopied] = useState(false);
@@ -25,7 +17,7 @@ export function ReceiptButton({ href, label }: { href: string; label?: string })
   async function copy() {
     if (!hash) return;
     try {
-      await navigator.clipboard.writeText(hash.replace(/^0x/i, ""));
+      await navigator.clipboard.writeText(hash);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -42,7 +34,7 @@ export function ReceiptButton({ href, label }: { href: string; label?: string })
         className="inline-flex min-w-0 items-center gap-2 rounded-full border border-primary/50 bg-primary/15 px-3.5 py-2 text-xs font-black text-foreground transition hover:bg-primary/25"
       >
         <ExternalLink className="h-3.5 w-3.5 shrink-0 text-glow" />
-        <span className="truncate">{label ?? "View on indexer"}</span>
+        <span className="truncate">{label ?? "View receipt on Arcscan"}</span>
         {hash && (
           <span className="hidden font-mono text-[11px] font-bold text-muted-foreground sm:inline">
             {shortHash(hash)}

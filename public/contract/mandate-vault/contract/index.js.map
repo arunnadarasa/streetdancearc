@@ -1,8 +1,0 @@
-{
-  "version": 3,
-  "file": "index.js",
-  "sourceRoot": "../../../../",
-  "sources": ["contracts/MandateVault.compact", "compiler/standard-library.compact"],
-  "names": [],
-  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAWA;;;;;;;;;;;;;MAEA,AAAA,aAcC;;;;;cAbC,aAAsB;cACtB,OAAgB;cAChB,QAAiB;cACjB,QAAgB;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;yCAHhB,aAAsB,+BACtB,OAAgB,+BAChB,QAAiB,+BACjB,QAAgB;;;;;;;;;+CAHhB,aAAsB;+CACtB,OAAgB;+CAChB,QAAiB;+CACjB,QAAgB;;;OAUjB;;;;GAhB6C;EAA9C;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;IARA;;;;;;;;;yEAAsC;IACtC;;;;;;;;;yEAA2C;IAC3C;;;;;;;;;yEAAoC;IACpC;;;;;;;;;yEAAqC;IACrC;;;;;;;;;yEAAoC;UAIpB,KAAc;IAAd;;;;;;;;;;6FAAA,KAAc;;;;wEAAA;;;;;;;GAAgB;ECX9C,AAAA,kBAAA;oEAAA;;;EDSA,AAAA,cAAiC;;0DAAjC,WAAiC;;;;;;;;;;;;;;GAAA;EAIjC,AAAA,gBAcC;;mBAbC,aAAsB;mBACtB,OAAgB;mBAChB,QAAiB;mBACjB,QAAgB;;UAEV,IAAkB;UAClB,IAAwE;yCAAJ,IAAE;0CACrE,IAAE,EAAI,OAAK;;IAClB;;;;;;;2HAA6B,aAAW;;yEAAvB;IACjB;;;;;;;2HAAsB,OAAK;;yEAAjB;IACV;;;;;;;2HAAuB,QAAM;;yEAAlB;IACX;;;;;;;2HAAuB,QAAM;;yEAAlB;UACX,KAAc;IAAd;;;;;;;;;;6FAAA,KAAc;;;;wEAAA;;GACf;;;;;;;;;;;;;;;;;;;;IAxBD;qCAAA;;;;;;;;;;;0GAAsC;KAAA;IACtC;qCAAA;;;;;;;;;;;0GAA2C;KAAA;IAC3C;qCAAA;;;;;;;;;;;0GAAoC;KAAA;IACpC;qCAAA;;;;;;;;;;;0GAAqC;KAAA;IACrC;qCAAA;;;;;;;;;;;0GAAoC;KAAA;;;;;;;;;;"
-}

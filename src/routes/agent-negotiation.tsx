@@ -9,9 +9,9 @@ export const Route = createFileRoute("/agent-negotiation")({
   head: () => ({
     meta: [
       { title: "Agent Negotiation · StreetRail" },
-      { name: "description", content: "AIsa-powered buyer and seller agents negotiate a streetwear deal and settle on Midnight Undeployed." },
+      { name: "description", content: "AIsa-powered buyer and seller agents negotiate a streetwear deal and settle on Arc Testnet." },
       { property: "og:title", content: "Agent Negotiation · StreetRail" },
-      { property: "og:description", content: "AIsa-powered buyer and seller agents negotiate a streetwear deal and settle on Midnight Undeployed." },
+      { property: "og:description", content: "AIsa-powered buyer and seller agents negotiate a streetwear deal and settle on Arc Testnet." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

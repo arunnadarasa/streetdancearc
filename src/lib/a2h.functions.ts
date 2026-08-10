@@ -16,12 +16,7 @@ import {
 } from "@/lib/a2h-engine.server";
 
 const TokenEnum = z.enum(TOKEN_KEYS as [TokenKey, ...TokenKey[]]);
-/** EVM 0x… or Midnight Undeployed mn_addr_… session / Lace addresses. */
-const AddressSchema = z
-  .string()
-  .min(10)
-  .max(120)
-  .regex(/^(0x[0-9a-fA-F]{40}|mn_addr_[a-z0-9]+)$/i);
+const AddressSchema = z.string().regex(/^0x[0-9a-fA-F]{40}$/);
 
 export const listPayouts = createServerFn({ method: "GET" })
   .inputValidator((input: { address?: string }) =>

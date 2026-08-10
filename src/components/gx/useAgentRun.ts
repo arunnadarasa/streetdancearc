@@ -103,7 +103,7 @@ export function useAgentRun(policy: SpendPolicy) {
             status: "ok",
             detail:
               dis.source === "circle"
-                ? `Circle Agent Marketplace returned ${dis.total} x402 resources; StreetRail settles on Midnight Undeployed. Agent selected ${dis.selected} by network + scheme match.`
+                ? `Circle Agent Marketplace returned ${dis.total} x402 resources; ${dis.arcCount} settle on Arc Testnet. Agent selected ${dis.selected} by network + scheme match.`
                 : `Marketplace unreachable (${dis.reason ?? "unknown"}) — falling back to StreetRail's own resource ${dis.selected}.`,
             payloadLabel: "discovery · selected resource",
             payload: dis.resources.find((r: { resource: string }) => r.resource === dis.selected) ?? dis.resources[0],
@@ -220,17 +220,14 @@ export function useAgentRun(policy: SpendPolicy) {
           patch("interrupt", { status: "ok", tone: "green", detail: "Principal approved the spend." });
         }
 
-        // 5 — Settle on Midnight Undeployed (mUSDC x402 facilitator)
+        // 5 — Settle on Arc, in whichever stablecoin the principal selected
         push({
           id: "settle",
-          title: `Transfer ${requirement.amountFormatted} on Midnight`,
+          title: `Transfer ${requirement.amountFormatted} on Arc`,
           status: "running",
         });
-        const embedded =
-          wallets.find((w) => w.walletClientType === "lace") ??
-          wallets.find((w) => w.walletClientType === "privy") ??
-          wallets[0] ??
-          { address: "server-append" };
+        const embedded = wallets.find((w) => w.walletClientType === "privy") ?? wallets[0];
+        if (!embedded?.address) throw new Error("No embedded wallet available.");
         const result = await settleOnArc(
           embedded as Parameters<typeof settleOnArc>[0],
           payToken,
@@ -246,7 +243,6 @@ export function useAgentRun(policy: SpendPolicy) {
           atomic: String(requirement.amount),
           to: requirement.payTo,
           from,
-          status: result.simulated ? "pending" : "success",
         });
         patch("settle", {
           status: "ok",
@@ -288,7 +284,7 @@ export function useAgentRun(policy: SpendPolicy) {
         patch("verify", {
           status: "ok",
           tone: "green",
-          detail: `Merchant verified the transfer on Midnight and released order ${receipt.order_id}.`,
+          detail: `Merchant verified the transfer on Arc and released order ${receipt.order_id}.`,
           payloadLabel: "fulfilment object",
           payload: receipt,
         });

@@ -7,13 +7,12 @@ import { SectionHead } from "@/components/layout/Section";
 import { Reveal } from "@/components/layout/Reveal";
 
 export function MoveRegistry({
-  treasuryAddress: _treasuryAddress,
+  treasuryAddress,
   eyebrow = "Marketplace for moves",
   title = "License a move",
-  blurb = "Beyond the merch: register choreography on Midnight MoveRegistry (Compact). Prove, append the CID, verify via the local indexer.",
+  blurb = "Beyond the merch: register choreography as an on-chain rights record, then license and settle it in stablecoins. Approve, log the CID, get an Arcscan receipt.",
 }: {
-  /** @deprecated unused after Midnight pivot — kept so callers keep compiling */
-  treasuryAddress?: string;
+  treasuryAddress: string;
   eyebrow?: string;
   title?: string;
   blurb?: string;
@@ -24,7 +23,7 @@ export function MoveRegistry({
         <div className="min-w-0 lg:sticky lg:top-28">
           <SectionHead eyebrow={eyebrow} title={title} blurb={blurb} />
           <div className="mt-8">
-            <TreasuryCard />
+            <TreasuryCard address={treasuryAddress} />
           </div>
         </div>
       </Reveal>
@@ -33,6 +32,7 @@ export function MoveRegistry({
           <MintForm />
           <MoveNftGallery />
           <ReceiptHistoryPanel />
+
         </div>
       </Reveal>
     </div>

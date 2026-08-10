@@ -3,9 +3,7 @@
 // MandateVault contract is marked as a future enhancement.
 // Spec: https://github.com/google-agentic-commerce/AP2
 
-import { MIDNIGHT_NETWORK } from "./agent-card";
-/** @deprecated use MIDNIGHT_NETWORK */
-const ARC_CAIP2 = MIDNIGHT_NETWORK;
+import { ARC_CAIP2 } from "./agent-card";
 
 export const AP2_VERSION = "0.1";
 

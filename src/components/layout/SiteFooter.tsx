@@ -1,5 +1,7 @@
 import { FxPriceWidget } from "@/components/fx/FxPriceWidget";
-import { INDEXER_URL } from "@/lib/tokens";
+import { openContractsDrawer } from "@/components/dance/ContractsSheet";
+import { CONTRACTS } from "@/lib/contracts";
+
 
 export function SiteFooter() {
   return (
@@ -8,34 +10,49 @@ export function SiteFooter() {
         <div className="max-w-md">
           <p className="display text-2xl text-foreground">StreetRail</p>
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-            Streetwear + move rights on{" "}
-            <strong className="text-foreground">Midnight Local Undeployed</strong>. Compact
-            MoveRegistry, AP2 MandateVault, UCP OrderLedger, experimental mUSDC. Writes use the
-            genesis wallet (server-append); verify with the local indexer.
+            Built for the Encode Club{" "}
+            <a
+              href="https://www.encodeclub.com/programmes/arc-hackathon"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              Programmable Money Hackathon
+            </a>{" "}
+            — Build on Arc. Agentic Economy track. Running on Circle&apos;s Arc Testnet.
           </p>
+
         </div>
         <div className="flex flex-col items-start gap-4 sm:items-end">
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold text-muted-foreground">
-            <a href="/shop" className="hover:text-foreground">
-              Shop
-            </a>
-            <a href="/moves" className="hover:text-foreground">
-              Moves
-            </a>
-            <a href="/judge" className="hover:text-foreground">
-              Judge run
-            </a>
-            <a href="/deck" className="hover:text-foreground">
-              Deck
-            </a>
+            <a href="/shop" className="hover:text-foreground">Shop</a>
+            <a href="/markets" className="hover:text-foreground">Markets</a>
+            <a href="/judge" className="hover:text-foreground">Judge run</a>
+            <a href="/deck" className="hover:text-foreground">Deck</a>
+            <button
+              type="button"
+              onClick={openContractsDrawer}
+              className="font-semibold hover:text-foreground"
+            >
+              Contracts
+            </button>
             <a
-              href={INDEXER_URL}
+              href={CONTRACTS.find((c) => c.key === "moveNft")?.explorerUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground"
             >
-              Indexer
+              Move Rights NFT
             </a>
+            <a
+              href={CONTRACTS.find((c) => c.key === "market")?.explorerUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground"
+            >
+              MoveMarket v2
+            </a>
+
             <a
               href="https://github.com/arunnadarasa/streetdancearc"
               target="_blank"
@@ -44,7 +61,10 @@ export function SiteFooter() {
             >
               GitHub
             </a>
-            <a href="/.well-known/agent-card.json" className="hover:text-foreground">
+            <a
+              href="/.well-known/agent-card.json"
+              className="hover:text-foreground"
+            >
               Agent card
             </a>
           </div>

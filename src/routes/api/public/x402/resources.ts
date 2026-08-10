@@ -1,73 +1,61 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { MIDNIGHT_NETWORK, MUSDC_ASSET } from "@/lib/agent-card";
-import { defaultMusdcPayTo, corsHeaders, X402_SCHEME } from "@/lib/x402-facilitator";
-import midnight from "@/data/midnight-contract.undeployed.json";
+import { localResource } from "@/lib/discovery.server";
 
-type DeployFile = {
-  contracts?: { midnightUsdc?: { address?: string } };
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "Content-Type, X-PAYMENT",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
 };
 
 /**
- * StreetRail x402 discovery — midnight-mUSDC on Undeployed.
+ * StreetRail published in the Circle Agent Marketplace discovery shape, so an
+ * external agent can consume us exactly the way we consume Circle's catalog.
  */
 export const Route = createFileRoute("/api/public/x402/resources")({
   server: {
     handlers: {
-      OPTIONS: async () => new Response(null, { status: 204, headers: corsHeaders() }),
+      OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       GET: async ({ request }) => {
         const origin = new URL(request.url).origin;
-        const deploy = midnight as DeployFile;
-        const musdc =
-          process.env["VITE_MUSDC_CONTRACT"] ||
-          deploy.contracts?.midnightUsdc?.address ||
-          MUSDC_ASSET;
+        const r = localResource(origin);
         return Response.json(
           {
             x402Version: 2,
             items: [
               {
-                resource: `${origin}/api/public/purchase`,
+                resource: r.resource,
                 type: "http",
                 x402Version: 2,
                 lastUpdated: new Date().toISOString(),
-                accepts: [
-                  {
-                    scheme: X402_SCHEME,
-                    network: MIDNIGHT_NETWORK,
-                    asset: musdc,
-                    payTo: defaultMusdcPayTo(),
-                    amount: "1000",
-                    maxTimeoutSeconds: 300,
-                    extra: {
-                      name: "mUSDC",
-                      version: "1",
-                      facilitator: {
-                        challenge: `${origin}/api/public/x402-challenge`,
-                        verify: `${origin}/api/public/x402-verify`,
-                        settle: `${origin}/api/public/x402-settle`,
-                      },
-                    },
-                  },
-                ],
+                accepts: r.accepts.map((a) => ({
+                  scheme: a.scheme,
+                  network: a.network,
+                  asset: a.asset,
+                  payTo:
+                    process.env["CIRCLE_TREASURY_ADDRESS"] ??
+                    "0x0000000000000000000000000000000000000000",
+                  amount: a.amount,
+                  maxTimeoutSeconds: a.maxTimeoutSeconds,
+                  extra: { name: a.assetName, version: "2" },
+                })),
                 metadata: {
                   provider: {
                     name: "StreetRail",
                     website: origin,
-                    docsUrl: "https://github.com/arunnadarasa/zealymidnight",
-                    description:
-                      "Street dance merch + move rights settled in experimental mUSDC on Midnight Undeployed.",
-                    category: "commerce",
-                    tags: ["midnight", "x402", "mUSDC", "streetwear"],
+                    docsUrl: "https://github.com/arunnadarasa/streetdancearc",
+                    description: r.description,
+                    category: r.category,
+                    tags: r.tags,
                   },
                   path: "/api/public/purchase",
                   method: "POST",
-                  description: "StreetRail storefront purchase (402 → x402 facilitator settle).",
+                  description: r.description,
                   mimeType: "application/json",
                 },
               },
             ],
           },
-          { headers: { ...corsHeaders(), "Cache-Control": "public, max-age=60" } },
+          { headers: { ...CORS, "Cache-Control": "public, max-age=60" } },
         );
       },
     },
