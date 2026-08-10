@@ -1,25 +1,42 @@
 {
-  "contractAddress": "ae3a0541a304fc41668b8b7633fe7b1ce7b953e3bc39bd671f97b3b74be626f1",
+  "contractAddress": "751766c7b11fb95f3eaa3723c36e0fc01f20fe075593452cd8b082cda2fd7642",
   "tokens": [
     {
       "tokenId": "1",
-      "ownerPk": "1ea137f265033c9a0418e43164b4e881d5aa22c83280da3a494ddeea86f0cb8a",
-      "ownerLabel": "mn_addr_seller_demo_aaa",
-      "uri": "{\"kind\":\"move-log\",\"cid\":\"bafyTestMoveNft1\",\"at\":\"2026-08-09T22:55:33.189Z\"}",
-      "name": "Move · bafyTestMoveNft1",
+      "ownerPk": "3b93cc53ea4ae10e53ec0e97e2c0ed901cbcc21df2fd13d0dc9f5270176580fb",
+      "ownerLabel": "mn_addr_buyer_e2e",
+      "uri": "{\"kind\":\"move-log\",\"cid\":\"bafyZ\",\"at\":\"2026-08-10T03:30:34.206Z\"}",
+      "name": "Move · bafyZ",
       "listedPriceAtomic": "0",
       "listed": false,
-      "mintTxId": "004966494d0b14e6f49d1d75c7c4d03543dd38aada6a1e4d95aa7c7eeb204456da",
-      "updatedAt": "2026-08-09T22:56:26.929Z"
+      "mintTxId": "009d5bd255593465d80f8368fd6006a5b86d6c699a94fb27a7d729f8b17264b8d9",
+      "updatedAt": "2026-08-10T03:34:50.181Z"
     }
   ],
   "activity": [
     {
+      "kind": "buy",
+      "tokenId": "1",
+      "txId": "00745bead27783fdc61b613509053d1fe208075fb2b0d99a798dcdc52a75bb9a24",
+      "actor": "mn_addr_buyer_e2e",
+      "counterparty": "b69b5744803eb223b75ffe397aa51c17dde168cb7d282bbae6ef559dfead59be",
+      "priceAtomic": "5000000",
+      "at": "2026-08-10T03:34:50.181Z"
+    },
+    {
+      "kind": "list",
+      "tokenId": "1",
+      "txId": "00de938eb364e78f1772d3c3a24da3ca1d023cc2e9ac1967d6c21ffefda4feb0a5",
+      "actor": "mn_addr_seller_e2e",
+      "priceAtomic": "5000000",
+      "at": "2026-08-10T03:32:14.722Z"
+    },
+    {
       "kind": "mint",
       "tokenId": "1",
-      "txId": "004966494d0b14e6f49d1d75c7c4d03543dd38aada6a1e4d95aa7c7eeb204456da",
-      "actor": "mn_addr_seller_demo_aaa",
-      "at": "2026-08-09T22:56:26.929Z"
+      "txId": "009d5bd255593465d80f8368fd6006a5b86d6c699a94fb27a7d729f8b17264b8d9",
+      "actor": "mn_addr_seller_e2e",
+      "at": "2026-08-10T03:31:26.439Z"
     }
   ]
 }

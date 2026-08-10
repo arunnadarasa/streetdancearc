@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { findDeployedContract } from "@midnight-ntwrk/midnight-js-contracts";
 import {
   CONTRACTS,
@@ -14,7 +14,7 @@ import {
   buildUndeployedProviders,
   initialPrivateStateFor,
 } from "./midnight-providers.server";
-import { musdcTransfer } from "./musdc.server";
+import { musdcFaucet, musdcTransfer } from "./musdc.server";
 import { INDEXER_URL, txExplorerUrl } from "./tokens";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -67,17 +67,17 @@ function writeLedger(ledger: LedgerFile) {
 }
 
 export function readMoveNftAddress(): string {
+  const p = path.join(ROOT, "src/data/midnight-contract.undeployed.json");
+  if (fs.existsSync(p)) {
+    const j = JSON.parse(fs.readFileSync(p, "utf8"));
+    const addr = j.contracts?.moveNft?.address;
+    if (addr) return addr;
+  }
   const env = process.env.VITE_MOVE_NFT_CONTRACT;
   if (env) return env;
-  const p = path.join(ROOT, "src/data/midnight-contract.undeployed.json");
-  if (!fs.existsSync(p)) throw new Error(`Missing ${p}. Run: bun run midnight:deploy`);
-  const j = JSON.parse(fs.readFileSync(p, "utf8"));
-  const addr = j.contracts?.moveNft?.address;
-  if (!addr) throw new Error("No MoveNft address in deploy JSON — redeploy with bun run midnight:deploy");
-  return addr;
+  throw new Error("No MoveNft address — run: bun run midnight:deploy");
 }
 
-/** Map session / Lace address → stable 32-byte owner key for Compact maps. */
 export function ownerPkFromLabel(label: string): Uint8Array {
   const digest = createHash("sha256").update(`movenft:owner:v1:${label.trim()}`).digest();
   return new Uint8Array(digest);
@@ -85,6 +85,12 @@ export function ownerPkFromLabel(label: string): Uint8Array {
 
 export function ownerPkHexFromLabel(label: string): string {
   return bytesToHex(ownerPkFromLabel(label));
+}
+
+/** Local numeric token id → on-chain Bytes<32> map key for mint/list. */
+export function tokenIdBytes(tokenId: string): Uint8Array {
+  const digest = createHash("sha256").update(`movenft:token:v1:${tokenId.trim()}`).digest();
+  return new Uint8Array(digest);
 }
 
 function nameFromUri(uri: string): string {
@@ -101,22 +107,58 @@ function nameFromUri(uri: string): string {
     : `Move · ${trimmed.slice(0, 24)}`;
 }
 
-async function getFound() {
+/**
+ * Fresh genesis wallet per callTx (same pattern as musdc.server).
+ * Only Map.insert of *new* keys is dust-safe; overwrites trip transaction_merge.
+ */
+async function withMoveNft<T>(
+  fn: (ctx: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    found: any;
+    address: string;
+  }) => Promise<T>,
+): Promise<T> {
   const address = readMoveNftAddress();
   const secret = deployerSecretBytes();
-  const { providers } = await buildUndeployedProviders({ contractName: NAME });
-  await providers.privateStateProvider.setContractAddress(address);
-  const compiledContract = await buildCompiledContract({
+  const { providers, midnightWallet } = await buildUndeployedProviders({
     contractName: NAME,
-    secretForDeploy: secret,
   });
-  const found = await findDeployedContract(providers, {
-    compiledContract,
-    contractAddress: address,
-    privateStateId: `${PRIVATE_STATE_ID}-${NAME}`,
-    initialPrivateState: initialPrivateStateFor(NAME, secret),
-  });
-  return { found, address };
+  try {
+    await providers.privateStateProvider.setContractAddress(address);
+    const compiledContract = await buildCompiledContract({
+      contractName: NAME,
+      secretForDeploy: secret,
+    });
+    const found = await findDeployedContract(providers, {
+      compiledContract,
+      contractAddress: address,
+      privateStateId: `${PRIVATE_STATE_ID}-${NAME}`,
+      initialPrivateState: initialPrivateStateFor(NAME, secret),
+    });
+    return await fn({ found, address });
+  } finally {
+    try {
+      await midnightWallet.stop();
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+/** No-op kept for older rail-check scripts. */
+export async function releaseMoveNftProviders() {
+  /* withMoveNft stops the wallet per call */
+}
+
+function assertLocalOwner(tokenId: string, ownerLabel: string) {
+  const ledger = readLedger();
+  const tok = ledger.tokens.find((t) => t.tokenId === tokenId);
+  if (!tok) throw new Error(`token ${tokenId} not in local ledger — mint first`);
+  const pk = ownerPkHexFromLabel(ownerLabel);
+  if (tok.ownerLabel !== ownerLabel.trim() && tok.ownerPk !== pk) {
+    throw new Error(`not owner of #${tokenId} (held by ${tok.ownerLabel})`);
+  }
+  return tok;
 }
 
 function txIdOf(result: { public: { txId?: string; txHash?: string } }): string {
@@ -135,16 +177,17 @@ export async function mintMoveNft(input: {
   ownerPk: string;
   explorerUrl: string;
 }> {
-  const { found, address } = await getFound();
-  const ownerPk = ownerPkFromLabel(input.ownerLabel);
-  const result = await found.callTx.mint(ownerPk, input.uri);
-  const txId = txIdOf(result);
-
   const ledger = readLedger();
-  ledger.contractAddress = address;
   const nextId = String(
     ledger.tokens.reduce((max, t) => Math.max(max, Number(t.tokenId) || 0), 0) + 1,
   );
+  const ownerPk = ownerPkFromLabel(input.ownerLabel);
+  const { txId, address } = await withMoveNft(async ({ found, address }) => {
+    const result = await found.callTx.mint(tokenIdBytes(nextId), ownerPk);
+    return { txId: txIdOf(result), address };
+  });
+
+  ledger.contractAddress = address;
   const record: MoveNftRecord = {
     tokenId: nextId,
     ownerPk: bytesToHex(ownerPk),
@@ -182,18 +225,14 @@ export async function listMoveNft(input: {
 }): Promise<{ txId: string; explorerUrl: string }> {
   const price = BigInt(input.priceAtomic);
   if (price <= 0n) throw new Error("price must be > 0");
-  const { found } = await getFound();
-  const seller = ownerPkFromLabel(input.ownerLabel);
-  const tokenId = BigInt(input.tokenId);
-  const result = await found.callTx.list(tokenId, seller, price);
-  const txId = txIdOf(result);
+  assertLocalOwner(input.tokenId, input.ownerLabel);
+  const txId = await withMoveNft(async ({ found }) => {
+    const result = await found.callTx.listSale(tokenIdBytes(input.tokenId), price);
+    return txIdOf(result);
+  });
 
   const ledger = readLedger();
-  const tok = ledger.tokens.find((t) => t.tokenId === input.tokenId);
-  if (!tok) throw new Error(`token ${input.tokenId} not in local ledger`);
-  if (tok.ownerLabel !== input.ownerLabel.trim() && tok.ownerPk !== bytesToHex(seller)) {
-    throw new Error("not owner");
-  }
+  const tok = ledger.tokens.find((t) => t.tokenId === input.tokenId)!;
   tok.listed = true;
   tok.listedPriceAtomic = price.toString();
   tok.updatedAt = new Date().toISOString();
@@ -213,10 +252,12 @@ export async function cancelMoveNft(input: {
   tokenId: string;
   ownerLabel: string;
 }): Promise<{ txId: string; explorerUrl: string }> {
-  const { found } = await getFound();
-  const seller = ownerPkFromLabel(input.ownerLabel);
-  const result = await found.callTx.cancel(BigInt(input.tokenId), seller);
-  const txId = txIdOf(result);
+  assertLocalOwner(input.tokenId, input.ownerLabel);
+  const listingId = new Uint8Array(randomBytes(32));
+  const txId = await withMoveNft(async ({ found }) => {
+    const result = await found.callTx.cancel(listingId);
+    return txIdOf(result);
+  });
 
   const ledger = readLedger();
   const tok = ledger.tokens.find((t) => t.tokenId === input.tokenId);
@@ -240,11 +281,13 @@ export async function transferMoveNft(input: {
   fromLabel: string;
   toLabel: string;
 }): Promise<{ txId: string; explorerUrl: string }> {
-  const { found } = await getFound();
-  const seller = ownerPkFromLabel(input.fromLabel);
+  assertLocalOwner(input.tokenId, input.fromLabel);
   const buyer = ownerPkFromLabel(input.toLabel);
-  const result = await found.callTx.transfer(BigInt(input.tokenId), seller, buyer);
-  const txId = txIdOf(result);
+  const transferId = new Uint8Array(randomBytes(32));
+  const txId = await withMoveNft(async ({ found }) => {
+    const result = await found.callTx.transfer(transferId, buyer);
+    return txIdOf(result);
+  });
 
   const ledger = readLedger();
   const tok = ledger.tokens.find((t) => t.tokenId === input.tokenId);
@@ -283,15 +326,24 @@ export async function buyMoveNft(input: {
   const priceAtomic = tok.listedPriceAtomic;
   const payeePk = tok.ownerPk;
 
+  try {
+    await musdcFaucet();
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (!/already claimed/i.test(msg)) throw e;
+  }
   const pay = await musdcTransfer({
     toHex: payeePk,
     amountAtomic: priceAtomic,
   });
 
-  const { found } = await getFound();
   const buyer = ownerPkFromLabel(input.buyerLabel);
-  const result = await found.callTx.buy(BigInt(input.tokenId), buyer);
-  const nftTxId = txIdOf(result);
+  // Append-only sale receipt (new map key every time).
+  const saleId = new Uint8Array(randomBytes(32));
+  const nftTxId = await withMoveNft(async ({ found }) => {
+    const result = await found.callTx.buy(saleId, buyer);
+    return txIdOf(result);
+  });
 
   tok.ownerLabel = input.buyerLabel.trim();
   tok.ownerPk = bytesToHex(buyer);
@@ -399,13 +451,15 @@ export function listMoveNftActivity(max = 40) {
       ...a,
       explorerUrl: txExplorerUrl(a.txId),
     })),
-    contract: ledger.contractAddress || (() => {
-      try {
-        return readMoveNftAddress();
-      } catch {
-        return "";
-      }
-    })(),
+    contract:
+      ledger.contractAddress ||
+      (() => {
+        try {
+          return readMoveNftAddress();
+        } catch {
+          return "";
+        }
+      })(),
     indexerUrl: INDEXER_URL,
   };
 }

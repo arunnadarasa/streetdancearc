@@ -96,7 +96,7 @@ function formatUnits(atomic: bigint, decimals: number): string {
 }
 
 const MIDNIGHT_MARKET =
-  "Arc MoveMarket is paused — use Midnight MoveRegistry / mUSDC rails for demo settlement.";
+  "Legacy Arc MoveMarket is off — use Compact MoveNft list/buy on /market (mUSDC settle).";
 
 /** Read every active listing. Never throws. */
 export async function listMarket(max = 24): Promise<{

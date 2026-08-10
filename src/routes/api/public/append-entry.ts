@@ -11,13 +11,15 @@ const InputSchema = z.object({
 });
 
 function defaultContract(): string {
-  const env = process.env.VITE_DEFAULT_CONTRACT;
-  if (env) return env;
+  // Prefer deploy JSON — Vite caches VITE_* across redeploys.
   const p = path.resolve("src/data/midnight-contract.undeployed.json");
   if (fs.existsSync(p)) {
     const j = JSON.parse(fs.readFileSync(p, "utf8"));
     if (j.address) return j.address;
+    if (j.contracts?.moveRegistry?.address) return j.contracts.moveRegistry.address;
   }
+  const env = process.env.VITE_DEFAULT_CONTRACT;
+  if (env) return env;
   throw new Error("No contract address. Run bun run midnight:deploy");
 }
 

@@ -6,41 +6,33 @@ export type Witnesses<PS> = {
 
 export type ImpureCircuits<PS> = {
   mint(context: __compactRuntime.CircuitContext<PS>,
-       to_0: Uint8Array,
-       uri_0: string): __compactRuntime.CircuitResults<PS, []>;
+       tokenId_0: Uint8Array,
+       to_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
+  listSale(context: __compactRuntime.CircuitContext<PS>,
+           tokenId_0: Uint8Array,
+           price_0: bigint): __compactRuntime.CircuitResults<PS, []>;
+  cancel(context: __compactRuntime.CircuitContext<PS>, listingId_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
   transfer(context: __compactRuntime.CircuitContext<PS>,
-           tokenId_0: bigint,
-           seller_0: Uint8Array,
+           transferId_0: Uint8Array,
            buyer_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
-  list(context: __compactRuntime.CircuitContext<PS>,
-       tokenId_0: bigint,
-       seller_0: Uint8Array,
-       price_0: bigint): __compactRuntime.CircuitResults<PS, []>;
-  cancel(context: __compactRuntime.CircuitContext<PS>,
-         tokenId_0: bigint,
-         seller_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
   buy(context: __compactRuntime.CircuitContext<PS>,
-      tokenId_0: bigint,
+      saleId_0: Uint8Array,
       buyer_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
 }
 
 export type ProvableCircuits<PS> = {
   mint(context: __compactRuntime.CircuitContext<PS>,
-       to_0: Uint8Array,
-       uri_0: string): __compactRuntime.CircuitResults<PS, []>;
+       tokenId_0: Uint8Array,
+       to_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
+  listSale(context: __compactRuntime.CircuitContext<PS>,
+           tokenId_0: Uint8Array,
+           price_0: bigint): __compactRuntime.CircuitResults<PS, []>;
+  cancel(context: __compactRuntime.CircuitContext<PS>, listingId_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
   transfer(context: __compactRuntime.CircuitContext<PS>,
-           tokenId_0: bigint,
-           seller_0: Uint8Array,
+           transferId_0: Uint8Array,
            buyer_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
-  list(context: __compactRuntime.CircuitContext<PS>,
-       tokenId_0: bigint,
-       seller_0: Uint8Array,
-       price_0: bigint): __compactRuntime.CircuitResults<PS, []>;
-  cancel(context: __compactRuntime.CircuitContext<PS>,
-         tokenId_0: bigint,
-         seller_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
   buy(context: __compactRuntime.CircuitContext<PS>,
-      tokenId_0: bigint,
+      saleId_0: Uint8Array,
       buyer_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
 }
 
@@ -49,55 +41,42 @@ export type PureCircuits = {
 
 export type Circuits<PS> = {
   mint(context: __compactRuntime.CircuitContext<PS>,
-       to_0: Uint8Array,
-       uri_0: string): __compactRuntime.CircuitResults<PS, []>;
+       tokenId_0: Uint8Array,
+       to_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
+  listSale(context: __compactRuntime.CircuitContext<PS>,
+           tokenId_0: Uint8Array,
+           price_0: bigint): __compactRuntime.CircuitResults<PS, []>;
+  cancel(context: __compactRuntime.CircuitContext<PS>, listingId_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
   transfer(context: __compactRuntime.CircuitContext<PS>,
-           tokenId_0: bigint,
-           seller_0: Uint8Array,
+           transferId_0: Uint8Array,
            buyer_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
-  list(context: __compactRuntime.CircuitContext<PS>,
-       tokenId_0: bigint,
-       seller_0: Uint8Array,
-       price_0: bigint): __compactRuntime.CircuitResults<PS, []>;
-  cancel(context: __compactRuntime.CircuitContext<PS>,
-         tokenId_0: bigint,
-         seller_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
   buy(context: __compactRuntime.CircuitContext<PS>,
-      tokenId_0: bigint,
+      saleId_0: Uint8Array,
       buyer_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
 }
 
 export type Ledger = {
-  readonly next_id: bigint;
   owners: {
     isEmpty(): boolean;
     size(): bigint;
-    member(key_0: bigint): boolean;
-    lookup(key_0: bigint): Uint8Array;
-    [Symbol.iterator](): Iterator<[bigint, Uint8Array]>
-  };
-  uris: {
-    isEmpty(): boolean;
-    size(): bigint;
-    member(key_0: bigint): boolean;
-    lookup(key_0: bigint): string;
-    [Symbol.iterator](): Iterator<[bigint, string]>
+    member(key_0: Uint8Array): boolean;
+    lookup(key_0: Uint8Array): Uint8Array;
+    [Symbol.iterator](): Iterator<[Uint8Array, Uint8Array]>
   };
   listed_price: {
     isEmpty(): boolean;
     size(): bigint;
-    member(key_0: bigint): boolean;
-    lookup(key_0: bigint): bigint;
-    [Symbol.iterator](): Iterator<[bigint, bigint]>
+    member(key_0: Uint8Array): boolean;
+    lookup(key_0: Uint8Array): bigint;
+    [Symbol.iterator](): Iterator<[Uint8Array, bigint]>
   };
-  listed_payee: {
+  sales: {
     isEmpty(): boolean;
     size(): bigint;
-    member(key_0: bigint): boolean;
-    lookup(key_0: bigint): Uint8Array;
-    [Symbol.iterator](): Iterator<[bigint, Uint8Array]>
+    member(key_0: Uint8Array): boolean;
+    lookup(key_0: Uint8Array): Uint8Array;
+    [Symbol.iterator](): Iterator<[Uint8Array, Uint8Array]>
   };
-  readonly last_token_id: bigint;
 }
 
 export type ContractReferenceLocations = any;

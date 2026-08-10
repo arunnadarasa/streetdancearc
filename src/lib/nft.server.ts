@@ -61,7 +61,7 @@ export interface MintResult {
 }
 
 const MIDNIGHT_NFT =
-  "Arc Move NFT minting is paused — register moves via Midnight MoveRegistry (/api/public/append-entry).";
+  "Legacy Arc Move NFT minting is off — use Compact MoveNft via /api/public/move-nft-mint (Prove & mint on /moves).";
 
 /** Mint one move NFT to the dancer, with an ipfs:// token URI. */
 export async function mintMove(params: { to: string; cid: string }): Promise<MintResult> {

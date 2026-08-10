@@ -9,18 +9,18 @@
       "proof": true,
       "arguments": [
         {
+          "name": "tokenId",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        },
+        {
           "name": "to",
           "type": {
             "type-name": "Bytes",
             "length": 32
           }
-        },
-        {
-          "name": "uri",
-          "type": {
-            "type-name": "Opaque",
-            "tsType": "string"
-          }
         }
       ],
       "result-type": {
@@ -30,52 +30,12 @@
       }
     },
     {
-      "name": "transfer",
+      "name": "listSale",
       "pure": false,
       "proof": true,
       "arguments": [
         {
           "name": "tokenId",
-          "type": {
-            "type-name": "Uint",
-            "maxval": 18446744073709551615
-          }
-        },
-        {
-          "name": "seller",
-          "type": {
-            "type-name": "Bytes",
-            "length": 32
-          }
-        },
-        {
-          "name": "buyer",
-          "type": {
-            "type-name": "Bytes",
-            "length": 32
-          }
-        }
-      ],
-      "result-type": {
-        "type-name": "Tuple",
-        "types": [
-        ]
-      }
-    },
-    {
-      "name": "list",
-      "pure": false,
-      "proof": true,
-      "arguments": [
-        {
-          "name": "tokenId",
-          "type": {
-            "type-name": "Uint",
-            "maxval": 18446744073709551615
-          }
-        },
-        {
-          "name": "seller",
           "type": {
             "type-name": "Bytes",
             "length": 32
@@ -101,14 +61,33 @@
       "proof": true,
       "arguments": [
         {
-          "name": "tokenId",
+          "name": "listingId",
           "type": {
-            "type-name": "Uint",
-            "maxval": 18446744073709551615
+            "type-name": "Bytes",
+            "length": 32
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Tuple",
+        "types": [
+        ]
+      }
+    },
+    {
+      "name": "transfer",
+      "pure": false,
+      "proof": true,
+      "arguments": [
+        {
+          "name": "transferId",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
           }
         },
         {
-          "name": "seller",
+          "name": "buyer",
           "type": {
             "type-name": "Bytes",
             "length": 32
@@ -127,10 +106,10 @@
       "proof": true,
       "arguments": [
         {
-          "name": "tokenId",
+          "name": "saleId",
           "type": {
-            "type-name": "Uint",
-            "maxval": 18446744073709551615
+            "type-name": "Bytes",
+            "length": 32
           }
         },
         {
@@ -163,47 +142,27 @@
   ],
   "ledger": [
     {
-      "name": "next_id",
-      "index": 0,
-      "exported": true,
-      "storage": "Counter"
-    },
-    {
       "name": "owners",
-      "index": 1,
+      "index": 0,
       "exported": true,
       "storage": "Map",
       "key": {
-        "type-name": "Uint",
-        "maxval": 18446744073709551615
+        "type-name": "Bytes",
+        "length": 32
       },
       "value": {
         "type-name": "Bytes",
         "length": 32
-      }
-    },
-    {
-      "name": "uris",
-      "index": 2,
-      "exported": true,
-      "storage": "Map",
-      "key": {
-        "type-name": "Uint",
-        "maxval": 18446744073709551615
-      },
-      "value": {
-        "type-name": "Opaque",
-        "tsType": "string"
       }
     },
     {
       "name": "listed_price",
-      "index": 3,
+      "index": 1,
       "exported": true,
       "storage": "Map",
       "key": {
-        "type-name": "Uint",
-        "maxval": 18446744073709551615
+        "type-name": "Bytes",
+        "length": 32
       },
       "value": {
         "type-name": "Uint",
@@ -211,27 +170,17 @@
       }
     },
     {
-      "name": "listed_payee",
-      "index": 4,
+      "name": "sales",
+      "index": 2,
       "exported": true,
       "storage": "Map",
       "key": {
-        "type-name": "Uint",
-        "maxval": 18446744073709551615
+        "type-name": "Bytes",
+        "length": 32
       },
       "value": {
         "type-name": "Bytes",
         "length": 32
-      }
-    },
-    {
-      "name": "last_token_id",
-      "index": 5,
-      "exported": true,
-      "storage": "Cell",
-      "type": {
-        "type-name": "Uint",
-        "maxval": 18446744073709551615
       }
     }
   ]
